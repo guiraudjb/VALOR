@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fr" data-fr-scheme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>V.A.L.O.R.</title>
+    
+    <link rel="stylesheet" href="dsfr-v1.14.3/dist/dsfr/dsfr.min.css">
+    <link rel="stylesheet" href="dsfr-v1.14.3/dist/utility/utility.min.css">
+    <link rel="stylesheet" href="dsfr-v1.14.3/dist/utility/icons/icons.min.css">
+    
+    <style>
+        /* --- GLOBAL --- */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            padding-bottom: 250px; 
+            background: white; 
+            font-family: "Marianne", arial, sans-serif; 
+        }
+        
+        #config-panel { background-color: #f0f0f0; padding: 1.5rem; border-bottom: 4px solid #000091; position: relative; z-index: 100;}
+        
+        /* --- HEADER UI --- */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #ddd; padding-bottom: 1rem; }
+        
+        .header-left-group { display: flex; align-items: center; gap: 2rem; }
+        
+        .fr-header__logo { margin: 0; padding: 0; flex-shrink: 0; }
+        .fr-logo { font-size: 1.1rem; margin: 0; display: block; }
+
+        .brand-block { display: flex; flex-direction: column; padding-left: 2rem; border-left: 1px solid #ddd; }
+        .acronym { font-size: 2rem; font-weight: 900; color: #000091; line-height: 1; }
+        .meaning { font-size: 0.9rem; color: #666; font-style: italic; margin-top: 5px; }
+
+        .about-wrapper { position: relative; display: inline-block; }
+        .btn-about { cursor: pointer; color: #000091; font-weight: 500; background: none; border: none; display: flex; align-items: center; gap: 5px; }
+        
+        .tooltip-content { 
+            visibility: hidden; opacity: 0; position: absolute; top: 100%; right: 0; 
+            width: 450px; background: white; padding: 1.5rem; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #ddd; 
+            border-left: 4px solid #000091; z-index: 2000; transition: opacity 0.2s; 
+            text-align: left;
+        }
+        .about-wrapper:hover .tooltip-content { visibility: visible; opacity: 1; }
+        .tooltip-content h6 { color: #000091; margin-bottom: 0.5rem; }
+        .tooltip-content p, .tooltip-content ul { font-size: 0.85rem; line-height: 1.4; color: #333; }
+        .tooltip-content ul { padding-left: 1.2rem; margin: 0.5rem 0; }
+        .code-block { background: #f5f5f5; padding: 5px; font-family: monospace; border-radius: 4px; display: block; margin-top: 5px;}
+
+        /* --- LISTE DES PAGES (Barre du bas & Scroll auto) --- */
+        .page-list-container { 
+            background: white; 
+            max-height: 180px; 
+            overflow-y: auto; 
+            border: 1px solid #ddd; 
+            padding: 0; 
+            position: relative;
+        }
+        .page-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; border-bottom: 1px solid #eee; background: white; transition: background 0.2s; }
+        .page-item:hover { background: #f9f9f9; }
+        .page-item.is-hidden { opacity: 0.5; background: #f0f0f0; }
+        
+        .page-item.active-page-item {
+            background-color: #f4f6ff;
+            box-shadow: inset 4px 0 0 0 #000091;
+        }
+        
+        .page-item-info { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .page-tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .tag-map { background: #E8EDFF; color: #000091; }
+        .tag-free { background: #FEE9E5; color: #B34000; }
+
+        .page-item-controls { display: flex; align-items: center; gap: 5px; }
+        .input-order { width: 50px; text-align: center; font-weight: bold; border: 1px solid #ddd; padding: 2px; margin-right: 5px; }
+        .input-size { width: 60px; font-size: 0.8rem; padding: 2px; border: 1px solid #ddd; margin-right: 5px; text-align: center; }
+        .btn-icon { background: none; border: none; cursor: pointer; padding: 5px; color: #666; display: flex; align-items: center; justify-content: center; }
+        .btn-icon:hover { color: #000091; background-color: #eee; border-radius: 50%; }
+        .btn-delete:hover { color: #ce0500; }
+
+        /* --- BARRE FLOTTANTE DU BAS --- */
+        .floating-bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f0f0f0;
+            border-top: 4px solid #000091;
+            z-index: 1000;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.15);
+        }
+
+        .structure-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- PAGE LAYOUT (A3 Landscape) --- */
+        #report-container { width: 420mm; margin: 0 auto; background: #555; padding: 20px 0; }
+        
+        .page { width: 420mm; height: 297mm; padding: 10mm 15mm; background: white; display: flex; flex-direction: column; margin: 0 auto 20px auto; overflow: hidden; position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        .page-header { flex-shrink: 0; margin-bottom: 10px; }
+        .header-content { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; }
+        .page-title { color: #000091; font-weight: 800; text-transform: uppercase; font-size: 2.4rem; margin: 0; line-height: 1; }
+        .page-subtitle { font-size: 1.2rem; font-weight: 500; color: #444; }
+        .header-line { height: 4px; background: #000091; width: 100%; }
+        .report-layout { display: flex; flex: 1; gap: 0; min-height: 0; overflow: hidden; }
+        .sidebar-legend { flex: 0 0 16%; display: flex; flex-direction: column; border-right: 1px solid #e5e5e5; padding-right: 20px; margin-right: 20px; }
+        .view-name { color: #000091; font-size: 1.8rem; font-weight: 700; line-height: 1.1; margin: 1rem 0 2rem 0; }
+        .gradient-wrapper { display: flex; gap: 10px; height: 250px; padding-bottom: 20px; }
+        .kpi-subtotal { margin-top: 1rem; border-top: 1px solid #ddd; padding-top: 10px; }
+        .kpi-label { font-size: 0.8rem; text-transform: uppercase; color: #666; font-weight: 700; }
+        .kpi-value { font-size: 1.8rem; font-weight: 800; color: #000091; line-height: 1.2; }
+        .main-content { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; position: relative; }
+        .page-footer { margin-top: auto; font-size: 0.75rem; border-top: 1px solid #000091; padding-top: 6px; color: #666; display: flex; justify-content: space-between; }
+        .map-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; background: radial-gradient(circle at center, #fff 0%, #fafafa 100%); }
+        .d3-map path { stroke: white; stroke-width: 0.2px; transition: opacity 0.2s; cursor: crosshair; }
+        
+        .label-text { font-family: "Marianne", arial, sans-serif; fill: #000091; font-weight: 700; paint-order: stroke; stroke: white; stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+        .label-link { fill: none; stroke: #333; stroke-width: 0.8px; stroke-dasharray: 2,2; opacity: 0.6; pointer-events: none; }
+        .layer-region { fill: none; stroke: #333; stroke-width: 1.5px; pointer-events: none; }
+        .layer-dept { fill: #e3e3fd; } 
+        .layer-commune { fill: transparent; stroke: #ccc; stroke-width: 0.2px; }
+        .d3-tooltip { position: absolute; background: white; padding: 5px 10px; border: 1px solid #000091; font-size: 0.8rem; pointer-events: none; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .table-page-content { flex: 1; overflow: hidden; padding-right: 0; display: flex; flex-direction: column; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; table-layout: fixed; }
+        .data-table th { background: #f6f6f6; border-bottom: 2px solid #000091; color: #000091; font-weight: 800; text-transform: uppercase; padding: 10px 12px; text-align: left; }
+        .data-table td { padding: 8px 12px; border-bottom: 1px solid #e5e5e5; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .data-table tr:nth-child(even) { background-color: #fcfcfc; }
+        .col-code { width: 90px; font-weight: bold; font-family: monospace; color: #000091; }
+        .col-val { width: 140px; text-align: right !important; font-family: monospace; font-weight: bold; }
+
+        /* --- WYSIWYG EDITOR STYLES --- */
+        .editor-container { border: 1px solid #ddd; background: #fff; display: flex; flex-direction: column; height: 60vh; }
+        .editor-toolbar { background: #f5f5f5; padding: 8px; border-bottom: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        .editor-btn { background: white; border: 1px solid #ccc; cursor: pointer; padding: 5px 10px; font-size: 0.9rem; font-weight: bold; border-radius: 4px; min-width: 30px; display: flex; align-items: center; justify-content: center;}
+        .editor-btn:hover { background: #e0e0e0; color: #000091; }
+        
+        .wysiwyg-editor { 
+            flex: 1; 
+            padding: 2rem; 
+            overflow-y: auto; 
+            outline: none; 
+            font-family: "Marianne", arial, sans-serif; 
+            background: #f6f6f6; 
+            border-left: 4px solid #000091; 
+            font-size: 1.2rem; 
+            line-height: 1.6; 
+            color: #161616;
+        }
+
+        .wysiwyg-editor h2, .wysiwyg-editor h3 { color: #000091; margin-top: 0; }
+        .wysiwyg-editor h2 { border-bottom: 2px solid #000091; padding-bottom: 5px; }
+        .wysiwyg-editor table { width: 100%; border-collapse: collapse; background: white; margin: 10px 0; }
+        .wysiwyg-editor th, .wysiwyg-editor td { border: 1px solid #ddd; padding: 8px; }
+        
+        .separator { border-right: 1px solid #ccc; margin: 0 5px; height: 20px; align-self: center; }
+        .source-editor { flex: 1; padding: 20px; background: #2d2d2d; color: #eee; font-family: monospace; font-size: 0.9rem; border: none; resize: none; outline: none; line-height: 1.4; display: none; }
+        .btn-source { background-color: #000091; color: white; border: none; }
+        .btn-source:hover { background-color: #1212ff; color: white; }
+
+        .free-slide-content { background: #f6f6f6; height: 100%; padding: 2rem; border-left: 4px solid #000091; overflow-y: hidden; white-space: normal; font-size: 1.2rem; line-height: 1.6; color: #161616; position: relative; z-index: 1;}
+        .free-slide-content h2, .free-slide-content h3 { color: #000091; }
+        .free-slide-content table { width: 100%; border-collapse: collapse; background: white; }
+        .free-slide-content th, .free-slide-content td { border: 1px solid #ddd; padding: 8px; }
+
+        .slide-custom-logo { 
+            position: absolute; 
+            top: 10mm; 
+            right: 10mm; 
+            height: 80px; 
+            width: auto; 
+            z-index: 10; 
+            object-fit: contain; 
+        }
+
+        @media print {
+            @page { size: A3 landscape; margin: 0; }
+            body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            #config-panel, .floating-bottom-bar { display: none !important; }
+            #report-container { width: 100%; margin: 0; padding: 0; background: none; }
+            .page { margin: 0; page-break-after: always; box-shadow: none; width: 420mm; height: 297mm; overflow: hidden; display: flex; flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div id="config-panel">
+        <div class="fr-container-fluid">
+            <div class="top-bar">
+                <div class="header-left-group">
+                    <div class="fr-header__brand fr-enlarge-link">
+                        <div class="fr-header__brand-top">
+                            <div class="fr-header__logo">
+                                <p class="fr-logo" id="main-brand-text">
+                                    Direction Générale<br>des jolies cartes
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="brand-block">
+                        <span class="acronym">V.A.L.O.R.</span>
+                        <span class="meaning">Visualisation Automatisée de Lectures et d'Observations Régionales</span>
+                    </div>
+                </div>
+
+                <div class="about-wrapper">
+                    <button class="btn-about"><span class="fr-icon-information-line"></span> À propos</button>
+                    <div class="tooltip-content">
+                        <h6>Format des données à importer</h6>
+                        <p>Le fichier doit être au format <strong>CSV</strong> (séparateur point-virgule ou virgule).</p>
+                        <ul>
+                            <li><strong>Colonne 1 :</strong> Code Géographique (Code INSEE)</li>
+                            <li><strong>Colonne 2 :</strong> Valeur numérique</li>
+                        </ul>
+                        <p><strong>Exemples de codes :</strong></p>
+                        <span class="code-block">01 (Ain)<br>01001 (L'Abergement-Clémenciat)</span>
+                        <p class="fr-mt-2v fr-text--sm">L'application détecte automatiquement s'il s'agit de départements ou de communes en fonction de la longueur des codes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--bottom">
+                <div class="fr-col-3">
+                    <label class="fr-label">1. Données (CSV)</label>
+                    <input class="fr-upload" type="file" id="csv-file" accept=".csv">
+                </div>
+                
+                <div class="fr-col-6">
+                    <div class="fr-grid-row fr-grid-row--gutters">
+                        <div class="fr-col-6">
+                            <label class="fr-label">Titre</label>
+                            <input class="fr-input" type="text" id="input-titre" value="Analyse Territoriale">
+                            <label class="fr-label fr-mt-2v">Date</label>
+                            <input class="fr-input" type="text" id="input-date" value="02/02/2026">
+                        </div>
+                        <div class="fr-col-6">
+                            <label class="fr-label">Source</label>
+                            <input class="fr-input" type="text" id="input-footer-left" value="Source: V.A.L.O.R.">
+                            <label class="fr-label fr-mt-2v">Crédit</label>
+                            <input class="fr-input" type="text" id="input-footer-right" value="Généré par V.A.L.O.R.">
+                        </div>
+                    </div>
+
+                    <div class="fr-grid-row fr-grid-row--gutters fr-mt-2v">
+                        <div class="fr-col-6">
+                            <label class="fr-label">Bloc Marque (Ligne 1)</label>
+                            <input class="fr-input" type="text" id="input-brand-1" value="Direction Générale">
+                        </div>
+                        <div class="fr-col-6">
+                            <label class="fr-label">Bloc Marque (Ligne 2)</label>
+                            <input class="fr-input" type="text" id="input-brand-2" value="des jolies cartes">
+                        </div>
+                    </div>
+
+                    <div class="fr-grid-row fr-grid-row--gutters fr-mt-2v">
+                        <div class="fr-col-6">
+                            <label class="fr-label">Mode de Rapport</label>
+                            <select class="fr-select" id="select-report-mode">
+                                <option value="mode-nat-reg" selected>France Entière + Régions</option>
+                                <option value="mode-nat-del">France Entière + Délégations</option>
+                                <option value="mode-dep-com">Département + Communes</option>
+                            </select>
+                            <div id="wrapper-select-dept" class="fr-mt-1v" style="display:none;">
+                                <label class="fr-label">Choix Département</label>
+                                <select class="fr-select" id="select-dept-target"></select>
+                            </div>
+                        </div>
+                        <div class="fr-col-6">
+                            <label class="fr-label">Palette</label>
+                            <select class="fr-select" id="select-palette">
+                                <option value="sequentialDescending" selected>Séquentielle (Clair vers Foncé)</option>
+                                <option value="sequentialAscending">Séquentielle Inverse (Foncé vers Clair)</option>
+                                <option value="divergentDescending">Divergente (Vert-Jaune-Rouge)</option>
+                                <option value="divergentAscending">Divergente (Rouge-Jaune-Vert)</option>
+                                <option value="categorical">Catégorielle</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="fr-mt-2v" style="border-top:1px solid #ddd; padding-top:10px;">
+                        <div class="fr-grid-row">
+                            <div class="fr-col-12">
+                                <h6 class="fr-text--sm fr-mb-1v" style="color:#000091">Affichage & Options :</h6>
+
+                                <div class="fr-checkbox-group fr-checkbox-group--inline">
+                                    <input type="checkbox" id="check-show-subtotal" checked>
+                                    <label class="fr-label" for="check-show-subtotal">Afficher Sous-total</label>
+                                </div>
+                                <div class="fr-mt-1v">
+                                    <div class="fr-checkbox-group fr-checkbox-group--inline">
+                                        <input type="checkbox" id="check-show-maps" checked>
+                                        <label class="fr-label" for="check-show-maps">Cartes</label>
+                                    </div>
+                                    <div class="fr-checkbox-group fr-checkbox-group--inline">
+                                        <input type="checkbox" id="check-show-tables" checked>
+                                        <label class="fr-label" for="check-show-tables">Tableaux (Global)</label>
+                                    </div>
+                                    <div class="fr-checkbox-group fr-checkbox-group--inline">
+                                        <input type="checkbox" id="check-show-freepages" checked>
+                                        <label class="fr-label" for="check-show-freepages">Pages Libres</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fr-col-3 fr-text--right">
+                    <button class="fr-btn fr-icon-printer-line fr-btn--lg" id="btn-export">Exporter PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <dialog aria-labelledby="modal-title" role="dialog" id="modal-edit-slide" class="fr-modal">
+        <div class="fr-container fr-container--fluid fr-container-md">
+            <div class="fr-grid-row fr-grid-row--center">
+                <div class="fr-col-12 fr-col-md-11 fr-col-lg-10">
+                    <div class="fr-modal__body">
+                        <div class="fr-modal__header"><button class="fr-btn--close fr-btn" id="btn-close-modal">Fermer</button></div>
+                        <div class="fr-modal__content">
+                            <h1 class="fr-modal__title">Éditeur de diapositive</h1>
+                            <input type="hidden" id="edit-slide-id">
+                            
+                            <div class="fr-grid-row fr-grid-row--gutters">
+                                <div class="fr-col-6">
+                                    <label class="fr-label">Titre de la diapo</label>
+                                    <input class="fr-input" type="text" id="slide-title" placeholder="Mon titre">
+                                </div>
+                                <div class="fr-col-6">
+                                    <label class="fr-label">Logo personnalisé (Haut-Droite)</label>
+                                    <input class="fr-upload" type="file" id="input-custom-logo" accept="image/*">
+                                </div>
+                            </div>
+
+                            <label class="fr-label fr-mt-2v">Contenu</label>
+                            
+                            <div class="editor-container">
+                                <div class="editor-toolbar">
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="execCmd('bold')" title="Gras"><b>B</b></button>
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="execCmd('italic')" title="Italique"><i>I</i></button>
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="execCmd('underline')" title="Souligné"><u>U</u></button>
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="execCmd('removeFormat')" title="Effacer le style"><span class="fr-icon-delete-bin-line"></span></button>
+                                    
+                                    <span class="separator"></span>
+
+                                    <input type="color" class="editor-btn" style="padding:0; width:30px; height:30px; cursor:pointer;" onchange="execCmd('foreColor', this.value)" title="Couleur du texte">
+                                    <input type="color" class="editor-btn" style="padding:0; width:30px; height:30px; cursor:pointer;" value="#ffff00" onchange="execCmd('backColor', this.value)" title="Couleur de surlignage">
+                                    
+                                    <span class="separator"></span>
+
+                                    <select class="editor-btn" style="width: auto; padding: 4px;" onchange="execCmd('fontSize', this.value); this.selectedIndex=0;" title="Taille de la police">
+                                        <option value="">Taille...</option>
+                                        <option value="1">Très petit</option>
+                                        <option value="2">Petit</option>
+                                        <option value="3">Normal</option>
+                                        <option value="5">Grand</option>
+                                        <option value="7">Très grand</option>
+                                    </select>
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="execCmd('formatBlock', 'H2')" title="Grand Titre">H2</button>
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="execCmd('formatBlock', 'H3')" title="Petit Titre">H3</button>
+                                    
+                                    <span class="separator"></span>
+                                    
+                                    <input type="file" id="wysiwyg-image-upload" accept="image/*" style="display:none;" onchange="insertWysiwygImage(this)">
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="document.getElementById('wysiwyg-image-upload').click()" title="Insérer une image"><span class="fr-icon-image-line"></span></button>
+
+                                    <select class="editor-btn" style="width: auto; padding: 4px;" onchange="execCmd('insertHTML', this.value); this.selectedIndex=0;" title="Insérer un émoticon">
+                                        <option value="">😀 Emoji...</option>
+                                        <option value="💡">💡 Idée</option>
+                                        <option value="⚠️">⚠️ Attention</option>
+                                        <option value="✅">✅ Validé</option>
+                                        <option value="❌">❌ Refusé</option>
+                                        <option value="📊">📊 Graphique</option>
+                                        <option value="📈">📈 Hausse</option>
+                                        <option value="📉">📉 Baisse</option>
+                                        <option value="📌">📌 Épingle</option>
+                                        <option value="🌍">🌍 Carte</option>
+                                    </select>
+
+                                    <span class="separator"></span>
+                                    
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="execCmd('justifyLeft')" title="Gauche"><span class="fr-icon-align-left"></span></button>
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="execCmd('justifyCenter')" title="Centrer"><span class="fr-icon-align-center"></span></button>
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="insertCustomList('ul')" title="Liste à puces"><span class="fr-icon-list-unordered"></span></button>
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="insertCustomList('ol')" title="Liste numérotée"><span class="fr-icon-list-ordered"></span></button>
+                                    
+                                    <span class="separator"></span>
+                                    
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="insertDynamicTable()" title="Insérer Tableau (Lignes/Colonnes)"><span class="fr-icon-table-line"></span></button>
+                                    <button class="editor-btn" onmousedown="event.preventDefault();" onclick="insertMarianne()" title="Insérer Marianne (Bloc Marque)"><img src="dsfr-v1.14.3/dist/favicon/favicon.svg" style="height:16px; vertical-align:middle;"></button>
+                                    
+                                    <span class="separator" style="flex:1"></span>
+                                    
+                                    <button class="editor-btn btn-source" onclick="toggleSourceMode()" title="Voir le Code HTML">&lt;/&gt; Code</button>
+                                </div>
+
+                                <div id="visual-editor" class="wysiwyg-editor" contenteditable="true">
+                                    <p>Cliquez ici pour rédiger votre contenu...</p>
+                                </div>
+
+                                <textarea id="source-editor" class="source-editor"></textarea>
+                            </div>
+                        </div>
+                        <div class="fr-modal__footer">
+                            <button class="fr-btn" id="btn-save-slide">Enregistrer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <div id="report-container"></div>
+    <div id="d3-tooltip" class="d3-tooltip"></div>
+
+    <div id="structure-panel" class="floating-bottom-bar">
+        <div class="fr-container-fluid">
+            <div class="structure-header">
+                <h6 class="fr-h6" style="margin: 0; color: #000091;">Structure du rapport</h6>
+                <div class="fr-btns-group fr-btns-group--inline">
+                    <button class="fr-btn fr-btn--secondary fr-btn--sm" id="btn-add-slide">Ajouter diapo libre</button>
+                    <button class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm" id="btn-reset-structure">Réinitialiser tout</button>
+                </div>
+            </div>
+            <div id="pages-list" class="page-list-container"></div>
+        </div>
+    </div>
+
+    <script src="libs/papaparse.min.js"></script>
+    <script src="libs/d3.v7.min.js"></script>
+    <script src="libs/topojson.v3.min.js"></script>
+    <script type="module" src="dsfr-v1.14.3/dist/dsfr/dsfr.module.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
