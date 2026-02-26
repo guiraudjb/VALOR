@@ -14,8 +14,8 @@ import {
 } from '../features/chartGenerator.js';
 
 export function setupUIListeners() {
-	
-	
+    
+    
     const btnAddChartSlide = document.getElementById('btn-add-chart-slide');
     if (btnAddChartSlide) btnAddChartSlide.onclick = openChartModal;
 
@@ -47,13 +47,16 @@ export function setupUIListeners() {
 
     // --- 2. ACTIONS LOURDES : On marque le rapport comme "Dirty" (Bouton Actualiser) ---
     
-    // Le nouveau bouton "Actualiser le rapport"
+// Le nouveau bouton "Actualiser le rapport"
     const btnActualiser = document.getElementById('btn-actualiser');
     if (btnActualiser) {
         btnActualiser.onclick = () => {
-            // L'utilisateur valide : on recalcule tout selon qu'on change de structure ou juste de données
-            // Si le mode a changé, on reconstruit, sinon on regénère juste
-            generateReport();
+            if (appState.isStructureDirty) {
+                buildDefaultStructure();
+                appState.isStructureDirty = false; // On redescend le drapeau
+            } else {
+                generateReport();
+            }
             clearDirty();
         };
     }
@@ -74,14 +77,17 @@ export function setupUIListeners() {
             if (wDept) wDept.style.display = (val === 'mode-dep-com') ? 'block' : 'none';
             if (wDel) wDel.style.display = (val === 'mode-nat-del') ? 'block' : 'none';
             if (wEpci) wEpci.style.display = (val === 'mode-epci') ? 'block' : 'none';
-            
+            appState.isStructureDirty = true;
             markAsDirty(); // Remplacé buildDefaultStructure par markAsDirty
         };
     }
 
     // Changement de la cible (Ex: choix d'un autre département)
     const selectDept = document.getElementById('select-dept-target'); 
-    if (selectDept) selectDept.onchange = markAsDirty; 
+    if (selectDept) selectDept.addEventListener('change', () => { 
+        appState.isStructureDirty = true;
+        markAsDirty(); 
+    });
 
     // Changement du mode de calcul (Somme, Ratio, etc.)
     const selectCalcMode = document.getElementById('select-calc-mode');
@@ -101,6 +107,13 @@ export function setupUIListeners() {
             markAsDirty(); 
         });
     }
+    
+    // 3. Changement d'EPCI
+    const selectEpci = document.getElementById('select-epci-id');
+    if (selectEpci) selectEpci.addEventListener('change', () => { 
+        appState.isStructureDirty = true;
+        markAsDirty(); 
+    });
 
     // Changement de la base pour les parts
     const selectShareBase = document.getElementById('select-share-base');
@@ -199,7 +212,12 @@ export function setupUIListeners() {
     const modalDel = document.getElementById('modal-manage-delegations');
     document.getElementById('btn-open-del-modal').onclick = () => { renderDelegationList(); resetDelegationForm(); modalDel.classList.add('fr-modal--opened'); modalDel.showModal(); };
     document.getElementById('btn-close-del-modal').onclick = () => { modalDel.classList.remove('fr-modal--opened'); modalDel.close(); };
-    document.getElementById('btn-apply-delegations').onclick = () => { modalDel.classList.remove('fr-modal--opened'); modalDel.close(); buildDefaultStructure(); };
+document.getElementById('btn-apply-delegations').onclick = () => { 
+    modalDel.classList.remove('fr-modal--opened'); 
+    modalDel.close(); 
+    appState.isStructureDirty = true; 
+    markAsDirty(); 
+};
     document.getElementById('btn-save-delegation').onclick = handleSaveDelegation;
     document.getElementById('btn-cancel-delegation').onclick = resetDelegationForm;
     document.getElementById('btn-reset-delegations').onclick = () => {

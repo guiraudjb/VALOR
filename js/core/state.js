@@ -1,4 +1,5 @@
 export const appState = {
+    isStructureDirty: false,
     geoData: {},
     userData: [],
     sourceGranularity: 'dep',

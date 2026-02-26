@@ -61,7 +61,7 @@ export function handleScaleChange() {
             opt.value = r.code; opt.textContent = r.label;
             selectEntity.appendChild(opt);
         });
-    } else if (scale === 'del_by_dep') {
+    } else if (scale === 'del_by_dep' || scale === 'del_multi'){
         labelEntity.textContent = 'Délégation cible';
         wrapperEntity.style.display = 'block';
         appState.customDelegations.forEach((del, index) => {
@@ -229,11 +229,12 @@ export function saveChartSlide() {
     const scale = document.getElementById('chart-select-scale').value;
     const type = document.getElementById('chart-select-type').value;
     
-	let entity = document.getElementById('chart-select-entity').value;
+    let entity = document.getElementById('chart-select-entity').value;
     if (scale === 'com_multi') {
         // L'utilisateur peut taper "75056" ou "75056 - Paris", on ne garde que le code
         entity = document.getElementById('chart-input-com').value.split(' ')[0].trim();
-    }    
+    }
+    
     // NOUVEAU : On récupère l'état de toutes les cases
     const isHorizontal = document.getElementById('chart-opt-horizontal').checked;
     const showMean = document.getElementById('chart-opt-mean').checked;
@@ -248,7 +249,7 @@ export function saveChartSlide() {
     if (selectedMetrics.length === 0) { alert("Veuillez sélectionner au moins une valeur."); return; }
     if (scale !== 'france' && !entity) { alert("Veuillez sélectionner une entité cible."); return; }
 
-// --- GÉNÉRATION AUTOMATIQUE DU TITRE ---
+    // --- GÉNÉRATION AUTOMATIQUE DU TITRE ---
     if (!title) {
         // On détermine le libellé de la métrique
         const metricLabel = selectedMetrics.length === 1 ?
@@ -271,7 +272,8 @@ export function saveChartSlide() {
             title = `${entityName} - ${metricLabel}`;
         }
     }
-let focus = null;
+    
+    let focus = null;
     let gran = 'dep';
 
     // -- Modes classiques (Comparaison) --
@@ -285,6 +287,7 @@ let focus = null;
         const communes = appState.refData.epciList.filter(r => r.EPCI === entity).map(r => r.CODGEO); 
         focus = { type: 'epci', code: entity, list: communes }; gran = 'com'; 
     }
+    
     // -- NOUVEAUX MODES MULTIVALEURS --
     else if (scale === 'france_multi') { gran = 'dep'; focus = null; } // On agrège tous les départements
     else if (scale === 'reg_multi') { gran = 'reg'; focus = { type: 'region', code: entity }; }
@@ -292,6 +295,11 @@ let focus = null;
     else if (scale === 'epci_multi') { 
         const communes = appState.refData.epciList.filter(r => r.EPCI === entity).map(r => r.CODGEO); 
         focus = { type: 'epci', code: entity, list: communes }; gran = 'com'; 
+    }
+    else if (scale === 'del_multi') {  // <--- CORRECTION AJOUTÉE ICI !
+        gran = 'dep';
+        const delegation = appState.customDelegations[parseInt(entity)];
+        if (delegation) focus = { type: 'delegation', list: delegation.depCodes };
     }
     else if (scale === 'com_multi') { 
         gran = 'com'; 
@@ -324,7 +332,6 @@ let focus = null;
     updatePagesListUI(); generateReport();
     setTimeout(() => { if (window.scrollToPage) { window.scrollToPage(finalId); } }, 150);
 }
-
 // Attaché à Window pour les boutons "Éditer" de la liste (générés en HTML)
 window.editChartSlide = (id) => {
     const page = appState.pages.find(p => p.id === id);

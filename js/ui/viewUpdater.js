@@ -89,7 +89,7 @@ export function populateEpciIdSelect() {
     const epcis = new Map();
     appState.refData.epciList.filter(r => r.DEP === dep).forEach(r => { if (r.EPCI && r.LIBEPCI) epcis.set(r.EPCI, r.LIBEPCI); });
     Array.from(epcis.keys()).sort().forEach(id => { const opt = document.createElement('option'); opt.value = id; opt.innerText = epcis.get(id); sel.appendChild(opt); });
-    sel.onchange = buildDefaultStructure;
+    sel.onchange = () => { appState.isStructureDirty = true; markAsDirty(); };
 }
 
 export function updateMetricControls() {

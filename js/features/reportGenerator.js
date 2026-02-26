@@ -369,6 +369,11 @@ const isMultiScale = page.chartConfig.scale.endsWith('_multi');
             }
             else if (page.chartConfig.scale === 'com_multi') entityName = appState.refData.communes.get(page.chartConfig.entity) || page.chartConfig.entity;
 
+            else if (page.chartConfig.scale === 'del_multi') {
+                const delegation = appState.customDelegations[parseInt(page.chartConfig.entity)];
+                entityName = delegation ? delegation.label : page.chartConfig.entity;
+            }
+            
             // 3. Construction des axes selon le type de graphique
 			if (page.chartConfig.type === 'pie' || page.chartConfig.type === 'line' || page.chartConfig.type === 'radar') {
                 // Pour Camembert / Courbe / Radar : 1 seule série (l'entité), et N points/axes (les métriques)

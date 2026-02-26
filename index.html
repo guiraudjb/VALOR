@@ -47,30 +47,30 @@
                 </div>
               
                 <div class="fr-mt-4w fr-pt-2w" style="border-top: 1px solid #ddd;">
-					<h6 class="fr-text--xs fr-mb-1v" style="color: #666; text-transform: uppercase;">Sécurité & Confidentialité</h6>
-					<button id="btn-wipe-data" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-delete-line fr-btn--icon-left" 
-							style="color: #ce0500; box-shadow: inset 0 0 0 1px #ce0500;">
-						Réinitialiser l'application
-					</button>
-<p class="fr-text--xs fr-mt-1v" style="color: #929292;">
-						Supprime définitivement le panier et les réglages de ce navigateur.
-					</p>
-				</div>
+                    <h6 class="fr-text--xs fr-mb-1v" style="color: #666; text-transform: uppercase;">Sécurité & Confidentialité</h6>
+                    <button id="btn-wipe-data" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-delete-line fr-btn--icon-left" 
+                            style="color: #ce0500; box-shadow: inset 0 0 0 1px #ce0500;">
+                        Réinitialiser l'application
+                    </button>
+                    <p class="fr-text--xs fr-mt-1v" style="color: #929292;">
+                        Supprime définitivement le panier et les réglages de ce navigateur.
+                    </p>
+                </div>
               
               
             </div>
 
             <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--bottom">
                 <div class="fr-col-3">
-					<label class="fr-label">1. Données (CSV)</label>
+                    <label class="fr-label">1. Données (CSV)</label>
                     <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-2v">
 
                     
                         <p class="fr-text--xs">
-						<strong>RGPD :</strong> Le traitement s'effectue localement dans votre navigateur. 
-						Assurez-vous que vos données respectent le <strong>secret statistique</strong> (règle des 5 unités) avant toute diffusion.
-						</p>
-						</div>
+                        <strong>RGPD :</strong> Le traitement s'effectue localement dans votre navigateur. 
+                        Assurez-vous que vos données respectent le <strong>secret statistique</strong> (règle des 5 unités) avant toute diffusion.
+                        </p>
+                        </div>
                     
                     <input class="fr-upload" type="file" id="csv-file" accept=".csv">
 
@@ -210,9 +210,9 @@
                     <button class="fr-btn fr-icon-printer-line fr-btn--lg fr-mt-2v" style="width:100%"
                         id="btn-export">Exporter PDF (Aperçu direct)</button>
                     <button id="btn-actualiser" class="fr-btn fr-icon-refresh-line fr-btn--icon-left fr-mt-4v" 
-						style="display: none; width: 100%; justify-content: center; background-color: #f66d22;">
-						Actualiser le rapport
-					</button>
+                        style="display: none; width: 100%; justify-content: center; background-color: #f66d22;">
+                        Actualiser le rapport
+                    </button>
                 </div>
             </div>
         </div>
@@ -411,8 +411,8 @@
                                     title="Charger un projet existant">Importer</button>
                             </div>
                             <div style="display: flex; gap: 10px;">
-								<button class="fr-btn fr-btn--icon-left fr-icon-layout-line" id="btn-cart-to-editor">
-								Transférer vers l'éditeur</button>
+                                <button class="fr-btn fr-btn--icon-left fr-icon-layout-line" id="btn-cart-to-editor">
+                                Transférer vers l'éditeur</button>
                                 <button class="fr-btn fr-icon-printer-line fr-btn--icon-left"
                                     onclick="window.printCart()">Générer le PDF</button>
                                 <button class="fr-btn fr-btn--secondary fr-icon-delete-bin-line fr-btn--icon-left"
@@ -464,41 +464,41 @@
                                 <label class="fr-label">Titre (Optionnel)</label>
                                 <input class="fr-input fr-mb-2w" type="text" id="chart-slide-title" placeholder="Généré automatiquement si vide">
 
-								<label class="fr-label" style="color:#000091; font-weight:bold;">1. Périmètre Géographique</label>
-								<select class="fr-select fr-mb-2v" id="chart-select-scale">
-									<optgroup label="Comparaison de territoires (1 à N métriques)">
-										<option value="france">Nationale (Détail par Département)</option>
-										<option value="reg_by_dep">Région (Détail par Département)</option>
-										<option value="del_by_dep">Délégation (Détail par Département)</option>
-										<option value="dep_by_com">Département (Détail par Commune)</option>
-										<option value="epci_by_com">EPCI (Détail par Commune)</option>
-									</optgroup>
-									<optgroup label="Analyse d'un territoire (Multivaleurs)">
-										<option value="france_multi">France entière (Agrégée)</option>
-										<option value="reg_multi">Région spécifique</option>
-										<option value="dep_multi">Département spécifique</option>
-										<option value="epci_multi">EPCI spécifique</option>
-										<option value="com_multi">Commune spécifique</option>
-									</optgroup>
-								</select>
-								
-								<div id="chart-epci-filters" style="display:none; background:#f6f6f6; padding:10px; border-left:2px solid #000091;" class="fr-mb-2v">
-									<label class="fr-label fr-text--sm">Filtre Région</label>
-									<select class="fr-select fr-select--sm fr-mb-1v" id="chart-select-epci-reg"></select>
-									<label class="fr-label fr-text--sm">Filtre Département</label>
-									<select class="fr-select fr-select--sm" id="chart-select-epci-dep"></select>
-								</div>
+                                <label class="fr-label" style="color:#000091; font-weight:bold;">1. Périmètre Géographique</label>
+                                <select class="fr-select fr-mb-2v" id="chart-select-scale">
+                                    <optgroup label="Comparaison de territoires (1 à N métriques)">
+                                        <option value="france">Nationale (Détail par Département)</option>
+                                        <option value="reg_by_dep">Région (Détail par Département)</option>
+                                        <option value="del_by_dep">Délégation (Détail par Département)</option>
+                                        <option value="dep_by_com">Département (Détail par Commune)</option>
+                                        <option value="epci_by_com">EPCI (Détail par Commune)</option>
+                                    </optgroup>
+                                    <optgroup label="Analyse d'un territoire (Multivaleurs)">
+                                        <option value="france_multi">France entière (Agrégée)</option>
+                                        <option value="reg_multi">Région spécifique</option>
+                                        <option value="dep_multi">Département spécifique</option>
+                                        <option value="epci_multi">EPCI spécifique</option>
+                                        <option value="com_multi">Commune spécifique</option>
+                                    </optgroup>
+                                </select>
+                                
+                                <div id="chart-epci-filters" style="display:none; background:#f6f6f6; padding:10px; border-left:2px solid #000091;" class="fr-mb-2v">
+                                    <label class="fr-label fr-text--sm">Filtre Région</label>
+                                    <select class="fr-select fr-select--sm fr-mb-1v" id="chart-select-epci-reg"></select>
+                                    <label class="fr-label fr-text--sm">Filtre Département</label>
+                                    <select class="fr-select fr-select--sm" id="chart-select-epci-dep"></select>
+                                </div>
 
-								<div id="wrapper-chart-entity" style="display:none;" class="fr-mb-2w">
-									<label class="fr-label" id="label-chart-entity">Entité cible</label>
-									<select class="fr-select" id="chart-select-entity"></select>
-								</div>
+                                <div id="wrapper-chart-entity" style="display:none;" class="fr-mb-2w">
+                                    <label class="fr-label" id="label-chart-entity">Entité cible</label>
+                                    <select class="fr-select" id="chart-select-entity"></select>
+                                </div>
 
-								<div id="wrapper-chart-com" style="display:none;" class="fr-mb-2w">
-									<label class="fr-label" id="label-chart-com">Rechercher une commune</label>
-									<input class="fr-input" type="text" id="chart-input-com" list="chart-datalist-com" placeholder="Ex: 75056 (Code INSEE)">
-									<datalist id="chart-datalist-com"></datalist>
-								</div>
+                                <div id="wrapper-chart-com" style="display:none;" class="fr-mb-2w">
+                                    <label class="fr-label" id="label-chart-com">Rechercher une commune</label>
+                                    <input class="fr-input" type="text" id="chart-input-com" list="chart-datalist-com" placeholder="Ex: 75056 (Code INSEE)">
+                                    <datalist id="chart-datalist-com"></datalist>
+                                </div>
 
                                 <label class="fr-label fr-mt-2w" style="color:#000091; font-weight:bold;">2. Type de graphique</label>
                                 <select class="fr-select" id="chart-select-type">
@@ -508,29 +508,29 @@
                                     <option value="radar">Toile d'araignée (Radar)</option>
                                 </select>
                                 
-								<label class="fr-label fr-mt-2w" style="color:#000091; font-weight:bold;">Options d'analyse & d'affichage</label>
-								<div id="chart-options-wrapper" class="fr-mt-1v" style="background:#f6f6f6; padding:10px; border-radius:4px;">
-									<div class="fr-checkbox-group fr-checkbox-group--sm">
-										<input type="checkbox" id="chart-opt-horizontal" name="chart-opt-horizontal">
-										<label class="fr-label" for="chart-opt-horizontal">Afficher horizontalement</label>
-									</div>
-									<div class="fr-checkbox-group fr-checkbox-group--sm">
-										<input type="checkbox" id="chart-opt-mean" name="chart-opt-mean">
-										<label class="fr-label" for="chart-opt-mean">📊 Tracer la ligne de moyenne</label>
-									</div>
-									<div class="fr-checkbox-group fr-checkbox-group--sm">
-										<input type="checkbox" id="chart-opt-trend" name="chart-opt-trend">
-										<label class="fr-label" for="chart-opt-trend">📈 Tracer la ligne de tendance (Régression)</label>
-									</div>
-									<div class="fr-checkbox-group fr-checkbox-group--sm">
-										<input type="checkbox" id="chart-opt-moving" name="chart-opt-moving">
-										<label class="fr-label" for="chart-opt-moving">🌊 Tracer la moyenne mobile (Période 3)</label>
-									</div>
-									<div class="fr-checkbox-group fr-checkbox-group--sm">
-										<input type="checkbox" id="chart-opt-outliers" name="chart-opt-outliers">
-										<label class="fr-label" for="chart-opt-outliers">🚨 Surligner les valeurs aberrantes (Rouge)</label>
-									</div>
-								</div>
+                                <label class="fr-label fr-mt-2w" style="color:#000091; font-weight:bold;">Options d'analyse & d'affichage</label>
+                                <div id="chart-options-wrapper" class="fr-mt-1v" style="background:#f6f6f6; padding:10px; border-radius:4px;">
+                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
+                                        <input type="checkbox" id="chart-opt-horizontal" name="chart-opt-horizontal">
+                                        <label class="fr-label" for="chart-opt-horizontal">Afficher horizontalement</label>
+                                    </div>
+                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
+                                        <input type="checkbox" id="chart-opt-mean" name="chart-opt-mean">
+                                        <label class="fr-label" for="chart-opt-mean">📊 Tracer la ligne de moyenne</label>
+                                    </div>
+                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
+                                        <input type="checkbox" id="chart-opt-trend" name="chart-opt-trend">
+                                        <label class="fr-label" for="chart-opt-trend">📈 Tracer la ligne de tendance (Régression)</label>
+                                    </div>
+                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
+                                        <input type="checkbox" id="chart-opt-moving" name="chart-opt-moving">
+                                        <label class="fr-label" for="chart-opt-moving">🌊 Tracer la moyenne mobile (Période 3)</label>
+                                    </div>
+                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
+                                        <input type="checkbox" id="chart-opt-outliers" name="chart-opt-outliers">
+                                        <label class="fr-label" for="chart-opt-outliers">🚨 Surligner les valeurs aberrantes (Rouge)</label>
+                                    </div>
+                                </div>
 
                                 <label class="fr-label fr-mt-2w" style="color:#000091; font-weight:bold;">4. Palette de couleurs</label>
                                 <select class="fr-select" id="chart-select-palette"></select>
@@ -601,10 +601,10 @@
     <script src="libs/d3.v7.min.js"></script>
     <script src="libs/topojson.v3.min.js"></script>
     <script src="libs/purify.min.js"></script>
-	<script type="module" src="libs/dsfr-v1.14.3/dist/dsfr/dsfr.module.min.js"></script>
-	<script src="libs/chart.min.js"></script>
-	<script type="module" src="js/chart-components.js"></script>
-	<script type="module" src="js/main.js"></script>
+    <script type="module" src="libs/dsfr-v1.14.3/dist/dsfr/dsfr.module.min.js"></script>
+    <script src="libs/chart.min.js"></script>
+    <script type="module" src="js/chart-components.js"></script>
+    <script type="module" src="js/main.js"></script>
     
 </body>
 
