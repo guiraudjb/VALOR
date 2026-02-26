@@ -4,6 +4,7 @@ import {
     getMovingAverage, 
     detectOutliers 
 } from './utils/data-analytics.js';
+import { interactiveDataLabelsPlugin } from './features/interactiveDataLabels.js';
 
 /**
  * UTILITAIRE : Convertit une couleur HEX ou RGB en RGBA avec transparence
@@ -245,6 +246,7 @@ buildChartFromAttributes() {
                     labels: xLabels,
                     datasets: datasets
                 },
+                plugins: [interactiveDataLabelsPlugin],
                 options: {
                     indexAxis: (isHorizontal && chartType === 'bar') ? 'y' : 'x',
                     responsive: true,
