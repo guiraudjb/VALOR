@@ -2,7 +2,6 @@ export const interactiveDataLabelsPlugin = {
     id: 'interactiveDataLabels',
     
     beforeInit(chart) {
-        // --- 1. CRÉATION DE L'EMPREINTE UNIQUE DU GRAPHIQUE ---
         const rawSignature = chart.config.type + '_' + 
                              JSON.stringify(chart.data.labels) + '_' + 
                              chart.data.datasets.map(d => d.label).join('_');
@@ -14,7 +13,6 @@ export const interactiveDataLabelsPlugin = {
         }
         chart.customSignature = 'valor_labels_' + hash;
 
-        // --- 2. RÉCUPÉRATION DE LA MÉMOIRE (État + Positions manuelles) ---
         const savedState = localStorage.getItem(chart.customSignature);
         chart.customBoxPositions = {}; 
         
@@ -22,7 +20,6 @@ export const interactiveDataLabelsPlugin = {
             try {
                 const parsed = JSON.parse(savedState);
                 if (Array.isArray(parsed)) {
-                    // Rétrocompatibilité si l'ancienne version était sauvegardée
                     chart.customLabelState = new Set(parsed);
                 } else {
                     chart.customLabelState = new Set(parsed.active || []);
@@ -34,17 +31,15 @@ export const interactiveDataLabelsPlugin = {
         }
 
         chart.customButtonHitboxes = [];
-        chart.customBoxHitboxes = {}; // NOUVEAU : Mémorise les zones cliquables des boîtes
-        chart.dragState = null;       // NOUVEAU : État du glisser-déposer
+        chart.customBoxHitboxes = {}; 
+        chart.dragState = null;       
         chart.customIsPrinting = false;
         
-        // --- 3. GESTION DE L'IMPRESSION ---
         chart._beforePrintHandler = () => { chart.customIsPrinting = true; chart.render(); };
         chart._afterPrintHandler = () => { chart.customIsPrinting = false; chart.render(); };
         window.addEventListener('beforeprint', chart._beforePrintHandler);
         window.addEventListener('afterprint', chart._afterPrintHandler);
 
-        // --- 4. GESTION DU GLISSER-DÉPOSER (Drag & Drop) ---
         const canvas = chart.canvas;
         
         chart._handleDragStart = (e) => {
@@ -53,12 +48,11 @@ export const interactiveDataLabelsPlugin = {
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
             
-            // Vérifie si on a cliqué à l'intérieur d'une boîte blanche
             for (const [entityIndex, box] of Object.entries(chart.customBoxHitboxes)) {
                 if (mouseX >= box.left && mouseX <= box.right && mouseY >= box.top && mouseY <= box.bottom) {
                     chart.dragState = {
                         entityIndex: entityIndex,
-                        offsetX: mouseX - box.left, // Décalage pour ne pas que la boîte "saute" au centre de la souris
+                        offsetX: mouseX - box.left,
                         offsetY: mouseY - box.top
                     };
                     canvas.style.cursor = 'grabbing';
@@ -73,14 +67,19 @@ export const interactiveDataLabelsPlugin = {
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
                 
-                // Met à jour la position personnalisée et redessine
-                chart.customBoxPositions[chart.dragState.entityIndex] = {
-                    x: mouseX - chart.dragState.offsetX,
-                    y: mouseY - chart.dragState.offsetY
-                };
-                chart.render();
+                const boxX = mouseX - chart.dragState.offsetX;
+                const boxY = mouseY - chart.dragState.offsetY;
+
+                // NOUVEAU : On récupère l'ancre (la barre) pour stocker une position relative
+                const boxHitbox = chart.customBoxHitboxes[chart.dragState.entityIndex];
+                if (boxHitbox) {
+                    chart.customBoxPositions[chart.dragState.entityIndex] = {
+                        dx: boxX - boxHitbox.anchorX,
+                        dy: boxY - boxHitbox.anchorY
+                    };
+                    chart.render();
+                }
             } else if (!chart.customIsPrinting) {
-                // Change le curseur en petite main quand on survole une boîte
                 const rect = canvas.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
@@ -99,7 +98,6 @@ export const interactiveDataLabelsPlugin = {
                 chart.dragState = null;
                 canvas.style.cursor = 'default';
                 
-                // Sauvegarde de la nouvelle position dans le navigateur
                 const saveObj = {
                     active: Array.from(chart.customLabelState),
                     positions: chart.customBoxPositions
@@ -108,7 +106,6 @@ export const interactiveDataLabelsPlugin = {
             }
         };
 
-        // Attachement des événements (Move et Up sur Window pour un glissé fluide même si on sort très vite la souris)
         canvas.addEventListener('mousedown', chart._handleDragStart);
         window.addEventListener('mousemove', chart._handleDragMove);
         window.addEventListener('mouseup', chart._handleDragEnd);
@@ -125,13 +122,12 @@ export const interactiveDataLabelsPlugin = {
     afterDatasetsDraw(chart, args, pluginOptions) {
         const { ctx, width, height } = chart;
         chart.customButtonHitboxes = []; 
-        chart.customBoxHitboxes = {}; // Réinitialise les zones de drag & drop
+        chart.customBoxHitboxes = {}; 
 
         const activeEntities = new Set(); 
         const obstacles = [];             
         const drawnBoxes = [];            
 
-        // --- PREMIER PASSAGE : DESSINER LES BOUTONS ET RÉCOLTER LES OBSTACLES ---
         chart.data.datasets.forEach((dataset, dsIndex) => {
             const meta = chart.getDatasetMeta(dsIndex);
             if (meta.hidden) return;
@@ -187,7 +183,6 @@ export const interactiveDataLabelsPlugin = {
             });
         });
 
-        // --- DEUXIÈME PASSAGE : DESSINER LES BOÎTES FUSIONNÉES ---
         activeEntities.forEach(i => {
             ctx.save();
             let entityRaw = chart.data.labels[i];
@@ -238,18 +233,22 @@ export const interactiveDataLabelsPlugin = {
             let boxX, boxY;
             let offsetVertical = chart.customIsPrinting ? 2 : 18;
 
-            // --- VÉRIFICATION : POSITION MANUELLE OU AUTOMATIQUE ? ---
             if (chart.customBoxPositions[i]) {
-                // On utilise la position sauvegardée par le Glisser-Déposer
-                boxX = chart.customBoxPositions[i].x;
-                boxY = chart.customBoxPositions[i].y;
+                // NOUVEAU : Application de la position relative (Responsive & PDF friendly)
+                if (chart.customBoxPositions[i].dx !== undefined) {
+                    boxX = groupX + chart.customBoxPositions[i].dx;
+                    boxY = groupY + chart.customBoxPositions[i].dy;
+                } else {
+                    // Fallback pour les anciennes sauvegardes
+                    boxX = chart.customBoxPositions[i].x;
+                    boxY = chart.customBoxPositions[i].y;
+                }
                 
-                // On bloque juste la boîte pour ne pas qu'elle disparaisse hors du canevas
+                // Garde-fous pour ne pas sortir de l'écran ou de la feuille PDF
                 if (boxX < 0) boxX = 0; else if (boxX + boxWidth > width) boxX = width - boxWidth;
                 if (boxY < 0) boxY = 0; else if (boxY + boxHeight > height) boxY = height - boxHeight;
 
             } else {
-                // Algorithme de placement automatique
                 const getOverlapScore = (bx, by) => {
                     let score = 0;
                     if (bx < 5 || by < 5 || bx + boxWidth > width - 5 || by + boxHeight > height - 5) return Infinity;
@@ -293,11 +292,14 @@ export const interactiveDataLabelsPlugin = {
                 boxY = bestPos.y;
             }
 
-            // Mémorisation pour le Drag & Drop
-            chart.customBoxHitboxes[i] = { left: boxX, right: boxX + boxWidth, top: boxY, bottom: boxY + boxHeight };
+            // NOUVEAU : On enregistre aussi l'ancre (groupX/groupY) pour la logique de drag relative
+            chart.customBoxHitboxes[i] = { 
+                left: boxX, right: boxX + boxWidth, 
+                top: boxY, bottom: boxY + boxHeight,
+                anchorX: groupX, anchorY: groupY
+            };
             drawnBoxes.push({ left: boxX, right: boxX + boxWidth, top: boxY, bottom: boxY + boxHeight });
 
-            // Trait de liaison intelligent
             const idealX = groupX - boxWidth / 2;
             const idealY = groupY - offsetVertical - boxHeight;
             if (Math.abs(boxX - idealX) > 10 || Math.abs(boxY - idealY) > 10) {
@@ -305,7 +307,6 @@ export const interactiveDataLabelsPlugin = {
                 ctx.moveTo(groupX, groupY);
                 let anchorX = boxX + boxWidth / 2;
                 let anchorY = boxY > groupY ? boxY : boxY + boxHeight;
-                // Ajustement : si on la déplace vraiment à côté, on accroche sur le bord
                 if (boxX > groupX) anchorX = boxX; 
                 else if (boxX + boxWidth < groupX) anchorX = boxX + boxWidth;
 
@@ -317,7 +318,6 @@ export const interactiveDataLabelsPlugin = {
                 ctx.setLineDash([]); 
             }
 
-            // Dessin du fond et du texte
             ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
             ctx.beginPath();
             if (ctx.roundRect) ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 4);
@@ -376,15 +376,10 @@ export const interactiveDataLabelsPlugin = {
 
                 if (distance <= hitbox.r + 3) {
                     if (chart.customLabelState.has(hitbox.key)) {
-                        // L'utilisateur FERME la boîte : On supprime son état
                         chart.customLabelState.delete(hitbox.key);
-                        
-                        // NOUVEAU : On efface sa position personnalisée pour qu'elle redevienne "auto"
                         const entityIndex = hitbox.key.split('-')[1];
                         delete chart.customBoxPositions[entityIndex];
-                        
                     } else {
-                        // L'utilisateur OUVRE la boîte
                         chart.customLabelState.add(hitbox.key);
                     }
                     clickedOnButton = true;
