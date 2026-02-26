@@ -1,0 +1,126 @@
+* { box-sizing: border-box; }
+body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-family: "Marianne", arial, sans-serif; }
+#config-panel { background-color: #f0f0f0; padding: 1.5rem; border-bottom: 4px solid #000091; position: relative; z-index: 100;}
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #ddd; padding-bottom: 1rem; }
+.header-left-group { display: flex; align-items: center; gap: 2rem; }
+.fr-header__logo { margin: 0; padding: 0; flex-shrink: 0; }
+.fr-logo { font-size: 1.1rem; margin: 0; display: block; }
+.brand-block { display: flex; flex-direction: column; padding-left: 2rem; border-left: 1px solid #ddd; }
+.acronym { font-size: 2rem; font-weight: 900; color: #000091; line-height: 1; }
+.meaning { font-size: 0.9rem; color: #666; font-style: italic; margin-top: 5px; }
+
+.about-wrapper { position: relative; display: inline-block; }
+.btn-about { cursor: pointer; color: #000091; font-weight: 500; background: none; border: none; display: flex; align-items: center; gap: 5px; }
+.tooltip-content { visibility: hidden; opacity: 0; position: absolute; top: 100%; right: 0; width: 450px; background: white; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #ddd; border-left: 4px solid #000091; z-index: 2000; transition: opacity 0.2s; text-align: left; }
+.about-wrapper:hover .tooltip-content { visibility: visible; opacity: 1; }
+.tooltip-content h6 { color: #000091; margin-bottom: 0.5rem; }
+.tooltip-content p, .tooltip-content ul { font-size: 0.85rem; line-height: 1.4; color: #333; }
+.code-block { background: #f5f5f5; padding: 5px; font-family: monospace; border-radius: 4px; display: block; margin-top: 5px;}
+
+.page-list-container { background: white; max-height: 180px; overflow-y: auto; border: 1px solid #ddd; padding: 0; position: relative; }
+.page-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; border-bottom: 1px solid #eee; background: white; transition: background 0.2s; }
+.page-item:hover { background: #f9f9f9; }
+.page-item.is-hidden { opacity: 0.5; background: #f0f0f0; }
+.page-item.active-page-item { background-color: #f4f6ff; box-shadow: inset 4px 0 0 0 #000091; }
+.page-item-info { display: flex; align-items: center; gap: 10px; flex: 1; }
+.page-tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+.tag-map { background: #E8EDFF; color: #000091; }
+.tag-free { background: #FEE9E5; color: #B34000; }
+
+.page-item-controls { display: flex; align-items: center; gap: 5px; }
+.input-order { width: 50px; text-align: center; font-weight: bold; border: 1px solid #ddd; padding: 2px; margin-right: 5px; }
+.input-size { width: 60px; font-size: 0.8rem; padding: 2px; border: 1px solid #ddd; margin-right: 5px; text-align: center; }
+.btn-icon { background: none; border: none; cursor: pointer; padding: 5px; color: #666; display: flex; align-items: center; justify-content: center; }
+.btn-icon:hover { color: #000091; background-color: #eee; border-radius: 50%; }
+.btn-delete:hover { color: #ce0500; }
+.floating-bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f0f0f0; border-top: 4px solid #000091; z-index: 1000; padding: 1rem 1.5rem; box-shadow: 0 -5px 15px rgba(0,0,0,0.15); }
+
+#report-container { width: 420mm; margin: 0 auto; background: #555; padding: 20px 0; }
+.page { width: 420mm; height: 297mm; padding: 10mm 15mm; background: white; display: flex; flex-direction: column; margin: 0 auto 20px auto; overflow: hidden; position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+.page-header { flex-shrink: 0; margin-bottom: 10px; }
+.header-content { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; }
+.page-title { color: #000091; font-weight: 800; text-transform: uppercase; font-size: 2.4rem; margin: 0; line-height: 1; }
+.page-subtitle { font-size: 1.2rem; font-weight: 500; color: #444; }
+.header-line { height: 4px; background: #000091; width: 100%; }
+.report-layout { display: flex; flex: 1; gap: 0; min-height: 0; overflow: hidden; }
+.sidebar-legend { flex: 0 0 16%; display: flex; flex-direction: column; border-right: 1px solid #e5e5e5; padding-right: 20px; margin-right: 20px; }
+.view-name { color: #000091; font-size: 1.8rem; font-weight: 700; line-height: 1.1; margin: 1rem 0 2rem 0; }
+.gradient-wrapper { display: flex; gap: 10px; height: 250px; padding-bottom: 20px; }
+.kpi-subtotal { margin-top: 1rem; border-top: 1px solid #ddd; padding-top: 10px; }
+.kpi-label { font-size: 0.8rem; text-transform: uppercase; color: #666; font-weight: 700; }
+.kpi-value { font-size: 1.8rem; font-weight: 800; color: #000091; line-height: 1.2; }
+.main-content { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; position: relative; }
+.page-footer { margin-top: auto; font-size: 0.75rem; border-top: 1px solid #000091; padding-top: 6px; color: #666; display: flex; justify-content: space-between; }
+.map-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; background: radial-gradient(circle at center, #fff 0%, #fafafa 100%); }
+
+.d3-map path { stroke: white; stroke-width: 0.2px; transition: opacity 0.2s; cursor: crosshair; }
+.label-text { font-family: "Marianne", arial, sans-serif; fill: #000091; font-weight: 700; paint-order: stroke; stroke: white; stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.label-link { fill: none; stroke: #333; stroke-width: 0.8px; stroke-dasharray: 2,2; opacity: 0.6; pointer-events: none; }
+.layer-region { fill: none; stroke: #333; stroke-width: 1.5px; pointer-events: none; }
+.layer-dept { fill: #e3e3fd; } 
+.layer-commune { fill: transparent; stroke: #ccc; stroke-width: 0.2px; }
+.d3-tooltip { position: absolute; background: white; padding: 5px 10px; border: 1px solid #000091; font-size: 0.8rem; pointer-events: none; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+.table-page-content { flex: 1; overflow: hidden; padding-right: 0; display: flex; flex-direction: column; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; table-layout: fixed; }
+.data-table th { background: #f6f6f6; border-bottom: 2px solid #000091; color: #000091; font-weight: 800; text-transform: uppercase; padding: 10px 12px; text-align: left; }
+.data-table td { padding: 8px 12px; border-bottom: 1px solid #e5e5e5; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.data-table tr:nth-child(even) { background-color: #fcfcfc; }
+.col-code { width: 90px; font-weight: bold; font-family: monospace; color: #000091; }
+.col-val { width: 140px; text-align: right !important; font-family: monospace; font-weight: bold; }
+
+.editor-container { border: 1px solid #ddd; background: #fff; display: flex; flex-direction: column; height: 60vh; }
+.editor-toolbar { background: #f5f5f5; padding: 8px; border-bottom: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.editor-btn { background: white; border: 1px solid #ccc; cursor: pointer; padding: 5px 10px; font-size: 0.9rem; font-weight: bold; border-radius: 4px; min-width: 30px; display: flex; align-items: center; justify-content: center;}
+.editor-btn:hover { background: #e0e0e0; color: #000091; }
+.wysiwyg-editor { flex: 1; padding: 2rem; overflow-y: auto; outline: none; font-family: "Marianne", arial, sans-serif; background: #f6f6f6; border-left: 4px solid #000091; font-size: 1.2rem; line-height: 1.6; color: #161616; }
+.wysiwyg-editor h2, .wysiwyg-editor h3 { color: #000091; margin-top: 0; }
+.wysiwyg-editor h2 { border-bottom: 2px solid #000091; padding-bottom: 5px; }
+.wysiwyg-editor table { width: 100%; border-collapse: collapse; background: white; margin: 10px 0; }
+.wysiwyg-editor th, .wysiwyg-editor td { border: 1px solid #ddd; padding: 8px; }
+
+.separator { border-right: 1px solid #ccc; margin: 0 5px; height: 20px; align-self: center; }
+.source-editor { flex: 1; padding: 20px; background: #2d2d2d; color: #eee; font-family: monospace; font-size: 0.9rem; border: none; resize: none; outline: none; line-height: 1.4; display: none; }
+.btn-source { background-color: #000091; color: white; border: none; }
+.btn-source:hover { background-color: #1212ff; color: white; }
+
+.free-slide-content { background: #f6f6f6; height: 100%; padding: 2rem; border-left: 4px solid #000091; overflow-y: hidden; white-space: normal; font-size: 1.2rem; line-height: 1.6; color: #161616; position: relative; z-index: 1;}
+.free-slide-content h2, .free-slide-content h3 { color: #000091; }
+.free-slide-content table { width: 100%; border-collapse: collapse; background: white; }
+.free-slide-content th, .free-slide-content td { border: 1px solid #ddd; padding: 8px; }
+.slide-custom-logo { position: absolute; top: 10mm; right: 10mm; height: 80px; width: auto; z-index: 10; object-fit: contain; }
+
+.del-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; margin-bottom: 5px; background: #fff; }
+.del-list-item:hover { background: #f9f9f9; }
+.del-info { flex: 1; }
+.del-name { font-weight: bold; color: #000091; }
+.del-deps { font-size: 0.8rem; color: #666; font-family: monospace; }
+.del-actions { display: flex; gap: 5px; }
+
+@media print {
+    @page { size: A3 landscape; margin: 0; }
+    body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    #config-panel, .floating-bottom-bar { display: none !important; }
+    #report-container { width: 100%; margin: 0; padding: 0; background: none; }
+    .page { margin: 0; page-break-after: always; box-shadow: none; width: 420mm; height: 297mm; overflow: hidden; display: flex; flex-direction: column; }
+/* ... tes règles existantes ... */
+
+    /* Masquer les icônes de modification */
+    .edit-icon-trigger, 
+    .edit-report-icon-trigger {
+        display: none !important;
+    }
+
+    /* Retirer les bordures et effets visuels des zones éditables */
+    .editable-slide-title, 
+    .editable-report-title {
+        border-bottom: none !important;
+        padding: 0 !important;
+        background-color: transparent !important;
+    }
+
+}
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto; padding: 15px; background: #f6f6f6; border: 1px solid #ddd; border-radius: 4px; }
+.icon-grid-item { display: flex; align-items: center; justify-content: center; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+.icon-grid-item:hover { border-color: #000091; background: #e3e3fd; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.icon-grid-item img { max-width: 100%; max-height: 40px; object-fit: contain; }
