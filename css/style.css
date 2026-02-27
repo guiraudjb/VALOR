@@ -125,6 +125,10 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 #config-panel.shrunk {
     padding-bottom: 0 !important; /* Annule le padding-bottom: 2rem défini en inline */
 }
+/* Cache la barre d'onglets quand le panneau est replié */
+#config-panel.shrunk .config-nav-bar {
+    display: none;
+}
 
 
 @media print {
