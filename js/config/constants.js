@@ -1,12 +1,6 @@
 export const PATHS = {
 	config: './config.ini',
-    csv: './data/test.csv',
-    reg: './data/a-reg2021.json',
-    dep: './data/a-dep2021.json',
-    com: './data/a-com2022-topo-2154.json',
-    communesRef: './data/v_commune_2025.csv',
-    epciRef: './data/EPCI.csv'
-};
+ };
 
 export const ROWS_PER_PAGE = 40;
 

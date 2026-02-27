@@ -1,10 +1,12 @@
+// 1. La fonction pour lire les codes (que nous venons de corriger)
 export function getCodeFromFeature(feature, granularity) {
     const p = feature.properties;
-    if (granularity === 'com') return p.INSEE_COM || p.CODE_COM || p.com || p.codgeo || p.id;
-    if (granularity === 'dep') return p.INSEE_DEP || p.CODE_DEP || p.dep || p.code || p.id;
-    return p.INSEE_REG || p.CODE_REG || p.reg || p.code || p.id;
+    if (granularity === 'com') return p.INSEE_COM || p.CODE_COM || p.com || p.codgeo || p.code_insee || p.id;
+    if (granularity === 'dep') return p.INSEE_DEP || p.CODE_DEP || p.dep || p.code || p.code_insee || p.id;
+    return p.INSEE_REG || p.CODE_REG || p.reg || p.code || p.code_insee || p.id;
 }
 
+// 2. La fonction pour lire les cartes (celle qui a été effacée par erreur)
 export function getGeoFeatures(fileData, preferredName) {
     if (!fileData) return { features: [] };
     if (fileData.type === 'FeatureCollection') return fileData;
@@ -29,24 +31,49 @@ export function getFeaturesForPage(pageData, granularity, appState) {
     
     let features = primaryGeoJSON.features;
     if (pageData.focus) {
+        // 1. Filtrage par Région
         if (pageData.focus.type === 'region') {
-            features = features.filter(f => { const r = f.properties.reg || f.properties.INSEE_REG; return r == pageData.focus.code; });
+            features = features.filter(f => {
+                // CORRECTION : Si la carte est régionale, on lit le code direct. Sinon on cherche le parent.
+                const r = (granularity === 'reg') 
+                          ? getCodeFromFeature(f, 'reg') 
+                          : (f.properties.reg || f.properties.INSEE_REG || f.properties.code_insee_de_la_region);
+                return r == pageData.focus.code;
+            });
         }
+        // 2. Filtrage par Délégation
         else if (pageData.focus.type === 'delegation') {
             const depList = pageData.focus.list;
             features = features.filter(f => {
-                const depCode = f.properties.dep || f.properties.INSEE_DEP || (getCodeFromFeature(f, 'com') || "").substring(0,2);
+                let depCode;
+                // CORRECTION : Si carte départementale, code direct. Sinon (communes), on cherche le parent avec sécu DROM.
+                if (granularity === 'dep') {
+                    depCode = getCodeFromFeature(f, 'dep');
+                } else {
+                    const comCode = getCodeFromFeature(f, 'com') || "";
+                    depCode = f.properties.dep || f.properties.code_insee_du_departement || 
+                              (appState.refData.comToDep ? appState.refData.comToDep.get(comCode) : null) || 
+                              (comCode.startsWith('97') ? comCode.substring(0,3) : comCode.substring(0,2));
+                }
                 return depList.includes(depCode);
             });
         } 
-		else if (pageData.focus.type === 'department') {
+        // 3. Filtrage par Département
+        else if (pageData.focus.type === 'department') {
             features = features.filter(f => {
-                const comCode = getCodeFromFeature(f, 'com');
-                // On utilise le référentiel fiable en priorité, et on garde le substring en ultime secours
-                const depCode = f.properties.dep || (appState.refData.comToDep.get(comCode)) || (comCode || "").substring(0,2);
+                let depCode;
+                if (granularity === 'dep') {
+                    depCode = getCodeFromFeature(f, 'dep');
+                } else {
+                    const comCode = getCodeFromFeature(f, 'com') || "";
+                    depCode = f.properties.dep || f.properties.code_insee_du_departement || 
+                              (appState.refData.comToDep ? appState.refData.comToDep.get(comCode) : null) || 
+                              (comCode.startsWith('97') ? comCode.substring(0,3) : comCode.substring(0,2));
+                }
                 return depCode == pageData.focus.code;
             });
         }
+        // 4. Filtrage par EPCI
         else if (pageData.focus.type === 'epci') {
             const comList = pageData.focus.list || [];
             features = features.filter(f => {

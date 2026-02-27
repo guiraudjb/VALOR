@@ -6,10 +6,14 @@ import { populateEpciRegSelect, updateMetricControls, updateMainBrand } from '..
 
 export function initRefData() {
     if(!appState.geoData.dep) return;
+    // On garde 'a_dep2021' comme preferredName car le système fallback sur keys[0] de toute façon
     const deps = getGeoFeatures(appState.geoData.dep, 'a_dep2021').features;
     deps.forEach(f => {
-        const code = f.properties.dep || f.properties.code;
-        const reg = f.properties.reg;
+        // NOUVEAU : On cherche "dep", "code", ou "code_insee"
+        const code = f.properties.dep || f.properties.code || f.properties.code_insee;
+        // NOUVEAU : On cherche "reg" ou "code_insee_de_la_region"
+        const reg = f.properties.reg || f.properties.code_insee_de_la_region;
+        
         if(code && reg) appState.refData.depToReg.set(code, reg);
     });
 }
@@ -106,6 +110,31 @@ function parseINI(data) {
     return result;
 }
 
+function renderRefPathsTable() {
+    const container = document.getElementById('ref-paths-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="fr-table fr-table--sm" style="margin: 0; font-size: 0.75rem;">
+            <table style="width: 100%; display: block; max-height: 120px; overflow-y: auto;">
+                <thead>
+                    <tr>
+                    <th COLSPAN="2">Référentiel TOPO et administratif (INSEE)</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="padding: 4px 8px;"><b>(topo)  reg</b></td><td style="padding: 4px 8px;">${PATHS.reg || '-'}</td></tr>
+                    <tr><td style="padding: 4px 8px;"><b>(topo)  dep</b></td><td style="padding: 4px 8px;">${PATHS.dep || '-'}</td></tr>
+                    <tr><td style="padding: 4px 8px;"><b>(topo)  com</b></td><td style="padding: 4px 8px;">${PATHS.com || '-'}</td></tr>
+                    <tr><td style="padding: 4px 8px;"><b>(admin) communesRef</b></td><td style="padding: 4px 8px;">${PATHS.communesRef || '-'}</td></tr>
+                    <tr><td style="padding: 4px 8px;"><b>(admin) epciRef</b></td><td style="padding: 4px 8px;">${PATHS.epciRef || '-'}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
 // Fonction pour appliquer les valeurs du .ini à l'interface
 function applyConfig(iniText) {
     if (!iniText) return;
@@ -128,8 +157,13 @@ function applyConfig(iniText) {
     if (conf.Logo && conf.Logo.chemin) {
         appState.globalLogo = conf.Logo.chemin;
     }
-    if (conf.Fichiers && conf.Fichiers.csv_defaut) {
-        PATHS.csv = conf.Fichiers.csv_defaut;
+    if (conf.Fichiers) {
+        if (conf.Fichiers.csv_defaut) PATHS.csv = conf.Fichiers.csv_defaut;
+        if (conf.Fichiers.reg) PATHS.reg = conf.Fichiers.reg;
+        if (conf.Fichiers.dep) PATHS.dep = conf.Fichiers.dep;
+        if (conf.Fichiers.com) PATHS.com = conf.Fichiers.com;
+        if (conf.Fichiers.communesRef) PATHS.communesRef = conf.Fichiers.communesRef;
+        if (conf.Fichiers.epciRef) PATHS.epciRef = conf.Fichiers.epciRef;
     }
 }
 
@@ -137,32 +171,58 @@ function applyConfig(iniText) {
 
 export async function loadInitialData() {
     try {
-        // ÉTAPE 1 : On charge tout SAUF le fichier CSV métier
-        const [reg, dep, com, communesCsvText, epciCsvText, iniText] = await Promise.all([
+        // ÉTAPE 1 : On charge la config en forçant le navigateur à ignorer le cache
+        const noCacheUrl = `${PATHS.config}?t=${Date.now()}`;
+        const iniText = await window.d3.text(noCacheUrl).catch(() => null);
+        
+        if (!iniText) {
+            alert("Erreur critique : Impossible de charger le fichier config.ini.");
+            return;
+        }
+        
+        // On applique les paramètres (ce qui remplit l'objet PATHS)
+        applyConfig(iniText);
+        renderRefPathsTable();
+
+        // VÉRIFICATION DE SÉCURITÉ : On s'assure qu'aucun chemin n'est "undefined"
+        const missing = [];
+        if (!PATHS.reg) missing.push("reg");
+        if (!PATHS.dep) missing.push("dep");
+        if (!PATHS.com) missing.push("com");
+        if (!PATHS.communesRef) missing.push("communesRef");
+        if (!PATHS.epciRef) missing.push("epciRef");
+
+        if (missing.length > 0) {
+            alert(`Erreur dans config.ini : les chemins suivants sont manquants dans la section [Fichiers] :\n- ${missing.join('\n- ')}`);
+            return; // On bloque l'exécution ici pour éviter les erreurs 404
+        }
+
+        // ÉTAPE 2 : Maintenant qu'on est sûr que les chemins existent, on charge les cartes
+        const [reg, dep, com, communesCsvText, epciCsvText] = await Promise.all([
             window.d3.json(PATHS.reg), 
             window.d3.json(PATHS.dep), 
             window.d3.json(PATHS.com),
-            window.d3.text(PATHS.communesRef).catch(() => null),
-            window.d3.text(PATHS.epciRef).catch(() => null),
-            window.d3.text(PATHS.config).catch(() => null)
+            window.d3.text(PATHS.communesRef),
+            window.d3.text(PATHS.epciRef)
         ]);
-        
+
         appState.geoData = { reg, dep, com };
         initRefData();
-        
-        // Application de la configuration (qui va mettre à jour PATHS.csv si besoin)
-        if (iniText) applyConfig(iniText); 
         
         if (communesCsvText) processCommunesRef(communesCsvText);
         if (epciCsvText) processEpciRef(epciCsvText);
         
-        // ÉTAPE 2 : Maintenant qu'on a le bon chemin, on charge le CSV métier
-        const userCsvText = await window.d3.text(PATHS.csv).catch(() => null);
-        
-        if (userCsvText) processCSV(userCsvText);
-        else buildDefaultStructure(); // Si aucun CSV n'est trouvé, on génère quand même la structure
+        // ÉTAPE 3 : Le CSV métier
+        if (PATHS.csv) {
+            const userCsvText = await window.d3.text(PATHS.csv).catch(() => null);
+            if (userCsvText) processCSV(userCsvText);
+            else buildDefaultStructure();
+        } else {
+            buildDefaultStructure();
+        }
         
     } catch (error) { 
-        console.error(error); 
+        console.error("Erreur critique de chargement :", error);
+        alert("Erreur réseau ou fichier corrompu lors du chargement des données. Consultez la console.");
     }
 }

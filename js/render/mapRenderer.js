@@ -125,9 +125,8 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
         .on("mouseover", function(event, d) {
             const code = getCodeFromFeature(d, granularity); const dataObj = dataMap.get(code);
             let name = "";
-            if (granularity === 'com') name = appState.refData.communes.get(code) || d.properties.libelle || d.properties.nom || code; 
-            else name = (granularity === 'dep' ? DEP_NAMES[code] : REG_NAMES[code]) || d.properties.libelle || d.properties.nom;
-            
+            if (granularity === 'com') name = appState.refData.communes.get(code) || d.properties.nom_officiel || d.properties.libelle || d.properties.nom || code; 
+            else name = (granularity === 'dep' ? DEP_NAMES[code] : REG_NAMES[code]) || d.properties.nom_officiel || d.properties.libelle || d.properties.nom;
             let tooltipHtml = `<strong>${escapeHtml(name)}</strong> (${code})`;
             
             if (dataObj && dataObj._computed !== undefined) {
@@ -145,14 +144,22 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
         })
         .on("mouseout", function(event, d) { window.d3.select(this).attr("stroke", "white").attr("stroke-width", granularity === 'com' ? 0.1 : 0.5); window.d3.select("#d3-tooltip").style("display", "none"); });
 
-    if (granularity === 'com') {
+if (granularity === 'com') {
         let depFeatures = getGeoFeatures(appState.geoData.dep, 'a_dep2021').features;
-        if (pageData.focus && pageData.focus.type === 'region') depFeatures = depFeatures.filter(f => f.properties.reg === pageData.focus.code);
-        else if (pageData.focus && pageData.focus.type === 'department') depFeatures = depFeatures.filter(f => (f.properties.dep || f.properties.code) == pageData.focus.code);
+        
+		if (pageData.focus && pageData.focus.type === 'region') {
+            depFeatures = depFeatures.filter(f => (f.properties.reg || f.properties.code_insee_de_la_region) === pageData.focus.code);
+        }
+        else if (pageData.focus && pageData.focus.type === 'department') {
+            // CORRECTION : Ajout de code_insee
+            depFeatures = depFeatures.filter(f => (f.properties.dep || f.properties.code || f.properties.code_insee) == pageData.focus.code);
+        }
         else if (pageData.focus && pageData.focus.type === 'epci') {
             const epciDeps = [...new Set(appState.refData.epciList.filter(r => r.EPCI === pageData.focus.code).map(r => r.DEP))];
-            depFeatures = depFeatures.filter(f => epciDeps.includes((f.properties.dep || f.properties.code)));
+            // CORRECTION : Ajout de code_insee
+            depFeatures = depFeatures.filter(f => epciDeps.includes((f.properties.dep || f.properties.code || f.properties.code_insee)));
         }
+        
         g.append("g").selectAll("path").data(depFeatures).enter().append("path").attr("d", path).attr("fill", "none").attr("stroke", "#444").attr("stroke-width", "0.8px").style("pointer-events", "none");
     }
 
@@ -171,8 +178,8 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
             const bgColor = colorScale(dataObj._computed);
             
             let rawName = "";
-            if (granularity === 'com') rawName = appState.refData.communes.get(code) || d.properties.libelle || d.properties.nom || "";
-            else rawName = (granularity === 'dep' ? DEP_NAMES[code] : REG_NAMES[code]) || d.properties.libelle || d.properties.nom || "";
+            if (granularity === 'com') rawName = appState.refData.communes.get(code) || d.properties.nom_officiel || d.properties.libelle || d.properties.nom || "";
+            else rawName = (granularity === 'dep' ? DEP_NAMES[code] : REG_NAMES[code]) || d.properties.nom_officiel || d.properties.libelle || d.properties.nom || "";
             const abbrName = getAbbreviatedName(rawName);
             
             let vals = [];

@@ -246,9 +246,9 @@ export function saveChartSlide() {
     const palette = document.getElementById('chart-select-palette').value;
     const selectedMetrics = Array.from(document.querySelectorAll('input[name="chart-metric-selection"]:checked')).map(cb => cb.value);
     
-    if (selectedMetrics.length === 0) { alert("Veuillez sélectionner au moins une valeur."); return; }
-    if (scale !== 'france' && !entity) { alert("Veuillez sélectionner une entité cible."); return; }
-
+	if (selectedMetrics.length === 0) { alert("Veuillez sélectionner au moins une valeur."); return; }
+    // CORRECTION : On autorise le mode france_multi à passer sans entité
+    if (!['france', 'france_multi'].includes(scale) && !entity) { alert("Veuillez sélectionner une entité cible."); return; }
     // --- GÉNÉRATION AUTOMATIQUE DU TITRE ---
     if (!title) {
         // On détermine le libellé de la métrique

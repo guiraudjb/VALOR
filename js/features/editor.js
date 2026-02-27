@@ -105,11 +105,14 @@ export const saveCustomSlide = async () => {
     const visualEditor = document.getElementById('visual-editor');
     const sourceEditor = document.getElementById('source-editor');
     
-    let content = "";
+let content = "";
+    // CORRECTION : On autorise DOMPurify à conserver les attributs "style" et les balises "img"
+    const purifyConfig = { ADD_TAGS: ['img'], ADD_ATTR: ['style'] };
+    
     if (visualEditor.style.display !== 'none') {
-        content = window.DOMPurify.sanitize(visualEditor.innerHTML);
+        content = window.DOMPurify.sanitize(visualEditor.innerHTML, purifyConfig);
     } else { 
-        content = window.DOMPurify.sanitize(sourceEditor.value); 
+        content = window.DOMPurify.sanitize(sourceEditor.value, purifyConfig); 
         visualEditor.innerHTML = content;
     }
 

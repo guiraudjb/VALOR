@@ -94,18 +94,19 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
     };
     appState.userData.forEach(d => {
         let targetCode = d.code;
-        if (shouldAggregate && appState.sourceGranularity !== targetGranularity) {
-            if (appState.sourceGranularity === 'com' && targetGranularity === 'dep') {
-                targetCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
-            }
-            else if (appState.sourceGranularity === 'dep' && targetGranularity === 'reg') {
-                targetCode = appState.refData.depToReg.get(d.code);
-            }
-            else if (appState.sourceGranularity === 'com' && targetGranularity === 'reg') {
-                const depCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
-                targetCode = appState.refData.depToReg.get(depCode);
-            }
-        }
+			if (shouldAggregate && appState.sourceGranularity !== targetGranularity) {
+				if (appState.sourceGranularity === 'com' && targetGranularity === 'dep') {
+					targetCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
+				}
+				else if (appState.sourceGranularity === 'dep' && targetGranularity === 'reg') {
+					targetCode = appState.refData.depToReg.get(d.code);
+				}
+				else if (appState.sourceGranularity === 'com' && targetGranularity === 'reg') {
+					// NOUVEAU : Prise en compte sécurisée des DROM pour remonter l'arbre Commune -> Département -> Région
+					const depCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
+					targetCode = appState.refData.depToReg.get(depCode);
+				}
+			}
         if (targetCode) {
             const currentObj = initOrGetObj(targetCode);
             // CORRECTION: On agrège toujours toutes les métriques disponibles pour garantir le fonctionnement des graphiques
@@ -309,13 +310,15 @@ const isMultiScale = page.chartConfig.scale.endsWith('_multi');
                 return ca.toString().localeCompare(cb.toString());
             });
 
-            filtered.forEach(f => {
+				filtered.forEach(f => {
                 const code = getCodeFromFeature(f, granularity);
                 const d = dataMap.get(code);
                 let name = code;
-                if (granularity === 'com') name = appState.refData.communes.get(code) || f.properties.nom || code;
-                else if (granularity === 'dep') name = DEP_NAMES[code] || code;
-                else name = REG_NAMES[code] || code;
+                
+                // NOUVEAU : Intégration de nom_officiel pour le référentiel 2025/2026
+                if (granularity === 'com') name = appState.refData.communes.get(code) || f.properties.nom_officiel || f.properties.nom || code;
+                else if (granularity === 'dep') name = DEP_NAMES[code] || f.properties.nom_officiel || code;
+                else name = REG_NAMES[code] || f.properties.nom_officiel || code;
                 
                 xLabels.push(`${code} - ${name}`);
                 
@@ -495,15 +498,18 @@ export function generateTablePages(page, features, dataMap, config, granularity)
             let name = code;
             let parent = "-";
 
-            if (granularity === 'com') {
-                name = appState.refData.communes.get(code) || f.properties.libelle || f.properties.nom || code;
-                const depCode = appState.refData.comToDep?.get(code) || (code || "").substring(0, 2);
+			if (granularity === 'com') {
+                // NOUVEAU : nom_officiel et protection DROM (startsWith 97)
+                name = appState.refData.communes.get(code) || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
+                const depCode = appState.refData.comToDep?.get(code) || (code.startsWith('97') ? code.substring(0, 3) : (code || "").substring(0, 2));
                 parent = DEP_NAMES[depCode] || depCode;
             } else if (granularity === 'dep') {
-                name = DEP_NAMES[code] || f.properties.libelle || f.properties.nom || code;
-                parent = REG_NAMES[f.properties.reg] || "-";
+                name = DEP_NAMES[code] || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
+                // NOUVEAU : Lecture du nouveau code_insee_de_la_region
+                const regCode = f.properties.reg || f.properties.code_insee_de_la_region || (appState.refData.depToReg ? appState.refData.depToReg.get(code) : null);
+                parent = REG_NAMES[regCode] || "-";
             } else if (granularity === 'reg') {
-                name = REG_NAMES[code] || f.properties.libelle || f.properties.nom || code;
+                name = REG_NAMES[code] || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
             }
 
             let rowHtml = `<tr><td>${code}</td><td>${escapeHtml(name)}</td>`;
