@@ -6,32 +6,17 @@
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
     <title>V.A.L.O.R.</title>
-    <link rel="icon" type="image/svg+xml" href="libs/dsfr-v1.14.3/dist/favicon/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="libs/dsfr-v1.14.3/dist/favicon/favicon.svg">
     <link rel="stylesheet" href="libs/dsfr-v1.14.3/dist/dsfr/dsfr.min.css">
     <link rel="stylesheet" href="libs/dsfr-v1.14.3/dist/utility/utility.min.css">
     <link rel="stylesheet" href="libs/dsfr-v1.14.3/dist/utility/icons/icons.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        /* Styles pour la barre horizontale personnalisée */
-        .config-main-wrapper { background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e5e5e5; margin-bottom: 2rem; }
-        .config-nav-bar { display: flex; align-items: center; border-bottom: 1px solid #e5e5e5; background: #f6f6f6; border-radius: 8px 8px 0 0; flex-wrap: wrap; }
-        .nav-tabs-container { display: flex; flex: 1; overflow-x: auto; }
-        .nav-tab { background: transparent; border: none; padding: 1rem 1.2rem; font-weight: bold; color: #666; cursor: pointer; border-bottom: 3px solid transparent; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s; }
-        .nav-tab:hover:not(.active) { background: #eeeeee; }
-        .nav-tab.active { color: #000091; border-bottom-color: #000091; background: #ffffff; }
-        .nav-actions { display: flex; gap: 10px; padding: 0.5rem 1rem; align-items: center; }
-        
-        /* Styles pour les sections */
-        .config-panel-section { display: none; padding: 2rem; animation: fadeIn 0.3s ease-in-out; }
-        .config-panel-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
 </head>
 
 <body>
-    <div id="config-panel" style="background-color: #fcfcfc; padding-bottom: 2rem;">
+    <div id="config-panel">
         <div class="fr-container-fluid">
-            <div class="top-bar" style="border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-top: 1rem; padding-bottom: 1rem;">
+            <div class="top-bar">
                 <div class="header-left-group">
                     <div class="fr-header__brand fr-enlarge-link">
                         <div class="fr-header__brand-top">
@@ -46,279 +31,199 @@
                 <div class="about-wrapper">
                     <button class="btn-about"><span class="fr-icon-information-line"></span> À propos</button>
                     <div class="tooltip-content">
-                        <h6>Confidentialité & Sécurité</h6>
-                        <p class="fr-text--xs">
-                            V.A.L.O.R. traite vos données exclusivement en <strong>local</strong>. 
-                            Aucun fichier n'est transmis à un serveur tiers ou stocké en dehors de votre navigateur.
-                        </p>
-                        <hr class="fr-pb-1v">
-                        <h6>Format des données à importer</h6>
-                        <p class="fr-text--xs">Le fichier doit être au format <strong>CSV</strong>.</p>
-                        <ul class="fr-text--xs">
-                            <li><strong>Colonne 1 :</strong> Code Géographique (INSEE)</li>
-                            <li><strong>Colonnes suivantes :</strong> Valeurs numériques</li>
-                        </ul>
-                    </div>
+						
+				
+				
+    <h6>Confidentialité & Sécurité</h6>
+    <p class="fr-text--xs">
+        V.A.L.O.R. traite vos données exclusivement en <strong>local</strong>. 
+        Aucun fichier (CSV, Logo) n'est transmis à un serveur tiers ou stocké en dehors de votre navigateur.
+    </p>
+    <hr class="fr-pb-1v">
+    <h6>Format des données à importer</h6>
+    <p class="fr-text--xs">Le fichier doit être au format <strong>CSV</strong> (séparateur point-virgule ou virgule).</p>
+    <ul class="fr-text--xs">
+        <li><strong>Colonne 1 :</strong> Code Géographique (INSEE)</li>
+        <li><strong>Colonnes suivantes :</strong> Valeurs numériques</li>
+    </ul>
+</div>
                 </div>
+
+<div id="ref-paths-container" style="flex: 1; max-width: 500px; margin: 0 2rem; border-left: 1px solid #ddd; padding-left: 2rem;">
+                    </div>
+
+              
+                <div class="fr-mt-4w fr-pt-2w" style="border-top: 1px solid #ddd;">
+                    <h6 class="fr-text--xs fr-mb-1v" style="color: #666; text-transform: uppercase;">Sécurité & Confidentialité</h6>
+                    <button id="btn-wipe-data" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-delete-line fr-btn--icon-left" 
+                            style="color: #ce0500; box-shadow: inset 0 0 0 1px #ce0500;">
+                        Réinitialiser l'application
+                    </button>
+                    <p class="fr-text--xs fr-mt-1v" style="color: #929292;">
+                        Supprime définitivement le panier et les réglages de ce navigateur.
+                    </p>
+                </div>
+              
+              
             </div>
 
-            <div class="config-main-wrapper">
-                
-                <div class="config-nav-bar">
-                    <div class="nav-tabs-container">
-                        <button class="nav-tab active" onclick="switchConfigTab(event, 'panel-source')">📂 1. Source & Territoire</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-calculs')">📊 2. Indicateurs & Calculs</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-filtres')">🎛️ 3. Filtres & Ciblages</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-habillage')">🎨 4. Habillage & Esthétique</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-diapos')">➕ 5. Vues additionnelles</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-systeme')">⚙️ 6. Système & Sécurité</button>
+            <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--bottom">
+                <div class="fr-col-3">
+                    <label class="fr-label">1. Données (CSV)</label>
+                    <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-2v">
+
+                    
+                        <p class="fr-text--xs">
+                        <strong>RGPD :</strong> Le traitement s'effectue localement dans votre navigateur. 
+                        Assurez-vous que vos données respectent le <strong>secret statistique</strong> (règle des 5 unités) avant toute diffusion.
+                        </p>
+                        </div>
+                    
+                    <input class="fr-upload" type="file" id="csv-file" accept=".csv">
+
+                    <div id="wrapper-metric-select" class="fr-mt-2v" style="display:none;">
+                        <label class="fr-label" style="color:#000091; font-weight:bold;">2. Mode d'Analyse</label>
+                        <select class="fr-select" id="select-calc-mode">
+                            <optgroup label="Valeurs & Cumuls">
+                                <option value="simple" selected>Valeur Simple</option>
+                                <option value="sum">Somme (Cumul)</option>
+                                <option value="avg">Moyenne</option>
+                            </optgroup>
+                            <optgroup label="Disparités & Poids">
+                                <option value="dev_abs">Écart à la Moyenne (Absolu)</option>
+                                <option value="dev_pct">Écart à la Moyenne (%)</option>
+                                <option value="share">Poids dans le Total (%)</option>
+                            </optgroup>
+                            <optgroup label="Classements">
+                                <option value="top10">Palmarès : Top 10</option>
+                                <option value="flop10">Palmarès : Flop 10</option>
+                            </optgroup>
+                            <optgroup label="Croisements (Cochez 2 valeurs)">
+                                <option value="ratio">Ratio (A / B)</option>
+                                <option value="growth">Taux d'évolution (A ➔ B)</option>
+                            </optgroup>
+                        </select>
+
+                        <label class="fr-label fr-mt-2v" style="color:#000091; font-weight:bold;">3. Données à
+                            inclure</label>
+                        <div id="metric-checkboxes"
+                            style="background:#f9f9f9; padding:10px; border:1px solid #ddd; border-radius:4px; max-height:150px; overflow-y:auto;">
+                        </div>
+                        <p id="metric-hint" class="fr-hint-text fr-mt-1v" style="font-size:0.75rem;">Les étiquettes de
+                            la carte s'adaptent automatiquement.</p>
                     </div>
-                    <div class="nav-actions">
-                        <div style="display: flex; justify-content: center; gap: 10px; align-items: center; padding-bottom: 5px;">
-							<button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-arrow-up-s-line" onclick="window.navigateToSlide('first')" title="Aller à la première diapo" style="padding: 2px 6px;"></button>
-							<button class="fr-btn fr-btn--secondary fr-btn--sm" onclick="window.promptGoToSlide()" title="Aller à la diapo numéro..." style="padding: 2px 8px; font-size: 0.75rem;">N°...</button>
-							<button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-arrow-down-s-line" onclick="window.navigateToSlide('last')" title="Aller à la dernière diapo" style="padding: 2px 6px;"></button>
-						</div>
-                        <button class="fr-btn fr-btn--sm fr-icon-shopping-cart-2-fill fr-btn--icon-left fr-ml-2w"
-                        id="btn-open-cart" style="background-color:#ce0500;">Panier (<span
-                            id="cart-count">0</span>)</button>
-                        <button class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm"
-                        id="btn-reset-structure">Réinitialiser</button>
-                        <button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-printer-line fr-btn--icon-left" id="btn-export" title="Aperçu PDF">Aperçu PDF</button>
-                        <button id="btn-actualiser" class="fr-btn fr-btn--sm fr-icon-refresh-line fr-btn--icon-left" style="display: none; background-color: #f66d22;">
-                            Actualiser le rapport
-                        </button>
+
+                    <div id="wrapper-share-base" class="fr-mt-2v" style="display:none;">
+                        <label class="fr-label fr-text--sm" style="font-weight:bold; color:#000091;">4. Base de
+                            référence</label>
+                        <select class="fr-select fr-select--sm" id="select-share-base">
+                            <option value="global" selected>Ensemble des données (Global)</option>
+                            <option value="view">Données de la carte (Vue courante)</option>
+                        </select>
+                    </div>
+
+                    <div id="wrapper-data-filter" class="fr-mt-2v"
+                        style="display:none; background:#f9f9f9; padding:10px; border:1px solid #ddd; border-left:4px solid #ce0500; border-radius:4px;">
+                        <div class="fr-checkbox-group fr-checkbox-group--sm">
+                            <input type="checkbox" id="check-enable-filter" name="checkboxes-filter">
+                            <label class="fr-label" for="check-enable-filter"
+                                style="font-weight:bold; color:#ce0500;">5. Filtrer les données</label>
+                        </div>
+                        <div id="filter-controls" style="display:none; margin-top:10px;">
+                            <select class="fr-select fr-select--sm fr-mb-1v" id="select-filter-metric">
+                                <option value="_computed">Résultat final calculé</option>
+                            </select>
+                            <select class="fr-select fr-select--sm fr-mb-1v" id="select-filter-operator">
+                                <option value="none">-- Choisir l'opérateur --</option>
+                                <option value="gt">Supérieur à (>)</option>
+                                <option value="lt">Inférieur à (<)</option>
+                                <option value="eq">Égal à (=)</option>
+                                <option value="between">Compris entre</option>
+                            </select>
+                            <div class="fr-input-group fr-input-group--sm" style="margin-bottom:0;">
+                                <input class="fr-input fr-input--sm" type="number" id="input-filter-val1"
+                                    placeholder="Valeur" style="margin-bottom:5px;">
+                                <input class="fr-input fr-input--sm" type="number" id="input-filter-val2"
+                                    placeholder="Valeur max" style="display:none;">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="config-content">
-                    
-                    <div id="panel-source" class="config-panel-section active">
-                        <div class="fr-grid-row fr-grid-row--gutters">
-                            <div class="fr-col-12 fr-col-lg-6">
-                                <label class="fr-label">Données (Format CSV)</label>
-                                <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-2v">
-                                    <p class="fr-text--xs" style="margin:0;">
-                                    <strong>RGPD :</strong> Le traitement s'effectue localement. Assurez-vous du respect du <strong>secret statistique</strong>.
-                                    </p>
-                                </div>
-                                <input class="fr-upload" type="file" id="csv-file" accept=".csv">
-                            </div>
-                            <div class="fr-col-12 fr-col-lg-6">
-                                <label class="fr-label">Mode de Rapport (Échelle géographique)</label>
-                                <select class="fr-select fr-mb-2v" id="select-report-mode">
-                                    <option value="mode-nat-reg" selected>France Entière + Régions</option>
-                                    <option value="mode-nat-del">France Entière + Délégations</option>
-                                    <option value="mode-dep-com">Département + Communes</option>
-                                    <option value="mode-epci">Projection par EPCI</option>
-                                </select>
-                                
-                                <div id="wrapper-manage-del" class="fr-mt-1v" style="display:none;">
-                                    <button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-settings-5-line fr-btn--icon-left" id="btn-open-del-modal" style="width:100%;">Configurer les délégations</button>
-                                </div>
-                                
-                                <div id="wrapper-select-dept" class="fr-mt-1v" style="display:none;">
-                                    <label class="fr-label">Choix Département</label>
-                                    <select class="fr-select" id="select-dept-target"></select>
-                                </div>
-                                
-                                <div id="wrapper-epci-selectors" class="fr-mt-1v" style="display:none; background:#f6f6f6; padding:10px; border-left:2px solid #000091;">
-                                    <label class="fr-label fr-text--sm">Région</label><select class="fr-select fr-select--sm fr-mb-1v" id="select-epci-reg"><option value="">-- Choisir --</option></select>
-                                    <label class="fr-label fr-text--sm">Département</label><select class="fr-select fr-select--sm fr-mb-1v" id="select-epci-dep"><option value="">-- Choisir --</option></select>
-                                    <label class="fr-label fr-text--sm">EPCI</label><select class="fr-select fr-select--sm" id="select-epci-id"><option value="">-- Choisir --</option></select>
+                <div class="fr-col-6">
+                    <div class="fr-grid-row fr-grid-row--gutters">
+                        <div class="fr-col-6"><label class="fr-label">Titre</label><input class="fr-input" type="text"
+                                id="input-titre" value="Analyse Territoriale"><label
+                                class="fr-label fr-mt-2v">Date</label><input class="fr-input" type="text"
+                                id="input-date" value="02/02/2026"></div>
+                        <div class="fr-col-6"><label class="fr-label">Source</label><input class="fr-input" type="text"
+                                id="input-footer-left" value="Source: V.A.L.O.R."><label
+                                class="fr-label fr-mt-2v">Crédit</label><input class="fr-input" type="text"
+                                id="input-footer-right" value="Généré par V.A.L.O.R.">
+                            <label class="fr-label fr-mt-2v">Logo d'en-tête (Haut-Droite)</label>
+                            <input class="fr-upload" type="file" id="input-global-logo" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="fr-grid-row fr-grid-row--gutters fr-mt-2v">
+                        <div class="fr-col-6">
+                            <label class="fr-label">Mode de Rapport</label>
+                            <select class="fr-select" id="select-report-mode">
+                                <option value="mode-nat-reg" selected>France Entière + Régions</option>
+                                <option value="mode-nat-del">France Entière + Délégations</option>
+                                <option value="mode-dep-com">Département + Communes</option>
+                                <option value="mode-epci">Projection par EPCI</option>
+                            </select>
+                            <div id="wrapper-manage-del" class="fr-mt-1v" style="display:none;"><button
+                                    class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-settings-5-line fr-btn--icon-left"
+                                    id="btn-open-del-modal">Configurer les délégations</button></div>
+                            <div id="wrapper-select-dept" class="fr-mt-1v" style="display:none;"><label
+                                    class="fr-label">Choix Département</label><select class="fr-select"
+                                    id="select-dept-target"></select></div>
+                            <div id="wrapper-epci-selectors" class="fr-mt-1v" style="display:none;">
+                                <div class="fr-grid-row fr-grid-row--gutters">
+                                    <div class="fr-col-12 fr-mt-1v"><label class="fr-label">1. Région</label><select
+                                            class="fr-select" id="select-epci-reg">
+                                            <option value="">-- Choisir --</option>
+                                        </select></div>
+                                    <div class="fr-col-12 fr-mt-1v"><label class="fr-label">2.
+                                            Département</label><select class="fr-select" id="select-epci-dep">
+                                            <option value="">-- Choisir --</option>
+                                        </select></div>
+                                    <div class="fr-col-12 fr-mt-1v"><label class="fr-label">3. EPCI</label><select
+                                            class="fr-select" id="select-epci-id">
+                                            <option value="">-- Choisir --</option>
+                                        </select></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div id="panel-calculs" class="config-panel-section">
-                        <div id="wrapper-metric-select" style="display:none;">
-                            <div class="fr-grid-row fr-grid-row--gutters">
-                                <div class="fr-col-12 fr-col-lg-4">
-                                    <label class="fr-label" style="color:#000091; font-weight:bold;">Méthode d'Analyse</label>
-                                    <select class="fr-select fr-mb-3v" id="select-calc-mode">
-                                        <optgroup label="Valeurs & Cumuls">
-                                            <option value="simple" selected>Valeur Simple</option>
-                                            <option value="sum">Somme (Cumul)</option>
-                                            <option value="avg">Moyenne</option>
-                                        </optgroup>
-                                        <optgroup label="Disparités & Poids">
-                                            <option value="dev_abs">Écart à la Moyenne (Absolu)</option>
-                                            <option value="dev_pct">Écart à la Moyenne (%)</option>
-                                            <option value="share">Poids dans le Total (%)</option>
-                                        </optgroup>
-                                        <optgroup label="Classements">
-                                            <option value="top10">Palmarès : Top 10</option>
-                                            <option value="flop10">Palmarès : Flop 10</option>
-                                        </optgroup>
-                                        <optgroup label="Croisements (Cochez 2 valeurs)">
-                                            <option value="ratio">Ratio (A / B)</option>
-                                            <option value="growth">Taux d'évolution (A ➔ B)</option>
-                                        </optgroup>
-                                    </select>
-
-                                    <div class="fr-checkbox-group fr-mt-2w" style="background:#f6f6f6; padding:10px; border-radius:4px;">
-                                        <input type="checkbox" id="check-show-subtotal" checked>
-                                        <label class="fr-label" for="check-show-subtotal">Afficher le sous-total global de la carte</label>
-                                    </div>
-                                </div>
-                                
-                                <div class="fr-col-12 fr-col-lg-8">
-                                    <label class="fr-label" style="color:#000091; font-weight:bold;">Données à inclure</label>
-                                    <div id="metric-checkboxes" style="display: flex; flex-direction: row; flex-wrap: wrap; column-gap: 2rem; row-gap: 0.5rem; background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; max-height: 250px; overflow-y: auto;">
-                                        </div>
-                                    <p id="metric-hint" class="fr-hint-text fr-mt-1v" style="font-size:0.75rem;">Les étiquettes de la carte s'adapteront automatiquement.</p>
-                                </div>
+                        <div class="fr-col-6">
+                            <label class="fr-label">Palette</label>
+                            <select class="fr-select" id="select-palette">
+                            </select>
+                            <div class="fr-grid-row fr-grid-row--gutters fr-mt-2v">
+                                <div class="fr-col-12"><input class="fr-input" type="text" id="input-brand-1"
+                                        value="Direction Générale" placeholder="Marque L1"><input
+                                        class="fr-input fr-mt-1v" type="text" id="input-brand-2"
+                                        value="des jolies cartes" placeholder="Marque L2"></div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div id="panel-filtres" class="config-panel-section">
-                        <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--center">
-                            
-                            <div id="wrapper-share-base" class="fr-col-12 fr-col-md-8 fr-col-lg-5" style="display:none; background:#f4f6ff; padding:20px; border: 1px solid #dcdcfe; border-radius:8px;">
-                                <label class="fr-label" style="font-weight:bold; color:#000091; font-size: 1.1rem;">Base de référence</label>
-                                <p class="fr-text--xs fr-mb-2v">Utilisée pour calculer les parts et les écarts :</p>
-                                <select class="fr-select" id="select-share-base">
-                                    <option value="global" selected>Ensemble des données du fichier (Global)</option>
-                                    <option value="view">Uniquement les entités affichées (Vue courante)</option>
-                                </select>
-                            </div>
-                            
-                            <div id="wrapper-data-filter" class="fr-col-12 fr-col-md-8 fr-col-lg-6" style="display:none; background:#fff3f3; padding:20px; border:1px solid #ffcdcc; border-left:4px solid #ce0500; border-radius:8px;">
-                                <div class="fr-checkbox-group">
-                                    <input type="checkbox" id="check-enable-filter" name="checkboxes-filter">
-                                    <label class="fr-label" for="check-enable-filter" style="font-weight:bold; color:#ce0500; font-size: 1.1rem;">Activer le filtre de données</label>
-                                </div>
-                                <div id="filter-controls" style="display:none; margin-top:15px;">
-                                    <label class="fr-label fr-text--sm">Métrique à filtrer</label>
-                                    <select class="fr-select fr-select--sm fr-mb-2v" id="select-filter-metric">
-                                        <option value="_computed">Résultat final calculé</option>
-                                    </select>
-                                    <label class="fr-label fr-text--sm">Condition</label>
-                                    <select class="fr-select fr-select--sm fr-mb-2v" id="select-filter-operator">
-                                        <option value="none">-- Choisir l'opérateur --</option>
-                                        <option value="gt">Supérieur à (>)</option>
-                                        <option value="lt">Inférieur à (<)</option>
-                                        <option value="eq">Égal à (=)</option>
-                                        <option value="between">Compris entre</option>
-                                    </select>
-                                    <div class="fr-input-group fr-input-group--sm" style="margin-bottom:0;">
-                                        <input class="fr-input fr-input--sm" type="number" id="input-filter-val1" placeholder="Valeur" style="margin-bottom:5px;">
-                                        <input class="fr-input fr-input--sm" type="number" id="input-filter-val2" placeholder="Valeur maximum" style="display:none;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="panel-habillage" class="config-panel-section">
-                        <div class="fr-grid-row fr-grid-row--gutters">
-                            <div class="fr-col-12 fr-col-md-6">
-                                <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">En-tête de la page</h6>
-                                <label class="fr-label">Titre par défaut</label>
-                                <input class="fr-input" type="text" id="input-titre" value="Analyse Territoriale">
-                                
-                                <label class="fr-label fr-mt-2v">Date (Sous-titre)</label>
-                                <input class="fr-input" type="text" id="input-date" value="02/02/2026">
-                                
-                                <label class="fr-label fr-mt-2v">Logo d'en-tête (Haut-Droite)</label>
-                                <input class="fr-upload" type="file" id="input-global-logo" accept="image/*">
-                                
-                                <hr class="fr-mt-3v fr-mb-3v">
-                                <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">Esthétique de la Carte</h6>
-                                <label class="fr-label">Palette de couleurs</label>
-                                <select class="fr-select fr-mb-2v" id="select-palette"></select>
-                            </div>
-                            <div class="fr-col-12 fr-col-md-6">
-                                <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">Marque de l'État (Haut-Gauche)</h6>
-                                <label class="fr-label">Ligne 1</label>
-                                <input class="fr-input" type="text" id="input-brand-1" value="Direction Générale">
-                                <label class="fr-label fr-mt-2v">Ligne 2</label>
-                                <input class="fr-input" type="text" id="input-brand-2" value="des jolies cartes">
-                                
-                                <hr class="fr-mt-3v fr-mb-3v">
-                                <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">Pied de page</h6>
-                                <label class="fr-label">Source (gauche)</label>
-                                <input class="fr-input" type="text" id="input-footer-left" value="Source: V.A.L.O.R.">
-                                <label class="fr-label fr-mt-2v">Crédits (droite)</label>
-                                <input class="fr-input" type="text" id="input-footer-right" value="Généré par V.A.L.O.R.">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="panel-diapos" class="config-panel-section">
-                        <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--center">
-                            <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
-                                <div style="background: #f4f6ff; border: 1px solid #dcdcfe; padding: 2rem; border-radius: 8px; text-align: center;">
-                                    <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">Ajouter des vues personnalisées</h6>
-                                    <p class="fr-text--sm fr-mb-4w" style="color: #666;">
-                                        Enrichissez votre rapport en intercalant des diapositives textuelles libres ou des graphiques spécifiques directement depuis cet espace.
-                                    </p>
-                                    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-                                        <button class="fr-btn fr-icon-file-text-line fr-btn--icon-left" id="btn-add-slide">
-                                            Ajouter une diapo libre (Texte & Images)
-                                        </button>
-                                        <button class="fr-btn fr-btn--secondary fr-icon-bar-chart-box-line fr-btn--icon-left" id="btn-add-chart-slide">
-                                            Ajouter un graphique personnalisé
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="panel-systeme" class="config-panel-section">
-                        <div class="fr-grid-row fr-grid-row--gutters" style="align-items: stretch;">
-                            
-                            <div class="fr-col-12 fr-col-md-8" style="display: flex;">
-                                <div style="flex: 1; border: 1px solid #ddd; padding: 1.5rem; border-radius: 4px; background: #ffffff; display: flex; flex-direction: column;">
-                                    <h6 class="fr-h6 fr-mb-1v" style="font-size: 1.1rem; color: #161616;">Chemins de référence géographiques</h6>
-                                    <p class="fr-text--xs fr-mb-3v" style="color: #666;">Ces fichiers JSON sont utilisés par le moteur D3.js pour tracer les frontières.</p>
-                                    <div id="ref-paths-container" style="flex: 1; border: 1px solid #eee; border-radius: 4px; background: #f9f9f9; overflow-x: auto; display: flex; flex-direction: column; justify-content: center;">
-                                        </div>
-                                </div>
-                            </div>
-
-                            <div class="fr-col-12 fr-col-md-4" style="display: flex;">
-                                <div style="flex: 1; background: #fff3f3; border: 1px solid #ffcdcc; padding: 1.5rem; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between;">
-                                    <div>
-                                        <h6 class="fr-text--sm fr-mb-1v" style="color: #ce0500; font-weight: bold; text-transform: uppercase;"><span class="fr-icon-warning-line"></span> Zone de danger</h6>
-                                        <p class="fr-text--xs fr-mt-2v" style="color: #666;">
-                                            Cette action supprime définitivement le cache, vos délégations personnalisées et vide votre panier.
-                                        </p>
-                                    </div>
-                                    <button id="btn-wipe-data" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-delete-line fr-btn--icon-left fr-mt-3v" style="color: #ce0500; box-shadow: inset 0 0 0 1px #ce0500; width: 100%; justify-content: center;">
-                                        Réinitialiser l'application
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
+                <div class="fr-col-3 fr-text--right">
+                    <div class="fr-checkbox-group fr-checkbox-group--inline"><input type="checkbox"
+                            id="check-show-subtotal" checked><label class="fr-label"
+                            for="check-show-subtotal">Sous-total</label></div>
+                    <button class="fr-btn fr-icon-printer-line fr-btn--lg fr-mt-2v" style="width:100%"
+                        id="btn-export">Exporter PDF (Aperçu direct)</button>
+                    <button id="btn-actualiser" class="fr-btn fr-icon-refresh-line fr-btn--icon-left fr-mt-4v" 
+                        style="display: none; width: 100%; justify-content: center; background-color: #f66d22;">
+                        Actualiser le rapport
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-        function switchConfigTab(event, panelId) {
-            event.preventDefault();
-            // Masquer tous les panneaux
-            document.querySelectorAll('.config-panel-section').forEach(function(panel) {
-                panel.classList.remove('active');
-            });
-            // Retirer l'état actif de tous les onglets
-            document.querySelectorAll('.nav-tab').forEach(function(tab) {
-                tab.classList.remove('active');
-            });
-            
-            // Afficher le panneau et activer l'onglet cliqué
-            document.getElementById(panelId).classList.add('active');
-            event.target.classList.add('active');
-        }
-    </script>
 
     <dialog aria-labelledby="modal-del-title" role="dialog" id="modal-manage-delegations" class="fr-modal">
         <div class="fr-container fr-container--fluid fr-container-md">
@@ -636,7 +541,6 @@
 
                                 <label class="fr-label fr-mt-2w" style="color:#000091; font-weight:bold;">4. Palette de couleurs</label>
                                 <select class="fr-select" id="chart-select-palette"></select>
-
                             </div>
                             
                             <div class="fr-col-6">
@@ -661,13 +565,40 @@
     </div>
 </dialog>
 
+
+
+
     <div id="report-container"></div>
     <div id="d3-tooltip" class="d3-tooltip"></div>
 
     <div id="structure-panel" class="floating-bottom-bar">
         <div class="fr-container-fluid">
             <div class="structure-header"
-
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div style="flex: 1;">
+                    <h6 class="fr-h6" style="margin: 0; color: #000091;">Aperçu en direct</h6>
+                </div>
+                <div class="nav-fast-buttons"
+                    style="flex: 1; display: flex; justify-content: center; gap: 10px; align-items: center;">
+                    <button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-arrow-up-s-line" id="btn-nav-first"
+                        title="Aller à la première diapo"></button>
+                    <button class="fr-btn fr-btn--secondary fr-btn--sm" id="btn-nav-goto"
+                        title="Aller à la diapo numéro...">N°...</button>
+                    <button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-arrow-down-s-line" id="btn-nav-last"
+                        title="Aller à la dernière diapo"></button>
+                </div>
+                <div class="fr-btns-group fr-btns-group--inline" style="flex: 1; justify-content: flex-end; margin: 0;">
+                    <button class="fr-btn fr-btn--secondary fr-btn--sm" id="btn-add-all-cart"
+                        title="Sauvegarder tout ce rapport dans le panier"><span
+                            class="fr-icon-add-circle-line fr-mr-1v"></span>Tout au panier</button>
+                    <button class="fr-btn fr-btn--secondary fr-btn--sm" id="btn-add-slide">Ajouter diapo libre</button>
+                    <button class="fr-btn fr-btn--secondary fr-btn--sm fr-ml-1v" id="btn-add-chart-slide">Ajouter diapo graphique</button>
+                    <button class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm"
+                        id="btn-reset-structure">Réinitialiser</button>
+                    <button class="fr-btn fr-btn--sm fr-icon-shopping-cart-2-fill fr-btn--icon-left fr-ml-2w"
+                        id="btn-open-cart" style="background-color:#ce0500;">Panier (<span
+                            id="cart-count">0</span>)</button>
+                </div>
             </div>
             <div id="pages-list" class="page-list-container"></div>
         </div>

@@ -234,6 +234,9 @@ export function updatePagesListUI() {
 
     headerRow.innerHTML = `
         <div style="flex: 1; text-transform: uppercase;">Diapositives</div>
+        
+ 
+        
         <div class="page-item-controls" style="align-items: flex-end; gap: 5px;">
             <div style="width: 50px; text-align: center; font-size: 0.65rem;">Ordre</div>
             <div style="width: 35px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 0.65rem; margin-bottom: 2px;">Carte</span><button class="btn-icon" onclick="toggleAllMaps()" title="Toutes les cartes" style="padding: 2px; ${allMapsOn ? 'color:#000091;' : ''}"><span class="${allMapsOn ? 'fr-icon-earth-fill' : 'fr-icon-earth-line'}"></span></button></div>

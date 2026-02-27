@@ -16,6 +16,7 @@
 ./js/config/palettes.js
 ./js/config/constants.js
 ./js/features
+./js/features/interactiveDataLabels.js
 ./js/features/delegations.js
 ./js/features/editor.js
 ./js/features/reportGenerator.js

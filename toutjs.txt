@@ -108,10 +108,14 @@ import { populateEpciRegSelect, updateMetricControls, updateMainBrand } from '..
 
 export function initRefData() {
     if(!appState.geoData.dep) return;
+    // On garde 'a_dep2021' comme preferredName car le système fallback sur keys[0] de toute façon
     const deps = getGeoFeatures(appState.geoData.dep, 'a_dep2021').features;
     deps.forEach(f => {
-        const code = f.properties.dep || f.properties.code;
-        const reg = f.properties.reg;
+        // NOUVEAU : On cherche "dep", "code", ou "code_insee"
+        const code = f.properties.dep || f.properties.code || f.properties.code_insee;
+        // NOUVEAU : On cherche "reg" ou "code_insee_de_la_region"
+        const reg = f.properties.reg || f.properties.code_insee_de_la_region;
+        
         if(code && reg) appState.refData.depToReg.set(code, reg);
     });
 }
@@ -208,6 +212,31 @@ function parseINI(data) {
     return result;
 }
 
+function renderRefPathsTable() {
+    const container = document.getElementById('ref-paths-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="fr-table fr-table--sm" style="margin: 0; font-size: 0.75rem;">
+            <table style="width: 100%; display: block; max-height: 120px; overflow-y: auto;">
+                <thead>
+                    <tr>
+                    <th COLSPAN="2">Référentiel TOPO (IGN) et administratif (INSEE)</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="padding: 4px 8px;"><b>(topo)  reg</b></td><td style="padding: 4px 8px;">${PATHS.reg || '-'}</td></tr>
+                    <tr><td style="padding: 4px 8px;"><b>(topo)  dep</b></td><td style="padding: 4px 8px;">${PATHS.dep || '-'}</td></tr>
+                    <tr><td style="padding: 4px 8px;"><b>(topo)  com</b></td><td style="padding: 4px 8px;">${PATHS.com || '-'}</td></tr>
+                    <tr><td style="padding: 4px 8px;"><b>(admin) communesRef</b></td><td style="padding: 4px 8px;">${PATHS.communesRef || '-'}</td></tr>
+                    <tr><td style="padding: 4px 8px;"><b>(admin) epciRef</b></td><td style="padding: 4px 8px;">${PATHS.epciRef || '-'}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
 // Fonction pour appliquer les valeurs du .ini à l'interface
 function applyConfig(iniText) {
     if (!iniText) return;
@@ -230,8 +259,13 @@ function applyConfig(iniText) {
     if (conf.Logo && conf.Logo.chemin) {
         appState.globalLogo = conf.Logo.chemin;
     }
-    if (conf.Fichiers && conf.Fichiers.csv_defaut) {
-        PATHS.csv = conf.Fichiers.csv_defaut;
+    if (conf.Fichiers) {
+        if (conf.Fichiers.csv_defaut) PATHS.csv = conf.Fichiers.csv_defaut;
+        if (conf.Fichiers.reg) PATHS.reg = conf.Fichiers.reg;
+        if (conf.Fichiers.dep) PATHS.dep = conf.Fichiers.dep;
+        if (conf.Fichiers.com) PATHS.com = conf.Fichiers.com;
+        if (conf.Fichiers.communesRef) PATHS.communesRef = conf.Fichiers.communesRef;
+        if (conf.Fichiers.epciRef) PATHS.epciRef = conf.Fichiers.epciRef;
     }
 }
 
@@ -239,43 +273,71 @@ function applyConfig(iniText) {
 
 export async function loadInitialData() {
     try {
-        // ÉTAPE 1 : On charge tout SAUF le fichier CSV métier
-        const [reg, dep, com, communesCsvText, epciCsvText, iniText] = await Promise.all([
+        // ÉTAPE 1 : On charge la config en forçant le navigateur à ignorer le cache
+        const noCacheUrl = `${PATHS.config}?t=${Date.now()}`;
+        const iniText = await window.d3.text(noCacheUrl).catch(() => null);
+        
+        if (!iniText) {
+            alert("Erreur critique : Impossible de charger le fichier config.ini.");
+            return;
+        }
+        
+        // On applique les paramètres (ce qui remplit l'objet PATHS)
+        applyConfig(iniText);
+        renderRefPathsTable();
+
+        // VÉRIFICATION DE SÉCURITÉ : On s'assure qu'aucun chemin n'est "undefined"
+        const missing = [];
+        if (!PATHS.reg) missing.push("reg");
+        if (!PATHS.dep) missing.push("dep");
+        if (!PATHS.com) missing.push("com");
+        if (!PATHS.communesRef) missing.push("communesRef");
+        if (!PATHS.epciRef) missing.push("epciRef");
+
+        if (missing.length > 0) {
+            alert(`Erreur dans config.ini : les chemins suivants sont manquants dans la section [Fichiers] :\n- ${missing.join('\n- ')}`);
+            return; // On bloque l'exécution ici pour éviter les erreurs 404
+        }
+
+        // ÉTAPE 2 : Maintenant qu'on est sûr que les chemins existent, on charge les cartes
+        const [reg, dep, com, communesCsvText, epciCsvText] = await Promise.all([
             window.d3.json(PATHS.reg), 
             window.d3.json(PATHS.dep), 
             window.d3.json(PATHS.com),
-            window.d3.text(PATHS.communesRef).catch(() => null),
-            window.d3.text(PATHS.epciRef).catch(() => null),
-            window.d3.text(PATHS.config).catch(() => null)
+            window.d3.text(PATHS.communesRef),
+            window.d3.text(PATHS.epciRef)
         ]);
-        
+
         appState.geoData = { reg, dep, com };
         initRefData();
-        
-        // Application de la configuration (qui va mettre à jour PATHS.csv si besoin)
-        if (iniText) applyConfig(iniText); 
         
         if (communesCsvText) processCommunesRef(communesCsvText);
         if (epciCsvText) processEpciRef(epciCsvText);
         
-        // ÉTAPE 2 : Maintenant qu'on a le bon chemin, on charge le CSV métier
-        const userCsvText = await window.d3.text(PATHS.csv).catch(() => null);
-        
-        if (userCsvText) processCSV(userCsvText);
-        else buildDefaultStructure(); // Si aucun CSV n'est trouvé, on génère quand même la structure
+        // ÉTAPE 3 : Le CSV métier
+        if (PATHS.csv) {
+            const userCsvText = await window.d3.text(PATHS.csv).catch(() => null);
+            if (userCsvText) processCSV(userCsvText);
+            else buildDefaultStructure();
+        } else {
+            buildDefaultStructure();
+        }
         
     } catch (error) { 
-        console.error(error); 
+        console.error("Erreur critique de chargement :", error);
+        alert("Erreur réseau ou fichier corrompu lors du chargement des données. Consultez la console.");
     }
 }
 ./js/core/geoUtils.js
+// 1. La fonction pour lire les codes (que nous venons de corriger)
 export function getCodeFromFeature(feature, granularity) {
     const p = feature.properties;
-    if (granularity === 'com') return p.INSEE_COM || p.CODE_COM || p.com || p.codgeo || p.id;
-    if (granularity === 'dep') return p.INSEE_DEP || p.CODE_DEP || p.dep || p.code || p.id;
-    return p.INSEE_REG || p.CODE_REG || p.reg || p.code || p.id;
+    if (granularity === 'com') return p.INSEE_COM || p.CODE_COM || p.com || p.codgeo || p.code_insee || p.id;
+    if (granularity === 'dep') return p.INSEE_DEP || p.CODE_DEP || p.dep || p.code || p.code_insee || p.id;
+    return p.INSEE_REG || p.CODE_REG || p.reg || p.code || p.code_insee || p.id;
 }
 
+// 2. La fonction pour lire les cartes (celle qui a été effacée par erreur)
 export function getGeoFeatures(fileData, preferredName) {
     if (!fileData) return { features: [] };
     if (fileData.type === 'FeatureCollection') return fileData;
@@ -300,24 +362,49 @@ export function getFeaturesForPage(pageData, granularity, appState) {
     
     let features = primaryGeoJSON.features;
     if (pageData.focus) {
+        // 1. Filtrage par Région
         if (pageData.focus.type === 'region') {
-            features = features.filter(f => { const r = f.properties.reg || f.properties.INSEE_REG; return r == pageData.focus.code; });
+            features = features.filter(f => {
+                // CORRECTION : Si la carte est régionale, on lit le code direct. Sinon on cherche le parent.
+                const r = (granularity === 'reg') 
+                          ? getCodeFromFeature(f, 'reg') 
+                          : (f.properties.reg || f.properties.INSEE_REG || f.properties.code_insee_de_la_region);
+                return r == pageData.focus.code;
+            });
         }
+        // 2. Filtrage par Délégation
         else if (pageData.focus.type === 'delegation') {
             const depList = pageData.focus.list;
             features = features.filter(f => {
-                const depCode = f.properties.dep || f.properties.INSEE_DEP || (getCodeFromFeature(f, 'com') || "").substring(0,2);
+                let depCode;
+                // CORRECTION : Si carte départementale, code direct. Sinon (communes), on cherche le parent avec sécu DROM.
+                if (granularity === 'dep') {
+                    depCode = getCodeFromFeature(f, 'dep');
+                } else {
+                    const comCode = getCodeFromFeature(f, 'com') || "";
+                    depCode = f.properties.dep || f.properties.code_insee_du_departement || 
+                              (appState.refData.comToDep ? appState.refData.comToDep.get(comCode) : null) || 
+                              (comCode.startsWith('97') ? comCode.substring(0,3) : comCode.substring(0,2));
+                }
                 return depList.includes(depCode);
             });
         } 
-		else if (pageData.focus.type === 'department') {
+        // 3. Filtrage par Département
+        else if (pageData.focus.type === 'department') {
             features = features.filter(f => {
-                const comCode = getCodeFromFeature(f, 'com');
-                // On utilise le référentiel fiable en priorité, et on garde le substring en ultime secours
-                const depCode = f.properties.dep || (appState.refData.comToDep.get(comCode)) || (comCode || "").substring(0,2);
+                let depCode;
+                if (granularity === 'dep') {
+                    depCode = getCodeFromFeature(f, 'dep');
+                } else {
+                    const comCode = getCodeFromFeature(f, 'com') || "";
+                    depCode = f.properties.dep || f.properties.code_insee_du_departement || 
+                              (appState.refData.comToDep ? appState.refData.comToDep.get(comCode) : null) || 
+                              (comCode.startsWith('97') ? comCode.substring(0,3) : comCode.substring(0,2));
+                }
                 return depCode == pageData.focus.code;
             });
         }
+        // 4. Filtrage par EPCI
         else if (pageData.focus.type === 'epci') {
             const comList = pageData.focus.list || [];
             features = features.filter(f => {
@@ -336,6 +423,7 @@ export function getGranularityLabel(g) {
 }
 ./js/core/state.js
 export const appState = {
+    isStructureDirty: false,
     geoData: {},
     userData: [],
     sourceGranularity: 'dep',
@@ -554,7 +642,7 @@ export function populateEpciIdSelect() {
     const epcis = new Map();
     appState.refData.epciList.filter(r => r.DEP === dep).forEach(r => { if (r.EPCI && r.LIBEPCI) epcis.set(r.EPCI, r.LIBEPCI); });
     Array.from(epcis.keys()).sort().forEach(id => { const opt = document.createElement('option'); opt.value = id; opt.innerText = epcis.get(id); sel.appendChild(opt); });
-    sel.onchange = buildDefaultStructure;
+    sel.onchange = () => { appState.isStructureDirty = true; markAsDirty(); };
 }
 
 export function updateMetricControls() {
@@ -887,8 +975,8 @@ import {
 } from '../features/chartGenerator.js';
 
 export function setupUIListeners() {
-	
-	
+    
+    
     const btnAddChartSlide = document.getElementById('btn-add-chart-slide');
     if (btnAddChartSlide) btnAddChartSlide.onclick = openChartModal;
 
@@ -920,13 +1008,16 @@ export function setupUIListeners() {
 
     // --- 2. ACTIONS LOURDES : On marque le rapport comme "Dirty" (Bouton Actualiser) ---
     
-    // Le nouveau bouton "Actualiser le rapport"
+// Le nouveau bouton "Actualiser le rapport"
     const btnActualiser = document.getElementById('btn-actualiser');
     if (btnActualiser) {
         btnActualiser.onclick = () => {
-            // L'utilisateur valide : on recalcule tout selon qu'on change de structure ou juste de données
-            // Si le mode a changé, on reconstruit, sinon on regénère juste
-            generateReport();
+            if (appState.isStructureDirty) {
+                buildDefaultStructure();
+                appState.isStructureDirty = false; // On redescend le drapeau
+            } else {
+                generateReport();
+            }
             clearDirty();
         };
     }
@@ -947,14 +1038,17 @@ export function setupUIListeners() {
             if (wDept) wDept.style.display = (val === 'mode-dep-com') ? 'block' : 'none';
             if (wDel) wDel.style.display = (val === 'mode-nat-del') ? 'block' : 'none';
             if (wEpci) wEpci.style.display = (val === 'mode-epci') ? 'block' : 'none';
-            
+            appState.isStructureDirty = true;
             markAsDirty(); // Remplacé buildDefaultStructure par markAsDirty
         };
     }
 
     // Changement de la cible (Ex: choix d'un autre département)
     const selectDept = document.getElementById('select-dept-target'); 
-    if (selectDept) selectDept.onchange = markAsDirty; 
+    if (selectDept) selectDept.addEventListener('change', () => { 
+        appState.isStructureDirty = true;
+        markAsDirty(); 
+    });
 
     // Changement du mode de calcul (Somme, Ratio, etc.)
     const selectCalcMode = document.getElementById('select-calc-mode');
@@ -974,6 +1068,13 @@ export function setupUIListeners() {
             markAsDirty(); 
         });
     }
+    
+    // 3. Changement d'EPCI
+    const selectEpci = document.getElementById('select-epci-id');
+    if (selectEpci) selectEpci.addEventListener('change', () => { 
+        appState.isStructureDirty = true;
+        markAsDirty(); 
+    });
 
     // Changement de la base pour les parts
     const selectShareBase = document.getElementById('select-share-base');
@@ -1072,7 +1173,12 @@ export function setupUIListeners() {
     const modalDel = document.getElementById('modal-manage-delegations');
     document.getElementById('btn-open-del-modal').onclick = () => { renderDelegationList(); resetDelegationForm(); modalDel.classList.add('fr-modal--opened'); modalDel.showModal(); };
     document.getElementById('btn-close-del-modal').onclick = () => { modalDel.classList.remove('fr-modal--opened'); modalDel.close(); };
-    document.getElementById('btn-apply-delegations').onclick = () => { modalDel.classList.remove('fr-modal--opened'); modalDel.close(); buildDefaultStructure(); };
+document.getElementById('btn-apply-delegations').onclick = () => { 
+    modalDel.classList.remove('fr-modal--opened'); 
+    modalDel.close(); 
+    appState.isStructureDirty = true; 
+    markAsDirty(); 
+};
     document.getElementById('btn-save-delegation').onclick = handleSaveDelegation;
     document.getElementById('btn-cancel-delegation').onclick = resetDelegationForm;
     document.getElementById('btn-reset-delegations').onclick = () => {
@@ -1353,9 +1459,8 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
         .on("mouseover", function(event, d) {
             const code = getCodeFromFeature(d, granularity); const dataObj = dataMap.get(code);
             let name = "";
-            if (granularity === 'com') name = appState.refData.communes.get(code) || d.properties.libelle || d.properties.nom || code; 
-            else name = (granularity === 'dep' ? DEP_NAMES[code] : REG_NAMES[code]) || d.properties.libelle || d.properties.nom;
-            
+            if (granularity === 'com') name = appState.refData.communes.get(code) || d.properties.nom_officiel || d.properties.libelle || d.properties.nom || code; 
+            else name = (granularity === 'dep' ? DEP_NAMES[code] : REG_NAMES[code]) || d.properties.nom_officiel || d.properties.libelle || d.properties.nom;
             let tooltipHtml = `<strong>${escapeHtml(name)}</strong> (${code})`;
             
             if (dataObj && dataObj._computed !== undefined) {
@@ -1373,14 +1478,22 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
         })
         .on("mouseout", function(event, d) { window.d3.select(this).attr("stroke", "white").attr("stroke-width", granularity === 'com' ? 0.1 : 0.5); window.d3.select("#d3-tooltip").style("display", "none"); });
 
-    if (granularity === 'com') {
+if (granularity === 'com') {
         let depFeatures = getGeoFeatures(appState.geoData.dep, 'a_dep2021').features;
-        if (pageData.focus && pageData.focus.type === 'region') depFeatures = depFeatures.filter(f => f.properties.reg === pageData.focus.code);
-        else if (pageData.focus && pageData.focus.type === 'department') depFeatures = depFeatures.filter(f => (f.properties.dep || f.properties.code) == pageData.focus.code);
+        
+		if (pageData.focus && pageData.focus.type === 'region') {
+            depFeatures = depFeatures.filter(f => (f.properties.reg || f.properties.code_insee_de_la_region) === pageData.focus.code);
+        }
+        else if (pageData.focus && pageData.focus.type === 'department') {
+            // CORRECTION : Ajout de code_insee
+            depFeatures = depFeatures.filter(f => (f.properties.dep || f.properties.code || f.properties.code_insee) == pageData.focus.code);
+        }
         else if (pageData.focus && pageData.focus.type === 'epci') {
             const epciDeps = [...new Set(appState.refData.epciList.filter(r => r.EPCI === pageData.focus.code).map(r => r.DEP))];
-            depFeatures = depFeatures.filter(f => epciDeps.includes((f.properties.dep || f.properties.code)));
+            // CORRECTION : Ajout de code_insee
+            depFeatures = depFeatures.filter(f => epciDeps.includes((f.properties.dep || f.properties.code || f.properties.code_insee)));
         }
+        
         g.append("g").selectAll("path").data(depFeatures).enter().append("path").attr("d", path).attr("fill", "none").attr("stroke", "#444").attr("stroke-width", "0.8px").style("pointer-events", "none");
     }
 
@@ -1399,8 +1512,8 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
             const bgColor = colorScale(dataObj._computed);
             
             let rawName = "";
-            if (granularity === 'com') rawName = appState.refData.communes.get(code) || d.properties.libelle || d.properties.nom || "";
-            else rawName = (granularity === 'dep' ? DEP_NAMES[code] : REG_NAMES[code]) || d.properties.libelle || d.properties.nom || "";
+            if (granularity === 'com') rawName = appState.refData.communes.get(code) || d.properties.nom_officiel || d.properties.libelle || d.properties.nom || "";
+            else rawName = (granularity === 'dep' ? DEP_NAMES[code] : REG_NAMES[code]) || d.properties.nom_officiel || d.properties.libelle || d.properties.nom || "";
             const abbrName = getAbbreviatedName(rawName);
             
             let vals = [];
@@ -1672,13 +1785,7 @@ export const PALETTE_SCALES = {
 ./js/config/constants.js
 export const PATHS = {
 	config: './config.ini',
-    csv: './data/test.csv',
-    reg: './data/a-reg2021.json',
-    dep: './data/a-dep2021.json',
-    com: './data/a-com2022-topo-2154.json',
-    communesRef: './data/v_commune_2025.csv',
-    epciRef: './data/EPCI.csv'
-};
+ };
 
 export const ROWS_PER_PAGE = 40;
 
@@ -1719,6 +1826,407 @@ export const GEO_ABBR = [
     { full: "ARRONDISSEMENT", short: "Arr." }, { full: "DEPARTEMENT", short: "Dép." }, { full: "REGION", short: "Rég." }
 ];
 ./js/features
+./js/features/interactiveDataLabels.js
+export const interactiveDataLabelsPlugin = {
+    id: 'interactiveDataLabels',
+    
+    beforeInit(chart) {
+        const rawSignature = chart.config.type + '_' + 
+                             JSON.stringify(chart.data.labels) + '_' + 
+                             chart.data.datasets.map(d => d.label).join('_');
+        
+        let hash = 0;
+        for (let i = 0; i < rawSignature.length; i++) {
+            hash = ((hash << 5) - hash) + rawSignature.charCodeAt(i);
+            hash |= 0;
+        }
+        chart.customSignature = 'valor_labels_' + hash;
+
+        const savedState = localStorage.getItem(chart.customSignature);
+        chart.customBoxPositions = {}; 
+        
+        if (savedState) {
+            try {
+                const parsed = JSON.parse(savedState);
+                if (Array.isArray(parsed)) {
+                    chart.customLabelState = new Set(parsed);
+                } else {
+                    chart.customLabelState = new Set(parsed.active || []);
+                    chart.customBoxPositions = parsed.positions || {};
+                }
+            } catch(e) { chart.customLabelState = new Set(); }
+        } else {
+            chart.customLabelState = new Set();
+        }
+
+        chart.customButtonHitboxes = [];
+        chart.customBoxHitboxes = {}; 
+        chart.dragState = null;       
+        chart.customIsPrinting = false;
+        
+        chart._beforePrintHandler = () => { chart.customIsPrinting = true; chart.render(); };
+        chart._afterPrintHandler = () => { chart.customIsPrinting = false; chart.render(); };
+        window.addEventListener('beforeprint', chart._beforePrintHandler);
+        window.addEventListener('afterprint', chart._afterPrintHandler);
+
+        const canvas = chart.canvas;
+        
+        chart._handleDragStart = (e) => {
+            if (chart.customIsPrinting) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            for (const [entityIndex, box] of Object.entries(chart.customBoxHitboxes)) {
+                if (mouseX >= box.left && mouseX <= box.right && mouseY >= box.top && mouseY <= box.bottom) {
+                    chart.dragState = {
+                        entityIndex: entityIndex,
+                        offsetX: mouseX - box.left,
+                        offsetY: mouseY - box.top
+                    };
+                    canvas.style.cursor = 'grabbing';
+                    break;
+                }
+            }
+        };
+
+        chart._handleDragMove = (e) => {
+            if (chart.dragState && !chart.customIsPrinting) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                const boxX = mouseX - chart.dragState.offsetX;
+                const boxY = mouseY - chart.dragState.offsetY;
+
+                // NOUVEAU : On récupère l'ancre (la barre) pour stocker une position relative
+                const boxHitbox = chart.customBoxHitboxes[chart.dragState.entityIndex];
+                if (boxHitbox) {
+                    chart.customBoxPositions[chart.dragState.entityIndex] = {
+                        dx: boxX - boxHitbox.anchorX,
+                        dy: boxY - boxHitbox.anchorY
+                    };
+                    chart.render();
+                }
+            } else if (!chart.customIsPrinting) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                let isHovering = false;
+                for (const box of Object.values(chart.customBoxHitboxes)) {
+                    if (mouseX >= box.left && mouseX <= box.right && mouseY >= box.top && mouseY <= box.bottom) {
+                        isHovering = true; break;
+                    }
+                }
+                canvas.style.cursor = isHovering ? 'grab' : 'default';
+            }
+        };
+
+        chart._handleDragEnd = () => {
+            if (chart.dragState) {
+                chart.dragState = null;
+                canvas.style.cursor = 'default';
+                
+                const saveObj = {
+                    active: Array.from(chart.customLabelState),
+                    positions: chart.customBoxPositions
+                };
+                localStorage.setItem(chart.customSignature, JSON.stringify(saveObj));
+            }
+        };
+
+        canvas.addEventListener('mousedown', chart._handleDragStart);
+        window.addEventListener('mousemove', chart._handleDragMove);
+        window.addEventListener('mouseup', chart._handleDragEnd);
+    },
+
+    destroy(chart) {
+        window.removeEventListener('beforeprint', chart._beforePrintHandler);
+        window.removeEventListener('afterprint', chart._afterPrintHandler);
+        chart.canvas.removeEventListener('mousedown', chart._handleDragStart);
+        window.removeEventListener('mousemove', chart._handleDragMove);
+        window.removeEventListener('mouseup', chart._handleDragEnd);
+    },
+
+    afterDatasetsDraw(chart, args, pluginOptions) {
+        const { ctx, width, height } = chart;
+        chart.customButtonHitboxes = []; 
+        chart.customBoxHitboxes = {}; 
+
+        const activeEntities = new Set(); 
+        const obstacles = [];             
+        const drawnBoxes = [];            
+
+        chart.data.datasets.forEach((dataset, dsIndex) => {
+            const meta = chart.getDatasetMeta(dsIndex);
+            if (meta.hidden) return;
+
+            meta.data.forEach((element, i) => {
+                const dataVal = dataset.data[i];
+                if (dataVal === null || dataVal === undefined) return;
+
+                const pos = element.tooltipPosition(); 
+                let { x, y } = pos;
+                if (chart.config.type === 'bar') y -= 12; 
+
+                const key = `${dsIndex}-${i}`;
+                const isToggled = chart.customLabelState.has(key);
+                const radius = 8; 
+
+                if (chart.config.type === 'bar') {
+                    const barWidth = element.width || 15;
+                    const barTop = Math.min(element.y, element.base);
+                    const barBottom = Math.max(element.y, element.base);
+                    obstacles.push({
+                        left: element.x - (barWidth / 2), right: element.x + (barWidth / 2),
+                        top: barTop - 15, bottom: barBottom
+                    });
+                } else {
+                    obstacles.push({
+                        left: pos.x - radius - 5, right: pos.x + radius + 5,
+                        top: pos.y - radius - 5, bottom: pos.y + radius + 5
+                    });
+                }
+
+                if (!chart.customIsPrinting) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                    ctx.fillStyle = isToggled ? '#000091' : '#f6f6f6'; 
+                    ctx.fill();
+                    ctx.strokeStyle = '#000091';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    ctx.fillStyle = isToggled ? '#ffffff' : '#000091';
+                    ctx.font = 'bold 12px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(isToggled ? '-' : '+', x, y + 1); 
+                    ctx.restore();
+                    
+                    chart.customButtonHitboxes.push({ x, y, r: radius, key });
+                }
+
+                if (isToggled) activeEntities.add(i);
+            });
+        });
+
+        activeEntities.forEach(i => {
+            ctx.save();
+            let entityRaw = chart.data.labels[i];
+            const entityName = Array.isArray(entityRaw) ? entityRaw.join(' ') : String(entityRaw);
+
+            const tableData = [];
+            let groupX = 0, groupY = Infinity, count = 0; 
+
+            chart.data.datasets.forEach((ds, idx) => {
+                if (!chart.getDatasetMeta(idx).hidden) {
+                    const val = ds.data[i];
+                    if (val !== null && val !== undefined) {
+                        const formattedVal = typeof val === 'number' 
+                            ? (Number.isInteger(val) ? val.toLocaleString('fr-FR') : val.toLocaleString('fr-FR', { maximumFractionDigits: 2 }))
+                            : val;
+                        
+                        tableData.push({ label: ds.label || 'Valeur', value: String(formattedVal) });
+
+                        const el = chart.getDatasetMeta(idx).data[i];
+                        const pos = el.tooltipPosition();
+                        groupX += pos.x;
+                        groupY = Math.min(groupY, chart.config.type === 'bar' ? pos.y - 12 : pos.y);
+                        count++;
+                    }
+                }
+            });
+
+            if (count > 0) groupX /= count; 
+
+            ctx.font = 'bold 13px "Marianne", arial, sans-serif';
+            const titleWidth = ctx.measureText(entityName).width;
+            let maxLabelWidth = 0, maxValWidth = 0;
+            
+            tableData.forEach(row => {
+                ctx.font = 'normal 12px "Marianne", arial, sans-serif';
+                const lw = ctx.measureText(row.label).width;
+                ctx.font = 'bold 12px "Marianne", arial, sans-serif';
+                const vw = ctx.measureText(row.value).width;
+                if (lw > maxLabelWidth) maxLabelWidth = lw;
+                if (vw > maxValWidth) maxValWidth = vw;
+            });
+
+            const padding = 10, gap = 20, rowHeight = 16;
+            const tableWidth = maxLabelWidth + gap + maxValWidth;
+            const boxWidth = Math.max(titleWidth, tableWidth) + (padding * 2);
+            const boxHeight = (padding * 2) + 16 + 12 + (tableData.length * rowHeight); 
+
+            let boxX, boxY;
+            let offsetVertical = chart.customIsPrinting ? 2 : 18;
+
+            if (chart.customBoxPositions[i]) {
+                // NOUVEAU : Application de la position relative (Responsive & PDF friendly)
+                if (chart.customBoxPositions[i].dx !== undefined) {
+                    boxX = groupX + chart.customBoxPositions[i].dx;
+                    boxY = groupY + chart.customBoxPositions[i].dy;
+                } else {
+                    // Fallback pour les anciennes sauvegardes
+                    boxX = chart.customBoxPositions[i].x;
+                    boxY = chart.customBoxPositions[i].y;
+                }
+                
+                // Garde-fous pour ne pas sortir de l'écran ou de la feuille PDF
+                if (boxX < 0) boxX = 0; else if (boxX + boxWidth > width) boxX = width - boxWidth;
+                if (boxY < 0) boxY = 0; else if (boxY + boxHeight > height) boxY = height - boxHeight;
+
+            } else {
+                const getOverlapScore = (bx, by) => {
+                    let score = 0;
+                    if (bx < 5 || by < 5 || bx + boxWidth > width - 5 || by + boxHeight > height - 5) return Infinity;
+                    const bLeft = bx - 2, bRight = bx + boxWidth + 2, bTop = by - 2, bBottom = by + boxHeight + 2;
+                    for (const obs of drawnBoxes) {
+                        if (bLeft < obs.right && bRight > obs.left && bTop < obs.bottom && bBottom > obs.top) return Infinity;
+                    }
+                    for (const obs of obstacles) {
+                        if (bLeft < obs.right && bRight > obs.left && bTop < obs.bottom && bBottom > obs.top) score += 10;
+                    }
+                    return score;
+                };
+
+                const candidates = [];
+                candidates.push({ x: groupX - boxWidth / 2, y: groupY - offsetVertical - boxHeight }); 
+                candidates.push({ x: groupX - boxWidth / 2, y: groupY + offsetVertical + 20 });        
+                
+                const step = 15;
+                for (let j = 1; j <= 20; j++) {
+                    let shift = j * step;
+                    candidates.push({ x: groupX - boxWidth / 2 + shift, y: groupY - offsetVertical - boxHeight });
+                    candidates.push({ x: groupX - boxWidth / 2 - shift, y: groupY - offsetVertical - boxHeight });
+                    candidates.push({ x: groupX - boxWidth / 2 + shift, y: groupY + offsetVertical + 20 });
+                    candidates.push({ x: groupX - boxWidth / 2 - shift, y: groupY + offsetVertical + 20 });
+                    candidates.push({ x: groupX + 20 + shift, y: groupY - boxHeight / 2 });
+                    candidates.push({ x: groupX - boxWidth - 20 - shift, y: groupY - boxHeight / 2 });
+                    candidates.push({ x: groupX + 20, y: groupY - boxHeight / 2 + shift });
+                    candidates.push({ x: groupX + 20, y: groupY - boxHeight / 2 - shift });
+                    candidates.push({ x: groupX - boxWidth - 20, y: groupY - boxHeight / 2 + shift });
+                    candidates.push({ x: groupX - boxWidth - 20, y: groupY - boxHeight / 2 - shift });
+                }
+
+                let bestPos = candidates[0], minScore = Infinity;
+                for (const pos of candidates) {
+                    const score = getOverlapScore(pos.x, pos.y);
+                    if (score === 0) { bestPos = pos; minScore = 0; break; }
+                    if (score < minScore) { minScore = score; bestPos = pos; }
+                }
+
+                boxX = bestPos.x;
+                boxY = bestPos.y;
+            }
+
+            // NOUVEAU : On enregistre aussi l'ancre (groupX/groupY) pour la logique de drag relative
+            chart.customBoxHitboxes[i] = { 
+                left: boxX, right: boxX + boxWidth, 
+                top: boxY, bottom: boxY + boxHeight,
+                anchorX: groupX, anchorY: groupY
+            };
+            drawnBoxes.push({ left: boxX, right: boxX + boxWidth, top: boxY, bottom: boxY + boxHeight });
+
+            const idealX = groupX - boxWidth / 2;
+            const idealY = groupY - offsetVertical - boxHeight;
+            if (Math.abs(boxX - idealX) > 10 || Math.abs(boxY - idealY) > 10) {
+                ctx.beginPath();
+                ctx.moveTo(groupX, groupY);
+                let anchorX = boxX + boxWidth / 2;
+                let anchorY = boxY > groupY ? boxY : boxY + boxHeight;
+                if (boxX > groupX) anchorX = boxX; 
+                else if (boxX + boxWidth < groupX) anchorX = boxX + boxWidth;
+
+                ctx.lineTo(anchorX, anchorY);
+                ctx.strokeStyle = '#000091';
+                ctx.setLineDash([3, 3]); 
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.setLineDash([]); 
+            }
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 4);
+            else ctx.rect(boxX, boxY, boxWidth, boxHeight);
+            ctx.fill();
+            ctx.strokeStyle = '#dddddd';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.textBaseline = 'top';
+            let currentY = boxY + padding;
+            
+            ctx.fillStyle = '#000091';
+            ctx.font = 'bold 13px "Marianne", arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(entityName, boxX + (boxWidth / 2), currentY);
+            
+            currentY += 16;
+
+            ctx.beginPath();
+            ctx.moveTo(boxX + padding, currentY + 4);
+            ctx.lineTo(boxX + boxWidth - padding, currentY + 4);
+            ctx.strokeStyle = '#eeeeee';
+            ctx.stroke();
+            currentY += 12;
+
+            tableData.forEach(row => {
+                ctx.fillStyle = '#1e1e1e';
+                ctx.font = 'normal 12px "Marianne", arial, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(row.label, boxX + padding, currentY);
+
+                ctx.font = 'bold 12px "Marianne", arial, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(row.value, boxX + boxWidth - padding, currentY);
+
+                currentY += rowHeight;
+            });
+            ctx.restore();
+        });
+    },
+
+    afterEvent(chart, args) {
+        if (chart.customIsPrinting || chart.dragState) return;
+
+        const event = args.event;
+        if (event.type === 'click') {
+            const clickX = event.x;
+            const clickY = event.y;
+            let clickedOnButton = false;
+
+            for (const hitbox of chart.customButtonHitboxes) {
+                const distanceX = clickX - hitbox.x;
+                const distanceY = clickY - hitbox.y;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+                if (distance <= hitbox.r + 3) {
+                    if (chart.customLabelState.has(hitbox.key)) {
+                        chart.customLabelState.delete(hitbox.key);
+                        const entityIndex = hitbox.key.split('-')[1];
+                        delete chart.customBoxPositions[entityIndex];
+                    } else {
+                        chart.customLabelState.add(hitbox.key);
+                    }
+                    clickedOnButton = true;
+                    break;
+                }
+            }
+            
+            if (clickedOnButton) {
+                const saveObj = {
+                    active: Array.from(chart.customLabelState),
+                    positions: chart.customBoxPositions
+                };
+                localStorage.setItem(chart.customSignature, JSON.stringify(saveObj));
+                args.changed = true; 
+            }
+        }
+    }
+};
 ./js/features/delegations.js
 import { appState } from '../core/state.js';
 import { DEFAULT_DELEGATIONS, DEP_NAMES } from '../config/constants.js';
@@ -1914,11 +2422,14 @@ export const saveCustomSlide = async () => {
     const visualEditor = document.getElementById('visual-editor');
     const sourceEditor = document.getElementById('source-editor');
     
-    let content = "";
+let content = "";
+    // CORRECTION : On autorise DOMPurify à conserver les attributs "style" et les balises "img"
+    const purifyConfig = { ADD_TAGS: ['img'], ADD_ATTR: ['style'] };
+    
     if (visualEditor.style.display !== 'none') {
-        content = window.DOMPurify.sanitize(visualEditor.innerHTML);
+        content = window.DOMPurify.sanitize(visualEditor.innerHTML, purifyConfig);
     } else { 
-        content = window.DOMPurify.sanitize(sourceEditor.value); 
+        content = window.DOMPurify.sanitize(sourceEditor.value, purifyConfig); 
         visualEditor.innerHTML = content;
     }
 
@@ -2163,18 +2674,19 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
     };
     appState.userData.forEach(d => {
         let targetCode = d.code;
-        if (shouldAggregate && appState.sourceGranularity !== targetGranularity) {
-            if (appState.sourceGranularity === 'com' && targetGranularity === 'dep') {
-                targetCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
-            }
-            else if (appState.sourceGranularity === 'dep' && targetGranularity === 'reg') {
-                targetCode = appState.refData.depToReg.get(d.code);
-            }
-            else if (appState.sourceGranularity === 'com' && targetGranularity === 'reg') {
-                const depCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
-                targetCode = appState.refData.depToReg.get(depCode);
-            }
-        }
+			if (shouldAggregate && appState.sourceGranularity !== targetGranularity) {
+				if (appState.sourceGranularity === 'com' && targetGranularity === 'dep') {
+					targetCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
+				}
+				else if (appState.sourceGranularity === 'dep' && targetGranularity === 'reg') {
+					targetCode = appState.refData.depToReg.get(d.code);
+				}
+				else if (appState.sourceGranularity === 'com' && targetGranularity === 'reg') {
+					// NOUVEAU : Prise en compte sécurisée des DROM pour remonter l'arbre Commune -> Département -> Région
+					const depCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
+					targetCode = appState.refData.depToReg.get(depCode);
+				}
+			}
         if (targetCode) {
             const currentObj = initOrGetObj(targetCode);
             // CORRECTION: On agrège toujours toutes les métriques disponibles pour garantir le fonctionnement des graphiques
@@ -2378,13 +2890,15 @@ const isMultiScale = page.chartConfig.scale.endsWith('_multi');
                 return ca.toString().localeCompare(cb.toString());
             });
 
-            filtered.forEach(f => {
+				filtered.forEach(f => {
                 const code = getCodeFromFeature(f, granularity);
                 const d = dataMap.get(code);
                 let name = code;
-                if (granularity === 'com') name = appState.refData.communes.get(code) || f.properties.nom || code;
-                else if (granularity === 'dep') name = DEP_NAMES[code] || code;
-                else name = REG_NAMES[code] || code;
+                
+                // NOUVEAU : Intégration de nom_officiel pour le référentiel 2025/2026
+                if (granularity === 'com') name = appState.refData.communes.get(code) || f.properties.nom_officiel || f.properties.nom || code;
+                else if (granularity === 'dep') name = DEP_NAMES[code] || f.properties.nom_officiel || code;
+                else name = REG_NAMES[code] || f.properties.nom_officiel || code;
                 
                 xLabels.push(`${code} - ${name}`);
                 
@@ -2438,6 +2952,11 @@ const isMultiScale = page.chartConfig.scale.endsWith('_multi');
             }
             else if (page.chartConfig.scale === 'com_multi') entityName = appState.refData.communes.get(page.chartConfig.entity) || page.chartConfig.entity;
 
+            else if (page.chartConfig.scale === 'del_multi') {
+                const delegation = appState.customDelegations[parseInt(page.chartConfig.entity)];
+                entityName = delegation ? delegation.label : page.chartConfig.entity;
+            }
+            
             // 3. Construction des axes selon le type de graphique
 			if (page.chartConfig.type === 'pie' || page.chartConfig.type === 'line' || page.chartConfig.type === 'radar') {
                 // Pour Camembert / Courbe / Radar : 1 seule série (l'entité), et N points/axes (les métriques)
@@ -2559,15 +3078,18 @@ export function generateTablePages(page, features, dataMap, config, granularity)
             let name = code;
             let parent = "-";
 
-            if (granularity === 'com') {
-                name = appState.refData.communes.get(code) || f.properties.libelle || f.properties.nom || code;
-                const depCode = appState.refData.comToDep?.get(code) || (code || "").substring(0, 2);
+			if (granularity === 'com') {
+                // NOUVEAU : nom_officiel et protection DROM (startsWith 97)
+                name = appState.refData.communes.get(code) || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
+                const depCode = appState.refData.comToDep?.get(code) || (code.startsWith('97') ? code.substring(0, 3) : (code || "").substring(0, 2));
                 parent = DEP_NAMES[depCode] || depCode;
             } else if (granularity === 'dep') {
-                name = DEP_NAMES[code] || f.properties.libelle || f.properties.nom || code;
-                parent = REG_NAMES[f.properties.reg] || "-";
+                name = DEP_NAMES[code] || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
+                // NOUVEAU : Lecture du nouveau code_insee_de_la_region
+                const regCode = f.properties.reg || f.properties.code_insee_de_la_region || (appState.refData.depToReg ? appState.refData.depToReg.get(code) : null);
+                parent = REG_NAMES[regCode] || "-";
             } else if (granularity === 'reg') {
-                name = REG_NAMES[code] || f.properties.libelle || f.properties.nom || code;
+                name = REG_NAMES[code] || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
             }
 
             let rowHtml = `<tr><td>${code}</td><td>${escapeHtml(name)}</td>`;
@@ -2712,7 +3234,7 @@ export function handleScaleChange() {
             opt.value = r.code; opt.textContent = r.label;
             selectEntity.appendChild(opt);
         });
-    } else if (scale === 'del_by_dep') {
+    } else if (scale === 'del_by_dep' || scale === 'del_multi'){
         labelEntity.textContent = 'Délégation cible';
         wrapperEntity.style.display = 'block';
         appState.customDelegations.forEach((del, index) => {
@@ -2880,11 +3402,12 @@ export function saveChartSlide() {
     const scale = document.getElementById('chart-select-scale').value;
     const type = document.getElementById('chart-select-type').value;
     
-	let entity = document.getElementById('chart-select-entity').value;
+    let entity = document.getElementById('chart-select-entity').value;
     if (scale === 'com_multi') {
         // L'utilisateur peut taper "75056" ou "75056 - Paris", on ne garde que le code
         entity = document.getElementById('chart-input-com').value.split(' ')[0].trim();
-    }    
+    }
+    
     // NOUVEAU : On récupère l'état de toutes les cases
     const isHorizontal = document.getElementById('chart-opt-horizontal').checked;
     const showMean = document.getElementById('chart-opt-mean').checked;
@@ -2896,10 +3419,10 @@ export function saveChartSlide() {
     const palette = document.getElementById('chart-select-palette').value;
     const selectedMetrics = Array.from(document.querySelectorAll('input[name="chart-metric-selection"]:checked')).map(cb => cb.value);
     
-    if (selectedMetrics.length === 0) { alert("Veuillez sélectionner au moins une valeur."); return; }
-    if (scale !== 'france' && !entity) { alert("Veuillez sélectionner une entité cible."); return; }
-
-// --- GÉNÉRATION AUTOMATIQUE DU TITRE ---
+	if (selectedMetrics.length === 0) { alert("Veuillez sélectionner au moins une valeur."); return; }
+    // CORRECTION : On autorise le mode france_multi à passer sans entité
+    if (!['france', 'france_multi'].includes(scale) && !entity) { alert("Veuillez sélectionner une entité cible."); return; }
+    // --- GÉNÉRATION AUTOMATIQUE DU TITRE ---
     if (!title) {
         // On détermine le libellé de la métrique
         const metricLabel = selectedMetrics.length === 1 ?
@@ -2922,7 +3445,8 @@ export function saveChartSlide() {
             title = `${entityName} - ${metricLabel}`;
         }
     }
-let focus = null;
+    
+    let focus = null;
     let gran = 'dep';
 
     // -- Modes classiques (Comparaison) --
@@ -2936,6 +3460,7 @@ let focus = null;
         const communes = appState.refData.epciList.filter(r => r.EPCI === entity).map(r => r.CODGEO); 
         focus = { type: 'epci', code: entity, list: communes }; gran = 'com'; 
     }
+    
     // -- NOUVEAUX MODES MULTIVALEURS --
     else if (scale === 'france_multi') { gran = 'dep'; focus = null; } // On agrège tous les départements
     else if (scale === 'reg_multi') { gran = 'reg'; focus = { type: 'region', code: entity }; }
@@ -2943,6 +3468,11 @@ let focus = null;
     else if (scale === 'epci_multi') { 
         const communes = appState.refData.epciList.filter(r => r.EPCI === entity).map(r => r.CODGEO); 
         focus = { type: 'epci', code: entity, list: communes }; gran = 'com'; 
+    }
+    else if (scale === 'del_multi') {  // <--- CORRECTION AJOUTÉE ICI !
+        gran = 'dep';
+        const delegation = appState.customDelegations[parseInt(entity)];
+        if (delegation) focus = { type: 'delegation', list: delegation.depCodes };
     }
     else if (scale === 'com_multi') { 
         gran = 'com'; 
@@ -2975,7 +3505,6 @@ let focus = null;
     updatePagesListUI(); generateReport();
     setTimeout(() => { if (window.scrollToPage) { window.scrollToPage(finalId); } }, 150);
 }
-
 // Attaché à Window pour les boutons "Éditer" de la liste (générés en HTML)
 window.editChartSlide = (id) => {
     const page = appState.pages.find(p => p.id === id);
@@ -3457,6 +3986,7 @@ import {
     getMovingAverage, 
     detectOutliers 
 } from './utils/data-analytics.js';
+import { interactiveDataLabelsPlugin } from './features/interactiveDataLabels.js';
 
 /**
  * UTILITAIRE : Convertit une couleur HEX ou RGB en RGBA avec transparence
@@ -3698,6 +4228,7 @@ buildChartFromAttributes() {
                     labels: xLabels,
                     datasets: datasets
                 },
+                plugins: [interactiveDataLabelsPlugin],
                 options: {
                     indexAxis: (isHorizontal && chartType === 'bar') ? 'y' : 'x',
                     responsive: true,

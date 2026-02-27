@@ -97,6 +97,36 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 .del-deps { font-size: 0.8rem; color: #666; font-family: monospace; }
 .del-actions { display: flex; gap: 5px; }
 
+/* Préparation de la zone de contenu pour l'animation */
+.config-content {
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
+    max-height: 2000px; /* Hauteur max suffisante pour le contenu déplié */
+    opacity: 1;
+    overflow: hidden;
+}
+
+/* État replié : on masque le contenu */
+#config-panel.shrunk .config-content {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* Ajustement du panneau principal pour retirer l'espace vide en bas */
+#config-panel { 
+    background-color: #f0f0f0; 
+    padding: 1.5rem; 
+    border-bottom: 4px solid #000091; 
+    /* --- NOUVEAU COMPORTEMENT --- */
+    position: sticky; 
+    top: 0; 
+    z-index: 1500; /* Permet de rester au-dessus des cartes, mais sous les modales */
+}
+
+#config-panel.shrunk {
+    padding-bottom: 0 !important; /* Annule le padding-bottom: 2rem défini en inline */
+}
+
+
 @media print {
     @page { size: A3 landscape; margin: 0; }
     body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }

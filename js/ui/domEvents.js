@@ -15,6 +15,25 @@ import {
 
 export function setupUIListeners() {
     
+    // --- GESTION DU REPLI AUTOMATIQUE DU PANNEAU ---
+    const configPanel = document.getElementById('config-panel');
+    let shrinkTimeout;
+
+    if (configPanel) {
+        // Quand la souris quitte le panneau
+        configPanel.addEventListener('mouseleave', () => {
+            shrinkTimeout = setTimeout(() => {
+                configPanel.classList.add('shrunk');
+            }, 2000); // 2 secondes
+        });
+
+        // Quand la souris revient sur le panneau (y compris sur la barre d'onglets)
+        configPanel.addEventListener('mouseenter', () => {
+            clearTimeout(shrinkTimeout);
+            configPanel.classList.remove('shrunk');
+        });
+    }
+    
     
     const btnAddChartSlide = document.getElementById('btn-add-chart-slide');
     if (btnAddChartSlide) btnAddChartSlide.onclick = openChartModal;
