@@ -119,7 +119,7 @@ function renderRefPathsTable() {
             <table style="width: 100%; display: block; max-height: 120px; overflow-y: auto;">
                 <thead>
                     <tr>
-                    <th COLSPAN="2">Référentiel TOPO et administratif (INSEE)</th>
+                    <th COLSPAN="2">Référentiel TOPO (IGN) et administratif (INSEE)</th>
 
                     </tr>
                 </thead>
