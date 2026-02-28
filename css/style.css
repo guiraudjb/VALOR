@@ -1,6 +1,15 @@
 * { box-sizing: border-box; }
 body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-family: "Marianne", arial, sans-serif; }
-#config-panel { background-color: #f0f0f0; padding: 1.5rem; border-bottom: 4px solid #000091; position: relative; z-index: 100;}
+
+/* --- EN-TÊTE ET PANNEAU DE CONFIGURATION --- */
+#config-panel { 
+    background-color: #f0f0f0; 
+    padding: 1.5rem; 
+    border-bottom: 4px solid #000091; 
+    position: sticky; /* Rendu collant */
+    top: 0;           /* Accroché tout en haut de l'écran */
+    z-index: 100;
+}
 .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #ddd; padding-bottom: 1rem; }
 .header-left-group { display: flex; align-items: center; gap: 2rem; }
 .fr-header__logo { margin: 0; padding: 0; flex-shrink: 0; }
@@ -9,6 +18,7 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 .acronym { font-size: 2rem; font-weight: 900; color: #000091; line-height: 1; }
 .meaning { font-size: 0.9rem; color: #666; font-style: italic; margin-top: 5px; }
 
+/* --- BOUTON À PROPOS ET INFOBULLE --- */
 .about-wrapper { position: relative; display: inline-block; }
 .btn-about { cursor: pointer; color: #000091; font-weight: 500; background: none; border: none; display: flex; align-items: center; gap: 5px; }
 .tooltip-content { visibility: hidden; opacity: 0; position: absolute; top: 100%; right: 0; width: 450px; background: white; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #ddd; border-left: 4px solid #000091; z-index: 2000; transition: opacity 0.2s; text-align: left; }
@@ -17,6 +27,8 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 .tooltip-content p, .tooltip-content ul { font-size: 0.85rem; line-height: 1.4; color: #333; }
 .code-block { background: #f5f5f5; padding: 5px; font-family: monospace; border-radius: 4px; display: block; margin-top: 5px;}
 
+/* --- PANNEAU DE STRUCTURE DU RAPPORT (BAS DE PAGE) --- */
+.floating-bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f0f0f0; border-top: 4px solid #000091; z-index: 900; padding: 1rem 1.5rem; box-shadow: 0 -5px 15px rgba(0,0,0,0.15); }
 .page-list-container { background: white; max-height: 180px; overflow-y: auto; border: 1px solid #ddd; padding: 0; position: relative; }
 .page-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; border-bottom: 1px solid #eee; background: white; transition: background 0.2s; }
 .page-item:hover { background: #f9f9f9; }
@@ -33,8 +45,8 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 .btn-icon { background: none; border: none; cursor: pointer; padding: 5px; color: #666; display: flex; align-items: center; justify-content: center; }
 .btn-icon:hover { color: #000091; background-color: #eee; border-radius: 50%; }
 .btn-delete:hover { color: #ce0500; }
-.floating-bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f0f0f0; border-top: 4px solid #000091; z-index: 1000; padding: 1rem 1.5rem; box-shadow: 0 -5px 15px rgba(0,0,0,0.15); }
 
+/* --- MISE EN PAGE DU RAPPORT (VUES) --- */
 #report-container { width: 420mm; margin: 0 auto; background: #555; padding: 20px 0; }
 .page { width: 420mm; height: 297mm; padding: 10mm 15mm; background: white; display: flex; flex-direction: column; margin: 0 auto 20px auto; overflow: hidden; position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
 .page-header { flex-shrink: 0; margin-bottom: 10px; }
@@ -51,8 +63,9 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 .kpi-value { font-size: 1.8rem; font-weight: 800; color: #000091; line-height: 1.2; }
 .main-content { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; position: relative; }
 .page-footer { margin-top: auto; font-size: 0.75rem; border-top: 1px solid #000091; padding-top: 6px; color: #666; display: flex; justify-content: space-between; }
-.map-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; background: radial-gradient(circle at center, #fff 0%, #fafafa 100%); }
 
+/* --- CARTOGRAPHIE D3.JS --- */
+.map-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; background: radial-gradient(circle at center, #fff 0%, #fafafa 100%); }
 .d3-map path { stroke: white; stroke-width: 0.2px; transition: opacity 0.2s; cursor: crosshair; }
 .label-text { font-family: "Marianne", arial, sans-serif; fill: #000091; font-weight: 700; paint-order: stroke; stroke: white; stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
 .label-link { fill: none; stroke: #333; stroke-width: 0.8px; stroke-dasharray: 2,2; opacity: 0.6; pointer-events: none; }
@@ -61,6 +74,7 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 .layer-commune { fill: transparent; stroke: #ccc; stroke-width: 0.2px; }
 .d3-tooltip { position: absolute; background: white; padding: 5px 10px; border: 1px solid #000091; font-size: 0.8rem; pointer-events: none; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
+/* --- TABLEAUX DE DONNÉES --- */
 .table-page-content { flex: 1; overflow: hidden; padding-right: 0; display: flex; flex-direction: column; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; table-layout: fixed; }
 .data-table th { background: #f6f6f6; border-bottom: 2px solid #000091; color: #000091; font-weight: 800; text-transform: uppercase; padding: 10px 12px; text-align: left; }
@@ -69,6 +83,7 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 .col-code { width: 90px; font-weight: bold; font-family: monospace; color: #000091; }
 .col-val { width: 140px; text-align: right !important; font-family: monospace; font-weight: bold; }
 
+/* --- ÉDITEUR WYSIWYG --- */
 .editor-container { border: 1px solid #ddd; background: #fff; display: flex; flex-direction: column; height: 60vh; }
 .editor-toolbar { background: #f5f5f5; padding: 8px; border-bottom: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 .editor-btn { background: white; border: 1px solid #ccc; cursor: pointer; padding: 5px 10px; font-size: 0.9rem; font-weight: bold; border-radius: 4px; min-width: 30px; display: flex; align-items: center; justify-content: center;}
@@ -84,6 +99,7 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 .btn-source { background-color: #000091; color: white; border: none; }
 .btn-source:hover { background-color: #1212ff; color: white; }
 
+/* --- DIAPOSITIVES LIBRES ET DÉLÉGATIONS --- */
 .free-slide-content { background: #f6f6f6; height: 100%; padding: 2rem; border-left: 4px solid #000091; overflow-y: hidden; white-space: normal; font-size: 1.2rem; line-height: 1.6; color: #161616; position: relative; z-index: 1;}
 .free-slide-content h2, .free-slide-content h3 { color: #000091; }
 .free-slide-content table { width: 100%; border-collapse: collapse; background: white; }
@@ -97,49 +113,43 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
 .del-deps { font-size: 0.8rem; color: #666; font-family: monospace; }
 .del-actions { display: flex; gap: 5px; }
 
-/* Préparation de la zone de contenu pour l'animation */
-.config-content {
-    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
-    max-height: 2000px; /* Hauteur max suffisante pour le contenu déplié */
+/* --- GRILLE D'ICÔNES DSFR --- */
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto; padding: 15px; background: #f6f6f6; border: 1px solid #ddd; border-radius: 4px; }
+.icon-grid-item { display: flex; align-items: center; justify-content: center; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+.icon-grid-item:hover { border-color: #000091; background: #e3e3fd; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.icon-grid-item img { max-width: 100%; max-height: 40px; object-fit: contain; }
+
+/* --- GESTION DU REPLI AUTOMATIQUE DU PANNEAU (SHRUNK) --- */
+.config-main-wrapper {
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, margin 0.4s ease-in-out;
+    max-height: 2000px;
     opacity: 1;
     overflow: hidden;
 }
-
-/* État replié : on masque le contenu */
-#config-panel.shrunk .config-content {
+#config-panel.shrunk .config-main-wrapper {
     max-height: 0;
     opacity: 0;
+    margin-bottom: 0;
+    border: none;
 }
-
-/* Ajustement du panneau principal pour retirer l'espace vide en bas */
-#config-panel { 
-    background-color: #f0f0f0; 
-    padding: 1.5rem; 
-    border-bottom: 4px solid #000091; 
-    /* --- NOUVEAU COMPORTEMENT --- */
-    position: sticky; 
-    top: 0; 
-    z-index: 1500; /* Permet de rester au-dessus des cartes, mais sous les modales */
-}
-
 #config-panel.shrunk {
-    padding-bottom: 0 !important; /* Annule le padding-bottom: 2rem défini en inline */
+    padding-bottom: 1rem !important;
 }
-/* Cache la barre d'onglets quand le panneau est replié */
-#config-panel.shrunk .config-nav-bar {
-    display: none;
+#config-panel.shrunk .top-bar {
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
 }
 
-
+/* --- RÈGLES D'IMPRESSION --- */
 @media print {
     @page { size: A3 landscape; margin: 0; }
     body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     #config-panel, .floating-bottom-bar { display: none !important; }
     #report-container { width: 100%; margin: 0; padding: 0; background: none; }
     .page { margin: 0; page-break-after: always; box-shadow: none; width: 420mm; height: 297mm; overflow: hidden; display: flex; flex-direction: column; }
-/* ... tes règles existantes ... */
-
-    /* Masquer les icônes de modification */
+    
+    /* Masquer les icônes de modification pour le rendu PDF */
     .edit-icon-trigger, 
     .edit-report-icon-trigger {
         display: none !important;
@@ -152,9 +162,4 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
         padding: 0 !important;
         background-color: transparent !important;
     }
-
 }
-.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto; padding: 15px; background: #f6f6f6; border: 1px solid #ddd; border-radius: 4px; }
-.icon-grid-item { display: flex; align-items: center; justify-content: center; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
-.icon-grid-item:hover { border-color: #000091; background: #e3e3fd; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-.icon-grid-item img { max-width: 100%; max-height: 40px; object-fit: contain; }
