@@ -29,9 +29,9 @@
 </head>
 
 <body>
-    <div id="config-panel" style="background-color: #fcfcfc; padding-bottom: 2rem;">
+    <div id="config-panel" class="fr-background-alt--grey fr-pb-4w">
         <div class="fr-container-fluid">
-            <div class="top-bar" style="border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-top: 1rem; padding-bottom: 1rem;">
+            <div class="top-bar fr-pb-2w fr-pt-2w fr-mb-3w" style="border-bottom: 1px solid #ddd;">
                 <div class="header-left-group">
                     <div class="fr-header__brand fr-enlarge-link">
                         <div class="fr-header__brand-top">
@@ -40,20 +40,22 @@
                             </div>
                         </div>
                     </div>
-                    <div class="brand-block"><span class="acronym">V.A.L.O.R.</span><span class="meaning">Visualisation
-                            Automatisée de Lectures et d'Observations Régionales</span></div>
+                    <div class="brand-block">
+                        <span class="acronym fr-text-title--blue-france">V.A.L.O.R.</span>
+                        <span class="meaning">Visualisation Automatisée de Lectures et d'Observations Régionales</span>
+                    </div>
                 </div>
                 <div class="training-links" style="padding-left: 2rem; border-left: 1px solid #ddd; display: flex; flex-direction: column; justify-content: center; gap: 0.25rem;">
-                        <a href="./documentation/Guide de Formation VALOR_v1.pdf" target="_blank" rel="noopener noreferrer" class="fr-link fr-link--sm fr-icon-file-pdf-line fr-link--icon-left" style="margin-bottom: 0;">
-                            Guide de formation utilisateur
-                        </a>
-                        <a href="./data/donnees_valor_formation_2026.csv" download class="fr-link fr-link--sm fr-icon-download-line fr-link--icon-left" style="margin-bottom: 0;">
-                            Fichier CSV de formation
-                        </a>
-                    </div>
+                    <a href="./documentation/Guide de Formation VALOR_v1.pdf" target="_blank" rel="noopener noreferrer" class="fr-link fr-link--sm fr-icon-file-pdf-line fr-link--icon-left fr-mb-0">
+                        Guide de formation utilisateur
+                    </a>
+                    <a href="./data/donnees_valor_formation_2026.csv" download class="fr-link fr-link--sm fr-icon-download-line fr-link--icon-left fr-mb-0">
+                        Fichier CSV de formation
+                    </a>
+                </div>
                     
                 <div class="about-wrapper">
-                    <button class="btn-about"><span class="fr-icon-information-line"></span> À propos</button>
+                    <button class="fr-btn fr-btn--secondary btn-about"><span class="fr-icon-information-line fr-mr-1v"></span> À propos</button>
                     <div class="tooltip-content">
                         <h6>Confidentialité & Sécurité</h6>
                         <p class="fr-text--xs">
@@ -89,12 +91,13 @@
 							<button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-arrow-down-s-line" onclick="window.navigateToSlide('last')" title="Aller à la dernière diapo" style="padding: 2px 6px;"></button>
 						</div>
                         <button class="fr-btn fr-btn--sm fr-icon-shopping-cart-2-fill fr-btn--icon-left fr-ml-2w"
-                        id="btn-open-cart" style="background-color:#ce0500;">Panier (<span
-                            id="cart-count">0</span>)</button>
-                        <button class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm"
+                        id="btn-open-cart">Panier (<span id="cart-count">0</span>)</button>
+                        
+                        <button class="fr-btn fr-btn--tertiary fr-btn--sm"
                         id="btn-reset-structure">Réinitialiser</button>
                         <button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-printer-line fr-btn--icon-left" id="btn-export" title="Aperçu PDF">Aperçu PDF</button>
-                        <button id="btn-actualiser" class="fr-btn fr-btn--sm fr-icon-refresh-line fr-btn--icon-left" style="display: none; background-color: #f66d22;">
+                        
+                        <button id="btn-actualiser" class="fr-btn fr-btn--sm fr-icon-refresh-line fr-btn--icon-left" style="display: none;">
                             Actualiser le rapport
                         </button>
                     </div>
@@ -107,7 +110,7 @@
                             <div class="fr-col-12 fr-col-lg-6">
                                 <label class="fr-label">Données (Format CSV)</label>
                                 <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-2v">
-                                    <p class="fr-text--xs" style="margin:0;">
+                                    <p class="fr-text--xs fr-mb-0">
                                     <strong>RGPD :</strong> Le traitement s'effectue localement. Assurez-vous du respect du <strong>secret statistique</strong>.
                                     </p>
                                 </div>
@@ -131,7 +134,7 @@
                                     <select class="fr-select" id="select-dept-target"></select>
                                 </div>
                                 
-                                <div id="wrapper-epci-selectors" class="fr-mt-1v" style="display:none; background:#f6f6f6; padding:10px; border-left:2px solid #000091;">
+                                <div id="wrapper-epci-selectors" class="fr-mt-1v fr-p-2w fr-background-alt--grey" style="display:none; border-left:2px solid #000091;">
                                     <label class="fr-label fr-text--sm">Région</label><select class="fr-select fr-select--sm fr-mb-1v" id="select-epci-reg"><option value="">-- Choisir --</option></select>
                                     <label class="fr-label fr-text--sm">Département</label><select class="fr-select fr-select--sm fr-mb-1v" id="select-epci-dep"><option value="">-- Choisir --</option></select>
                                     <label class="fr-label fr-text--sm">EPCI</label><select class="fr-select fr-select--sm" id="select-epci-id"><option value="">-- Choisir --</option></select>
@@ -144,7 +147,7 @@
                         <div id="wrapper-metric-select" style="display:none;">
                             <div class="fr-grid-row fr-grid-row--gutters">
                                 <div class="fr-col-12 fr-col-lg-4">
-                                    <label class="fr-label" style="color:#000091; font-weight:bold;">Méthode d'Analyse</label>
+                                    <label class="fr-label fr-text-title--blue-france fr-text--bold">Méthode d'Analyse</label>
                                     <select class="fr-select fr-mb-3v" id="select-calc-mode">
                                         <optgroup label="Valeurs & Cumuls">
                                             <option value="simple" selected>Valeur Simple</option>
@@ -166,14 +169,14 @@
                                         </optgroup>
                                     </select>
 
-                                    <div class="fr-checkbox-group fr-mt-2w" style="background:#f6f6f6; padding:10px; border-radius:4px;">
+                                    <div class="fr-checkbox-group fr-mt-2w fr-p-2w fr-background-alt--grey" style="border-radius:4px;">
                                         <input type="checkbox" id="check-show-subtotal" checked>
                                         <label class="fr-label" for="check-show-subtotal">Afficher le sous-total global de la carte</label>
                                     </div>
                                 </div>
                                 
                                 <div class="fr-col-12 fr-col-lg-8">
-                                    <label class="fr-label" style="color:#000091; font-weight:bold;">Données à inclure</label>
+                                    <label class="fr-label fr-text-title--blue-france fr-text--bold">Données à inclure</label>
                                     <div id="metric-checkboxes" style="display: flex; flex-direction: row; flex-wrap: wrap; column-gap: 2rem; row-gap: 0.5rem; background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; max-height: 250px; overflow-y: auto;">
                                         </div>
                                     <p id="metric-hint" class="fr-hint-text fr-mt-1v" style="font-size:0.75rem;">Les étiquettes de la carte s'adapteront automatiquement.</p>
@@ -186,7 +189,7 @@
                         <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--center">
                             
                             <div id="wrapper-share-base" class="fr-col-12 fr-col-md-8 fr-col-lg-5" style="display:none; background:#f4f6ff; padding:20px; border: 1px solid #dcdcfe; border-radius:8px;">
-                                <label class="fr-label" style="font-weight:bold; color:#000091; font-size: 1.1rem;">Base de référence</label>
+                                <label class="fr-label fr-text-title--blue-france fr-text--bold" style="font-size: 1.1rem;">Base de référence</label>
                                 <p class="fr-text--xs fr-mb-2v">Utilisée pour calculer les parts et les écarts :</p>
                                 <select class="fr-select" id="select-share-base">
                                     <option value="global" selected>Ensemble des données du fichier (Global)</option>
@@ -197,7 +200,7 @@
                             <div id="wrapper-data-filter" class="fr-col-12 fr-col-md-8 fr-col-lg-6" style="display:none; background:#fff3f3; padding:20px; border:1px solid #ffcdcc; border-left:4px solid #ce0500; border-radius:8px;">
                                 <div class="fr-checkbox-group">
                                     <input type="checkbox" id="check-enable-filter" name="checkboxes-filter">
-                                    <label class="fr-label" for="check-enable-filter" style="font-weight:bold; color:#ce0500; font-size: 1.1rem;">Activer le filtre de données</label>
+                                    <label class="fr-label fr-text-default--error fr-text--bold" for="check-enable-filter" style="font-size: 1.1rem;">Activer le filtre de données</label>
                                 </div>
                                 <div id="filter-controls" style="display:none; margin-top:15px;">
                                     <label class="fr-label fr-text--sm">Métrique à filtrer</label>
@@ -213,7 +216,7 @@
                                         <option value="between">Compris entre</option>
                                     </select>
                                     <div class="fr-input-group fr-input-group--sm" style="margin-bottom:0;">
-                                        <input class="fr-input fr-input--sm" type="number" id="input-filter-val1" placeholder="Valeur" style="margin-bottom:5px;">
+                                        <input class="fr-input fr-input--sm fr-mb-1v" type="number" id="input-filter-val1" placeholder="Valeur">
                                         <input class="fr-input fr-input--sm" type="number" id="input-filter-val2" placeholder="Valeur maximum" style="display:none;">
                                     </div>
                                 </div>
@@ -224,7 +227,7 @@
                     <div id="panel-habillage" class="config-panel-section">
                         <div class="fr-grid-row fr-grid-row--gutters">
                             <div class="fr-col-12 fr-col-md-6">
-                                <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">En-tête de la page</h6>
+                                <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">En-tête de la page</h6>
                                 <label class="fr-label">Titre par défaut</label>
                                 <input class="fr-input" type="text" id="input-titre" value="Analyse Territoriale">
                                 
@@ -235,19 +238,19 @@
                                 <input class="fr-upload" type="file" id="input-global-logo" accept="image/*">
                                 
                                 <hr class="fr-mt-3v fr-mb-3v">
-                                <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">Esthétique de la Carte</h6>
+                                <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">Esthétique de la Carte</h6>
                                 <label class="fr-label">Palette de couleurs</label>
                                 <select class="fr-select fr-mb-2v" id="select-palette"></select>
                             </div>
                             <div class="fr-col-12 fr-col-md-6">
-                                <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">Marque de l'État (Haut-Gauche)</h6>
+                                <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">Marque de l'État (Haut-Gauche)</h6>
                                 <label class="fr-label">Ligne 1</label>
                                 <input class="fr-input" type="text" id="input-brand-1" value="Direction Générale">
                                 <label class="fr-label fr-mt-2v">Ligne 2</label>
                                 <input class="fr-input" type="text" id="input-brand-2" value="des jolies cartes">
                                 
                                 <hr class="fr-mt-3v fr-mb-3v">
-                                <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">Pied de page</h6>
+                                <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">Pied de page</h6>
                                 <label class="fr-label">Source (gauche)</label>
                                 <input class="fr-input" type="text" id="input-footer-left" value="Source: V.A.L.O.R.">
                                 <label class="fr-label fr-mt-2v">Crédits (droite)</label>
@@ -261,12 +264,12 @@
                         <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--center">
                             <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
                                 <div style="background: #f4f6ff; border: 1px solid #dcdcfe; padding: 2rem; border-radius: 8px; text-align: center;">
-                                    <h6 class="fr-h6 fr-mb-2v" style="color:#000091;">Ajouter des vues personnalisées</h6>
+                                    <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">Ajouter des vues personnalisées</h6>
                                     <p class="fr-text--sm fr-mb-4w" style="color: #666;">
                                         Enrichissez votre rapport en intercalant des diapositives textuelles libres ou des graphiques spécifiques directement depuis cet espace.
                                     </p>
                                     <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-                                        <button class="fr-btn fr-btn--secondary fr-icon-bar-chart-box-line fr-btn--icon-left" id="btn-add-slide">
+                                        <button class="fr-btn fr-btn--secondary fr-icon-file-text-line fr-btn--icon-left" id="btn-add-slide">
                                             Ajouter une diapo libre (Texte & Images)
                                         </button>
                                         <button class="fr-btn fr-btn--secondary fr-icon-bar-chart-box-line fr-btn--icon-left" id="btn-add-chart-slide">
@@ -293,12 +296,12 @@
                             <div class="fr-col-12 fr-col-md-4" style="display: flex;">
                                 <div style="flex: 1; background: #fff3f3; border: 1px solid #ffcdcc; padding: 1.5rem; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between;">
                                     <div>
-                                        <h6 class="fr-text--sm fr-mb-1v" style="color: #ce0500; font-weight: bold; text-transform: uppercase;"><span class="fr-icon-warning-line"></span> Zone de danger</h6>
+                                        <h6 class="fr-text--sm fr-mb-1v fr-text-default--error fr-text--bold" style="text-transform: uppercase;"><span class="fr-icon-warning-line"></span> Zone de danger</h6>
                                         <p class="fr-text--xs fr-mt-2v" style="color: #666;">
                                             Cette action supprime définitivement le cache, vos délégations personnalisées et vide votre panier.
                                         </p>
                                     </div>
-                                    <button id="btn-wipe-data" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-delete-line fr-btn--icon-left fr-mt-3v" style="color: #ce0500; box-shadow: inset 0 0 0 1px #ce0500; width: 100%; justify-content: center;">
+                                    <button id="btn-wipe-data" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-delete-line fr-btn--icon-left fr-mt-3v fr-text-default--error" style="box-shadow: inset 0 0 0 1px #ce0500; width: 100%; justify-content: center;">
                                         Réinitialiser l'application
                                     </button>
                                 </div>
@@ -344,8 +347,8 @@
                             <div id="delegation-list-container" class="fr-mb-3w"
                                 style="max-height: 250px; overflow-y: auto;"></div>
                             <hr>
-                            <div
-                                style="background: #f6f6f6; padding: 1rem; border-left: 4px solid #000091; margin-top: 1rem;">
+                            <div class="fr-p-2w fr-background-alt--grey fr-mt-2w"
+                                style="border-left: 4px solid #000091;">
                                 <h4 class="fr-h6 fr-mb-1w" id="del-form-title">Ajouter une délégation</h4><input
                                     type="hidden" id="del-edit-index" value="-1">
                                 <div class="fr-input-group fr-mb-1w"><label class="fr-label">Nom de la
@@ -523,7 +526,7 @@
                                     title="Charger un projet existant">Importer</button>
                             </div>
                             <div style="display: flex; gap: 10px;">
-                                <button class="fr-btn fr-btn--icon-left fr-icon-layout-line" id="btn-cart-to-editor">
+                                <button class="fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-layout-line" id="btn-cart-to-editor">
                                 Transférer vers l'éditeur</button>
                                 <button class="fr-btn fr-icon-printer-line fr-btn--icon-left"
                                     onclick="window.printCart()">Générer le PDF</button>
@@ -576,7 +579,7 @@
                                 <label class="fr-label">Titre (Optionnel)</label>
                                 <input class="fr-input fr-mb-2w" type="text" id="chart-slide-title" placeholder="Généré automatiquement si vide">
 
-                                <label class="fr-label" style="color:#000091; font-weight:bold;">1. Périmètre Géographique</label>
+                                <label class="fr-label fr-text-title--blue-france fr-text--bold">1. Périmètre Géographique</label>
                                 <select class="fr-select fr-mb-2v" id="chart-select-scale">
                                     <optgroup label="Comparaison de territoires (1 à N métriques)">
                                         <option value="france">Nationale (Détail par Département)</option>
@@ -594,7 +597,7 @@
                                     </optgroup>
                                 </select>
                                 
-                                <div id="chart-epci-filters" style="display:none; background:#f6f6f6; padding:10px; border-left:2px solid #000091;" class="fr-mb-2v">
+                                <div id="chart-epci-filters" style="display:none; border-left:2px solid #000091;" class="fr-mb-2v fr-p-2w fr-background-alt--grey">
                                     <label class="fr-label fr-text--sm">Filtre Région</label>
                                     <select class="fr-select fr-select--sm fr-mb-1v" id="chart-select-epci-reg"></select>
                                     <label class="fr-label fr-text--sm">Filtre Département</label>
@@ -612,7 +615,7 @@
                                     <datalist id="chart-datalist-com"></datalist>
                                 </div>
 
-                                <label class="fr-label fr-mt-2w" style="color:#000091; font-weight:bold;">2. Type de graphique</label>
+                                <label class="fr-label fr-mt-2w fr-text-title--blue-france fr-text--bold">2. Type de graphique</label>
                                 <select class="fr-select" id="chart-select-type">
                                     <option value="bar">Barres (Comparaison)</option>
                                     <option value="line">Courbes (Évolution / Profil)</option>
@@ -620,8 +623,8 @@
                                     <option value="radar">Toile d'araignée (Radar)</option>
                                 </select>
                                 
-                                <label class="fr-label fr-mt-2w" style="color:#000091; font-weight:bold;">Options d'analyse & d'affichage</label>
-                                <div id="chart-options-wrapper" class="fr-mt-1v" style="background:#f6f6f6; padding:10px; border-radius:4px;">
+                                <label class="fr-label fr-mt-2w fr-text-title--blue-france fr-text--bold">Options d'analyse & d'affichage</label>
+                                <div id="chart-options-wrapper" class="fr-mt-1v fr-p-2w fr-background-alt--grey" style="border-radius:4px;">
                                     <div class="fr-checkbox-group fr-checkbox-group--sm">
                                         <input type="checkbox" id="chart-opt-horizontal" name="chart-opt-horizontal">
                                         <label class="fr-label" for="chart-opt-horizontal">Afficher horizontalement</label>
@@ -644,19 +647,19 @@
                                     </div>
                                 </div>
 
-                                <label class="fr-label fr-mt-2w" style="color:#000091; font-weight:bold;">4. Palette de couleurs</label>
+                                <label class="fr-label fr-mt-2w fr-text-title--blue-france fr-text--bold">4. Palette de couleurs</label>
                                 <select class="fr-select" id="chart-select-palette"></select>
 
                             </div>
                             
                             <div class="fr-col-6">
-                                <label class="fr-label" style="color:#000091; font-weight:bold;">3. Valeurs à afficher</label>
+                                <label class="fr-label fr-text-title--blue-france fr-text--bold">3. Valeurs à afficher</label>
                                 <p class="fr-hint-text">Vous pouvez sélectionner plusieurs indicateurs.</p>
                                 
                                 <div id="chart-metric-checkboxes" style="background:#f9f9f9; padding:10px; border:1px solid #ddd; max-height:250px; overflow-y:auto; border-radius:4px;">
                                 </div>
 
-                                <div id="chart-pie-warning" class="fr-mt-2v" style="display:none; color:#ce0500; font-size:0.8rem; font-weight:bold;">
+                                <div id="chart-pie-warning" class="fr-mt-2v fr-text-default--error fr-text--bold" style="display:none; font-size:0.8rem;">
                                     <span class="fr-icon-warning-line"></span> Un camembert n'est lisible qu'avec 1 seule métrique sélectionnée.
                                 </div>
                             </div>
@@ -676,9 +679,7 @@
 
     <div id="structure-panel" class="floating-bottom-bar">
         <div class="fr-container-fluid">
-            <div class="structure-header"
-
-            </div>
+            <div class="structure-header"></div>
             <div id="pages-list" class="page-list-container"></div>
         </div>
     </div>
