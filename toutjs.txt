@@ -1984,6 +1984,7 @@ class DSFRChart extends HTMLElement {
         const chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
                 inlineBaselines: baselinesToDraw,
                 legend: {
@@ -4050,7 +4051,7 @@ export function printCart() {
             }, 50); 
             window.onafterprint = null;
         };
-    }, 1000);
+    }, 3000);
 }
 
 export function exportProject() {
