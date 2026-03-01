@@ -560,6 +560,12 @@ export function generateTablePages(page, features, dataMap, config, granularity)
 export function generateReport() {
     const container = document.getElementById('report-container');
     if (!container) return;
+    
+    const existingCharts = container.querySelectorAll('bar-chart, pie-chart, line-chart, radar-chart');
+    existingCharts.forEach(chartEl => {
+        if (chartEl.disconnectedCallback) chartEl.disconnectedCallback();
+    });
+    
     container.innerHTML = '';
     
     // On récupère la configuration globale (actuelle)
