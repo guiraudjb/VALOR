@@ -64,8 +64,8 @@ export function processCSV(fileOrText) {
                 const firstCode = res.data[0][codeField].toString().trim();
                 appState.sourceGranularity = (firstCode.length >= 4) ? 'com' : 'dep';
                 
-                const granSel = document.getElementById('select-granularity');
-                if (granSel) granSel.value = appState.sourceGranularity;
+                //const granSel = document.getElementById('select-granularity');
+                //if (granSel) granSel.value = appState.sourceGranularity;
                 
                 appState.availableMetrics = metricFields;
                 appState.calcMode = 'simple';

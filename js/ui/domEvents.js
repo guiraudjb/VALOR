@@ -316,27 +316,27 @@ document.getElementById('btn-apply-delegations').onclick = () => {
 // --- ACTIONS DE BAS DE PANNEAU (TRANSFERT ET SÉCURITÉ) ---
     
     // 1. Transfert Panier -> Éditeur
-    const btnCartToEditor = document.getElementById('btn-cart-to-editor');
-    if (btnCartToEditor) {
-        btnCartToEditor.onclick = async () => {
-            if (!appState.cart || appState.cart.length === 0) {
-                alert("Votre panier est vide.");
-                return;
-            }
-            if (confirm(`Transférer les ${appState.cart.length} éléments du panier vers le rapport ?`)) {
-                appState.cart.forEach(item => {
-                    const newPage = JSON.parse(JSON.stringify(item.page));
-                    newPage.id = Date.now() + Math.random();
-                    appState.pages.push(newPage);
-                });
-                appState.cart = [];
-                await db.saveCart(appState.cart);
-                if (window.updateCartBadge) window.updateCartBadge();
-                buildDefaultStructure(); // Ou updatePagesListUI() selon votre import
-                generateReport();
-            }
-        };
-    }
+    //const btnCartToEditor = document.getElementById('btn-cart-to-editor');
+    //if (btnCartToEditor) {
+    //    btnCartToEditor.onclick = async () => {
+    //        if (!appState.cart || appState.cart.length === 0) {
+    //            alert("Votre panier est vide.");
+    //            return;
+    //        }
+    //        if (confirm(`Transférer les ${appState.cart.length} éléments du panier vers le rapport ?`)) {
+    //            appState.cart.forEach(item => {
+    //                const newPage = JSON.parse(JSON.stringify(item.page));
+    //                newPage.id = Date.now() + Math.random();
+    //                appState.pages.push(newPage);
+    //            });
+    //            appState.cart = [];
+    //            await db.saveCart(appState.cart);
+    //            if (window.updateCartBadge) window.updateCartBadge();
+    //            buildDefaultStructure(); // Ou updatePagesListUI() selon votre import
+    //            generateReport();
+    //        }
+    //    };
+    //}
 
     // 2. Nettoyage de sécurité (Wipe) - DÉCLARATION UNIQUE ICI
     const btnWipe = document.getElementById('btn-wipe-data');
