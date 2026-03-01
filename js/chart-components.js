@@ -303,6 +303,16 @@ class DSFRChart extends HTMLElement {
             this.innerHTML = '<p style="color:#ce0500; font-weight:bold; padding: 1rem;">Erreur lors de la génération du graphique.</p>';
         }
     }
+
+// AJOUT : Nettoyage automatique à la destruction de l'élément
+    disconnectedCallback() {
+        if (this.chartInstance) {
+            this.chartInstance.destroy();
+            this.chartInstance = null;
+        }
+        this.innerHTML = ''; // Libère les noeuds DOM internes
+    }
+
 }
 
 customElements.define('bar-chart', class extends DSFRChart {});
