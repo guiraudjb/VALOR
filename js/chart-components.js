@@ -257,6 +257,7 @@ class DSFRChart extends HTMLElement {
         const chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
                 inlineBaselines: baselinesToDraw,
                 legend: {

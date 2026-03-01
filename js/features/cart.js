@@ -176,7 +176,7 @@ export function printCart() {
             }, 50); 
             window.onafterprint = null;
         };
-    }, 1000);
+    }, 3000);
 }
 
 export function exportProject() {
