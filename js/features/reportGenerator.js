@@ -1,6 +1,6 @@
 import { appState } from '../core/state.js';
 import { escapeHtml, formatValue } from '../core/utils.js';
-import { getCodeFromFeature, getFeaturesForPage, getGranularityLabel } from '../core/geoUtils.js';
+import { getCodeFromFeature, getFeaturesForPage, getGranularityLabel,getDepFromCom } from '../core/geoUtils.js';
 import { updatePagesListUI } from '../ui/viewUpdater.js';
 import { setupScrollTracking } from '../ui/domEvents.js';
 import { drawD3Map } from '../render/mapRenderer.js';
@@ -103,7 +103,8 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
 				}
 				else if (appState.sourceGranularity === 'com' && targetGranularity === 'reg') {
 					// NOUVEAU : Prise en compte sécurisée des DROM pour remonter l'arbre Commune -> Département -> Région
-					const depCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
+					//const depCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
+					const depCode = getDepFromCom(d.code, appState);
 					targetCode = appState.refData.depToReg.get(depCode);
 				}
 			}
@@ -501,7 +502,8 @@ export function generateTablePages(page, features, dataMap, config, granularity)
 			if (granularity === 'com') {
                 // NOUVEAU : nom_officiel et protection DROM (startsWith 97)
                 name = appState.refData.communes.get(code) || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
-                const depCode = appState.refData.comToDep?.get(code) || (code.startsWith('97') ? code.substring(0, 3) : (code || "").substring(0, 2));
+                //const depCode = appState.refData.comToDep?.get(code) || (code.startsWith('97') ? code.substring(0, 3) : (code || "").substring(0, 2));
+                const depCode = getDepFromCom(d.code, appState);
                 parent = DEP_NAMES[depCode] || depCode;
             } else if (granularity === 'dep') {
                 name = DEP_NAMES[code] || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;

@@ -90,3 +90,13 @@ export function getGranularityLabel(g) {
     if(g==='com') return "Communes"; 
     return "Départements"; 
 }
+
+
+// AJOUT : Fonction centralisée pour déduire le département depuis une commune
+export function getDepFromCom(comCode, appState) {
+    if (!comCode) return null;
+    const strCode = String(comCode).trim();
+    // Utilise le référentiel en priorité, sinon applique la règle métier INSEE
+    return appState.refData.comToDep?.get(strCode) || 
+           (strCode.startsWith('97') ? strCode.substring(0, 3) : strCode.substring(0, 2));
+}

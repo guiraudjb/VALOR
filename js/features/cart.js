@@ -3,6 +3,7 @@ import { db, escapeHtml } from '../core/utils.js';
 import { getAggregatedDataMap, renderPageItem, getCurrentConfig, generateReport } from './reportGenerator.js';
 import { DEP_NAMES, REG_NAMES } from '../config/constants.js';
 import { updatePagesListUI } from '../ui/viewUpdater.js';
+import { getDepFromCom } from '../core/geoUtils.js';
 
 export async function initCart() {
     appState.cart = await db.loadCart();
@@ -248,7 +249,8 @@ function getEntityInfo(code, granularity) {
     let parent = "-";
     if (granularity === 'com') {
         name = appState.refData.communes.get(code) || code;
-        const depCode = appState.refData.comToDep?.get(code) || (code.startsWith('97') ? code.substring(0,3) : code.substring(0,2));
+        //const depCode = appState.refData.comToDep?.get(code) || (code.startsWith('97') ? code.substring(0,3) : code.substring(0,2));
+        const depCode = getDepFromCom(d.code, appState);
         parent = DEP_NAMES[depCode] || depCode;
     } else if (granularity === 'dep') {
         name = DEP_NAMES[code] || code;
