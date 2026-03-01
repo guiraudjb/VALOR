@@ -417,9 +417,7 @@ export async function transferCartToEditor() {
         updatePagesListUI();
         // On importe dynamiquement generateReport pour éviter les dépendances circulaires si besoin, 
         // ou on s'assure qu'il est importé en haut du fichier.
-        import('./reportGenerator.js').then(module => {
-            module.generateReport();
-        });
+		window.dispatchEvent(new CustomEvent('valor:refreshReport'));
     }
 }
 

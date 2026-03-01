@@ -15,6 +15,10 @@ import {
 
 export function setupUIListeners() {
     
+    window.addEventListener('valor:refreshReport', () => {
+        generateReport();
+    });
+    
     // --- GESTION DU REPLI AUTOMATIQUE DU PANNEAU ---
     const configPanel = document.getElementById('config-panel');
     let shrinkTimeout;
