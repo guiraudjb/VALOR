@@ -277,9 +277,9 @@ document.getElementById('btn-apply-delegations').onclick = () => {
             }
         });
 
-        // 2. Sauvegarde quand on appuie sur "Entrée"
+// 2. Sauvegarde quand on appuie sur "Entrée"
         reportContainer.addEventListener('keydown', (e) => {
-            if (e.target.classList.contains('editable-slide-title') && e.key === 'Enter') {
+            if ((e.target.classList.contains('editable-slide-title') || e.target.classList.contains('editable-report-title')) && e.key === 'Enter') {
                 e.preventDefault(); 
                 e.target.blur();    
             }
@@ -287,13 +287,14 @@ document.getElementById('btn-apply-delegations').onclick = () => {
 
         // 3. Effets visuels au survol
         reportContainer.addEventListener('mouseover', (e) => {
-            if (e.target.classList.contains('editable-slide-title')) {
+            if (e.target.classList.contains('editable-slide-title') || e.target.classList.contains('editable-report-title')) {
                 e.target.style.backgroundColor = 'rgba(0, 0, 145, 0.05)';
                 e.target.style.borderBottom = '1px dashed #000091';
             }
         });
+
         reportContainer.addEventListener('mouseout', (e) => {
-            if (e.target.classList.contains('editable-slide-title')) {
+            if (e.target.classList.contains('editable-slide-title') || e.target.classList.contains('editable-report-title')) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.borderBottom = '1px dashed transparent';
             }
@@ -301,9 +302,26 @@ document.getElementById('btn-apply-delegations').onclick = () => {
 
         // 4. Action de l'icône Crayon : Focus et sélection
         reportContainer.addEventListener('click', (e) => {
+            
+            // A. Pour le titre secondaire (Cartes et Graphiques)
             if (e.target.classList.contains('edit-icon-trigger')) {
                 const targetId = e.target.getAttribute('data-target-id');
                 const titleSpan = document.querySelector(`.editable-slide-title[data-page-id="${targetId}"]`);
+                
+                if (titleSpan) {
+                    titleSpan.focus();
+                    const selection = window.getSelection();
+                    const range = document.createRange();
+                    range.selectNodeContents(titleSpan);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }
+
+            // B. NOUVEAU : Pour le titre principal (En-tête de page global)
+            if (e.target.classList.contains('edit-report-icon-trigger')) {
+                // On remonte au conteneur parent (.page-header) pour trouver le span correspondant
+                const titleSpan = e.target.closest('.page-header').querySelector('.editable-report-title');
                 
                 if (titleSpan) {
                     titleSpan.focus();

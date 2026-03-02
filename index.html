@@ -477,6 +477,22 @@
 
                                     <button class="editor-btn btn-source" onclick="toggleSourceMode()"
                                         title="Voir le Code HTML">&lt;/&gt; Code</button>
+                                        <span class="separator" style="flex:1"></span>
+
+                                        <select id="template-select" class="editor-btn" style="width: auto; padding: 4px; border: 1px solid #000091; color: #000091; font-weight: bold; background: #f4f6ff;" onchange="insertTemplate(this.value)" title="Insérer un modèle de diapositive">
+
+                                            <option value="">+ Modèles de diapo...</option>
+                                            <option value="titre">👑 Page de titre (Page 1)</option>
+                                            <option value="sommaire">📑 Sommaire (Page 2)</option>
+                                            <option value="intercalaire">🔖 Intercalaire (Page 3)</option>
+                                            <option value="1col">📄 1 Colonne (Page 4)</option>
+                                            <option value="2cols">🪟 2 Colonnes (Page 5/6)</option>
+                                            <option value="3cols">🪟 3 Colonnes (Page 7)</option>
+                                            <option value="4kpi">🎯 4 Chiffres Clés (Page 8)</option>
+                                            <option value="timeline">⏱️ Frise / Étapes (Page 9)</option>
+                                        </select>
+
+
                                 </div>
 
                                 <div id="visual-editor" class="wysiwyg-editor" contenteditable="true">

@@ -245,7 +245,11 @@ const header = `<div style="position: absolute; top: 10mm; left: 15mm; right: 15
 
         pageEl.innerHTML = window.DOMPurify.sanitize(
             `${header}<div class="free-slide-content" style="padding-top: 130px; flex: 1; margin-bottom: 10px;">${page.content}</div>${footer}`,
-            { ADD_TAGS: ['img'], ADD_ATTR: ['style'] }
+            { 
+                ADD_TAGS: ['img'], 
+                // CORRECTION : On autorise contenteditable et les data-attributes pour l'édition des titres
+                ADD_ATTR: ['style', 'contenteditable', 'data-page-id', 'data-target-id', 'title'] 
+            }
         );
         container.appendChild(pageEl);
         return;

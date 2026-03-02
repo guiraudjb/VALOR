@@ -140,6 +140,65 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
     border-bottom: none !important;
     padding-bottom: 0 !important;
 }
+/* =========================================================
+   Agrandissement de la modale d'édition (Presque plein écran)
+   CORRECTION : Verrouillage absolu du bouton Enregistrer
+   ========================================================= */
+
+/* 1. La modale prend toute la largeur */
+#modal-edit-slide .fr-container {
+    max-width: 98vw !important;
+    padding: 0;
+}
+#modal-edit-slide .fr-col-12.fr-col-md-11.fr-col-lg-10 {
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+}
+
+/* 2. On contraint strictement la hauteur de la modale (90vh pour la marge) */
+#modal-edit-slide .fr-modal__body {
+    max-height: 90vh !important;
+    height: 90vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important; /* Crucial : empêche la modale entière de scroller */
+}
+
+/* 3. L'en-tête et le pied de page sont INTOCABLES (ils ne peuvent pas rétrécir) */
+#modal-edit-slide .fr-modal__header,
+#modal-edit-slide .fr-modal__footer {
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+}
+
+/* 4. Le contenu central doit absorber exactement l'espace restant */
+#modal-edit-slide .fr-modal__content {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important; /* Magie de Flexbox : autorise le conteneur à rétrécir */
+    overflow: hidden !important; /* Empêche le contenu de pousser le footer */
+    padding-bottom: 1rem;
+}
+
+/* 5. On écrase la hauteur par défaut (60vh) de ton éditeur */
+#modal-edit-slide .editor-container {
+    height: auto !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+}
+
+/* 6. L'ascenseur ne s'active QUE sur la zone de saisie du texte */
+#modal-edit-slide .wysiwyg-editor,
+#modal-edit-slide .source-editor {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+}
+
 
 /* --- RÈGLES D'IMPRESSION --- */
 @media print {

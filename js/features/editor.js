@@ -260,3 +260,176 @@ window.insertDsfrIcon = (path, isPictogram) => {
     const imgHtml = `<img src="${path}" style="width: ${width}; height: auto; vertical-align: middle; margin: 0 5px;" alt="Graphique DSFR">`;
     document.execCommand('insertHTML', false, imgHtml);
 };
+
+// --- BIBLIOTHÈQUE DE MODÈLES PRÉFORMATÉS ---
+
+const slideTemplates = {
+"titre": `
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; min-height: 450px; text-align: center;">
+            <div style="width: 70%; max-width: 800px; border-top: 3px solid #000091; border-left: 3px solid #000091; border-right: 3px solid #000091; height: 40px; margin: 0 auto;"></div>
+            
+            <div style="width: 70%; max-width: 800px; padding: 20px 0;">
+                <h1 style="color: #161616; font-size: 4rem; margin: 0; line-height: 1.2; font-weight: bold;">Titre de la<br>présentation</h1>
+                <p style="color: #161616; font-size: 1.8rem; margin: 20px 0 0 0;">Sous-titre de la présentation</p>
+            </div>
+
+            <div style="width: 70%; max-width: 800px; border-bottom: 3px solid #ce0500; border-left: 3px solid #ce0500; border-right: 3px solid #ce0500; height: 40px; margin: 0 auto;"></div>
+            
+            <div style="margin-top: 50px; color: #929292; font-size: 1.3rem; line-height: 1.4;">
+                xx mai<br><strong style="font-size: 1.5rem; color: #666;">2026</strong>
+            </div>
+        </div>
+    `,
+    "sommaire": `
+        <h2 style="color: #000091; font-size: 2rem; margin-bottom: 2rem;">SOMMAIRE</h2>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 1rem;">
+                <div style="color: #000091; font-size: 3rem; font-weight: bold;">01.</div>
+                <div>
+                    <h4 style="margin: 0; font-size: 1.5rem; color: #161616;">ÉLÉMENT 1</h4>
+                    <p style="margin: 0.5rem 0 0 0; color: #666;">Descriptif ou sous-titre de cette partie...</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 1rem;">
+                <div style="color: #000091; font-size: 3rem; font-weight: bold;">02.</div>
+                <div>
+                    <h4 style="margin: 0; font-size: 1.5rem; color: #161616;">ÉLÉMENT 2</h4>
+                    <p style="margin: 0.5rem 0 0 0; color: #666;">Descriptif ou sous-titre de cette partie...</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 1rem;">
+                <div style="color: #000091; font-size: 3rem; font-weight: bold;">03.</div>
+                <div>
+                    <h4 style="margin: 0; font-size: 1.5rem; color: #161616;">ÉLÉMENT 3</h4>
+                    <p style="margin: 0.5rem 0 0 0; color: #666;">Descriptif ou sous-titre de cette partie...</p>
+                </div>
+            </div>
+        </div>
+    `,
+    "intercalaire": `
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 400px; background: #f4f6ff; border-left: 10px solid #000091; border-radius: 4px;">
+            <div style="text-align: center;">
+                <div style="color: #000091; font-size: 6rem; font-weight: bold; line-height: 1;">1</div>
+                <h2 style="color: #161616; font-size: 2.5rem; margin-top: 1rem;">Nom de la partie</h2>
+            </div>
+        </div>
+    `,
+    "1col": `
+        <h3 style="color: #161616; margin-bottom: 0;">ÉLÉMENT 1 :</h3>
+        <div style="background: #f6f6f6; border-top: 4px solid #000091; padding: 2rem; border-radius: 0 0 4px 4px; margin-top: 1rem;">
+            <p style="font-size: 1.1rem; line-height: 1.6;">Double-cliquez ici pour éditer votre texte. Vous pouvez utiliser ce bloc pour détailler une analyse globale, insérer une grande image, ou présenter un compte-rendu textuel de la région.</p>
+        </div>
+    `,
+    "2cols": `
+        <div style="display: flex; gap: 2rem; margin-top: 1rem; height: 100%;">
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <h3 style="color: #161616; margin-bottom: 1rem;"><span style="color:#000091;">1.</span> ÉLÉMENT 1</h3>
+                <div style="background: #f6f6f6; border-top: 4px solid #000091; padding: 1.5rem; flex: 1;">
+                    <p>Contenu de la première colonne...</p>
+                </div>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <h3 style="color: #161616; margin-bottom: 1rem;"><span style="color:#000091;">2.</span> ÉLÉMENT 2</h3>
+                <div style="background: #f6f6f6; border-top: 4px solid #000091; padding: 1.5rem; flex: 1;">
+                    <p>Contenu de la seconde colonne...</p>
+                </div>
+            </div>
+        </div>
+    `,
+    "3cols": `
+        <div style="display: flex; gap: 1.5rem; margin-top: 1rem;">
+            <div style="flex: 1;">
+                <h4 style="color: #161616; margin-bottom: 0.5rem;"><span style="color:#000091;">1.</span> ÉLÉMENT 1</h4>
+                <div style="background: #f6f6f6; border-top: 4px solid #000091; padding: 1rem; min-height: 200px;">
+                    <p>Texte court ou description...</p>
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <h4 style="color: #161616; margin-bottom: 0.5rem;"><span style="color:#000091;">2.</span> ÉLÉMENT 2</h4>
+                <div style="background: #f6f6f6; border-top: 4px solid #000091; padding: 1rem; min-height: 200px;">
+                    <p>Texte court ou description...</p>
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <h4 style="color: #161616; margin-bottom: 0.5rem;"><span style="color:#000091;">3.</span> ÉLÉMENT 3</h4>
+                <div style="background: #f6f6f6; border-top: 4px solid #000091; padding: 1rem; min-height: 200px;">
+                    <p>Texte court ou description...</p>
+                </div>
+            </div>
+        </div>
+    `,
+    "4kpi": `
+        <div style="display: flex; justify-content: space-around; text-align: center; gap: 2rem; margin-top: 4rem;">
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                <div style="background: #000091; color: white; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">XX</div>
+                <div style="font-size: 2rem; color: #000091; margin: 10px 0; line-height: 0.5;">⋮</div>
+                <p style="font-weight: bold; font-size: 1.1rem; margin-top: 10px;">Zone de texte explicative</p>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                <div style="background: #000091; color: white; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">XX</div>
+                <div style="font-size: 2rem; color: #000091; margin: 10px 0; line-height: 0.5;">⋮</div>
+                <p style="font-weight: bold; font-size: 1.1rem; margin-top: 10px;">Zone de texte explicative</p>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                <div style="background: #000091; color: white; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">XX</div>
+                <div style="font-size: 2rem; color: #000091; margin: 10px 0; line-height: 0.5;">⋮</div>
+                <p style="font-weight: bold; font-size: 1.1rem; margin-top: 10px;">Zone de texte explicative</p>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                <div style="background: #000091; color: white; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">XX</div>
+                <div style="font-size: 2rem; color: #000091; margin: 10px 0; line-height: 0.5;">⋮</div>
+                <p style="font-weight: bold; font-size: 1.1rem; margin-top: 10px;">Zone de texte explicative</p>
+            </div>
+        </div>
+    `,
+    "timeline": `
+        <div style="display: flex; flex-direction: column; gap: 2rem; margin-top: 2rem;">
+            <div style="display: flex; gap: 2rem;">
+                <div style="background: #000091; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; flex-shrink: 0;">1</div>
+                <div style="flex: 1; border-left: 3px dashed #000091; padding-left: 2rem; margin-left: -43px;">
+                    <h4 style="margin-top: 0;">Élément 1</h4>
+                    <p style="background: #f6f6f6; padding: 1rem; border-radius: 4px;">Zone de texte descriptive pour cette première étape ou information.</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 2rem;">
+                <div style="background: #000091; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; flex-shrink: 0;">2</div>
+                <div style="flex: 1; border-left: 3px dashed #000091; padding-left: 2rem; margin-left: -43px;">
+                    <h4 style="margin-top: 0;">Élément 2</h4>
+                    <p style="background: #f6f6f6; padding: 1rem; border-radius: 4px;">Zone de texte descriptive pour cette deuxième étape.</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 2rem;">
+                <div style="background: #000091; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; flex-shrink: 0;">3</div>
+                <div style="flex: 1; padding-left: 2rem; margin-left: -40px;">
+                    <h4 style="margin-top: 0;">Élément 3</h4>
+                    <p style="background: #f6f6f6; padding: 1rem; border-radius: 4px;">Zone de texte descriptive pour la conclusion.</p>
+                </div>
+            </div>
+        </div>
+    `
+};
+
+window.insertTemplate = (templateKey) => {
+    const select = document.getElementById('template-select');
+    if (!templateKey) return;
+
+    const visual = document.getElementById('visual-editor');
+    
+    // Protection : on avertit l'utilisateur s'il a déjà tapé du texte
+    const currentText = visual.innerText.trim();
+    if (currentText.length > 20 && currentText !== "Votre texte ici...") {
+        if (!confirm("Attention, l'application d'un modèle va écraser votre contenu actuel. Voulez-vous continuer ?")) {
+            select.selectedIndex = 0; // Réinitialise le select
+            return;
+        }
+    }
+
+    // Injection du modèle
+    visual.innerHTML = slideTemplates[templateKey];
+    
+    // Réinitialisation du menu déroulant et remise du focus
+    select.selectedIndex = 0;
+    visual.focus();
+};
+
+
