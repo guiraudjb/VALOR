@@ -199,6 +199,39 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
     overflow-y: auto !important;
 }
 
+/* Ajoutez la transition pour rendre l'animation fluide */
+.floating-bottom-bar { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    background-color: #f0f0f0; 
+    border-top: 4px solid #000091; 
+    z-index: 900; 
+    padding: 1rem 1.5rem; 
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.15); 
+    
+    /* NOUVEAU : Transition fluide pour le masquage */
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+    transform: translateY(0); /* État par défaut : visible */
+    opacity: 1;
+}
+
+/* NOUVEAU : État masqué (replié) */
+.floating-bottom-bar.shrunk {
+    /* On le déplace vers le bas à 100% de sa hauteur moins 10px pour garder une zone de survol visible */
+    transform: translateY(calc(100% - 15px)); 
+    opacity: 0.8; /* Légèrement transparent quand replié */
+    box-shadow: none; /* On retire l'ombre pour ne pas gêner */
+    cursor: pointer; /* Indique qu'on peut interagir */
+}
+
+/* Optionnel : Petit effet visuel au survol de la zone repliée pour inciter à entrer */
+.floating-bottom-bar.shrunk:hover {
+    opacity: 1;
+    background-color: #e5e5e5;
+}
+
 
 /* --- RÈGLES D'IMPRESSION --- */
 @media print {

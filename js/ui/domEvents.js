@@ -28,7 +28,7 @@ export function setupUIListeners() {
         configPanel.addEventListener('mouseleave', () => {
             shrinkTimeout = setTimeout(() => {
                 configPanel.classList.add('shrunk');
-            }, 2000); // 2 secondes
+            }, 1000); // 2 secondes
         });
 
         // Quand la souris revient sur le panneau (y compris sur la barre d'onglets)
@@ -38,6 +38,25 @@ export function setupUIListeners() {
         });
     }
     
+   
+   const structurePanel = document.getElementById('structure-panel');
+    let bottomShrinkTimeout;
+
+    if (structurePanel) {
+        // Quand la souris quitte le panneau du bas
+        structurePanel.addEventListener('mouseleave', () => {
+            bottomShrinkTimeout = setTimeout(() => {
+                structurePanel.classList.add('shrunk');
+            }, 1000); // Délai de 2 secondes avant masquage
+        });
+
+        // Quand la souris revient sur le panneau
+        structurePanel.addEventListener('mouseenter', () => {
+            clearTimeout(bottomShrinkTimeout);
+            structurePanel.classList.remove('shrunk');
+        });
+    }
+   
     
     const btnAddChartSlide = document.getElementById('btn-add-chart-slide');
     if (btnAddChartSlide) btnAddChartSlide.onclick = openChartModal;

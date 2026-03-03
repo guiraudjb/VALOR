@@ -3325,6 +3325,134 @@ window.insertDsfrIcon = (path, isPictogram) => {
 // --- BIBLIOTHÈQUE DE MODÈLES PRÉFORMATÉS ---
 
 const slideTemplates = {
+    "titre_v2": `
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; min-height: 450px; text-align: center;">
+            <h1 style="color: #000091; font-size: 3.5rem; margin: 0; line-height: 1.2; font-weight: bold; text-transform: uppercase;">
+                LOREM IPSUM DOLOR SIT<br>AMET CONSECTETUR
+            </h1>
+            <p style="color: #161616; font-size: 1.5rem; margin: 20px 0 0 0;">
+                lorem ipsum dolor sit amet consectetur
+            </p>
+        </div>
+    `,
+
+    // Correspond à la Page 2
+    "sommaire_v2": `
+        <h2 style="color: #000091; font-size: 2rem; margin-bottom: 2rem; text-transform: uppercase;">Sommaire</h2>
+        <div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <h3 style="color: #161616; font-size: 1.3rem;">1. Titre de la partie</h3>
+                <ul style="list-style-type: none; padding-left: 1rem; color: #666; line-height: 1.8;">
+                    <li>a. Sous-titre de partie</li>
+                    <li>b. Sous-titre de partie</li>
+                    <li>c. Sous-titre de partie</li>
+                </ul>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <h3 style="color: #161616; font-size: 1.3rem;">2. Titre de la partie</h3>
+                <ul style="list-style-type: none; padding-left: 1rem; color: #666; line-height: 1.8;">
+                    <li>a. Sous-titre de partie</li>
+                    <li>b. Sous-titre de partie</li>
+                    <li>c. Sous-titre de partie</li>
+                </ul>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <h3 style="color: #161616; font-size: 1.3rem;">3. Titre de la partie</h3>
+                <ul style="list-style-type: none; padding-left: 1rem; color: #666; line-height: 1.8;">
+                    <li>a. Sous-titre de partie</li>
+                    <li>b. Sous-titre de partie</li>
+                    <li>c. Sous-titre de partie</li>
+                </ul>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <h3 style="color: #161616; font-size: 1.3rem;">4. Titre de la partie</h3>
+                <ul style="list-style-type: none; padding-left: 1rem; color: #666; line-height: 1.8;">
+                    <li>a. Sous-titre de partie</li>
+                    <li>b. Sous-titre de partie</li>
+                    <li>c. Sous-titre de partie</li>
+                </ul>
+            </div>
+        </div>
+    `,
+
+    // Correspond à la Page 3
+    "intercalaire_v2": `
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 400px;">
+            <h2 style="color: #000091; font-size: 4rem; font-weight: bold; margin: 0; text-align: center;">
+                1. Titre de partie
+            </h2>
+        </div>
+    `,
+
+    // Correspond à la Page 4
+    "texte_3cols": `
+        <h2 style="color: #000091; font-size: 1.5rem; margin-bottom: 1.5rem;">
+            1. Titre de partie <span style="color: #666; font-size: 1.2rem; font-weight: normal;">> a. Titre de sous-partie</span>
+        </h2>
+        <div style="display: flex; gap: 2rem;">
+            <div style="flex: 1;">
+                <h3 style="color: #161616; font-size: 1.2rem; margin-top: 0;">Niveau 1</h3>
+                <p style="color: #161616; font-weight: bold; font-size: 1.1rem;">Lorem ipsum dolor sit amet consectetur</p>
+                <p style="color: #666; font-size: 0.95rem; line-height: 1.5;">NIVEAU 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pretium quam vulputate dignissim suspendisse in est ante in nibh.</p>
+            </div>
+            <div style="flex: 1;">
+                <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-top: 0;">Niveau 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pretium quam vulputate dignissim suspendisse in est ante in nibh. Ullamcorper sit amet risus nullam eget felis. Sagittis id consectetur purus ut faucibus pulvinar elementum integer.</p>
+            </div>
+            <div style="flex: 1;">
+                <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-top: 0;">Niveau 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pretium quam vulputate dignissim suspendisse in est ante in nibh. Ullamcorper sit amet risus nullam eget felis. Sagittis id consectetur purus ut faucibus pulvinar elementum integer.</p>
+            </div>
+        </div>
+    `,
+
+    // Correspond à la Page 5
+    "blocs_valeurs": `
+        <h2 style="color: #000091; font-size: 1.5rem; margin-bottom: 1.5rem;">
+            1. Titre de partie <span style="color: #666; font-size: 1.2rem; font-weight: normal;">> a. Titre de sous-partie</span>
+        </h2>
+        <div style="margin-bottom: 2rem;">
+            <h3 style="color: #161616; font-size: 1.3rem; margin-top: 0;">Niveau 1 Lorem ipsum dolor sit amet consectetur</h3>
+            <p style="color: #666; max-width: 800px;">NIVEAU 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: space-between;">
+            <div style="flex: 1; background: #f6f6f6; border-top: 4px solid #000091; padding: 1.5rem; border-radius: 0 0 4px 4px;">
+                <h4 style="color: #161616; margin: 0;">Niveau 3</h4>
+                <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">Lorem ipsum dolor sit amet</p>
+            </div>
+            <div style="flex: 1; background: #f6f6f6; border-top: 4px solid #000091; padding: 1.5rem; border-radius: 0 0 4px 4px;">
+                <h4 style="color: #161616; margin: 0;">Niveau 3</h4>
+                <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">Lorem ipsum dolor sit amet</p>
+            </div>
+            <div style="flex: 1; background: #f6f6f6; border-top: 4px solid #000091; padding: 1.5rem; border-radius: 0 0 4px 4px;">
+                <h4 style="color: #161616; margin: 0;">Niveau 3</h4>
+                <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">Lorem ipsum dolor sit amet</p>
+            </div>
+            <div style="flex: 1; background: #f6f6f6; border-top: 4px solid #000091; padding: 1.5rem; border-radius: 0 0 4px 4px;">
+                <h4 style="color: #161616; margin: 0;">Niveau 3</h4>
+                <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">Lorem ipsum dolor sit amet</p>
+            </div>
+        </div>
+    `,
+
+    // Correspond à la Page 6
+    "image_texte": `
+        <h2 style="color: #000091; font-size: 1.5rem; margin-bottom: 1.5rem;">
+            1. Titre de partie <span style="color: #666; font-size: 1.2rem; font-weight: normal;">> a. Titre de sous-partie</span>
+        </h2>
+        <div style="display: flex; gap: 3rem; align-items: center;">
+            <div style="flex: 1.5; background: #eeeeee; min-height: 350px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: 2px dashed #ccc;">
+                <p style="color: #999; text-align: center;"><em>[Sélectionnez ce texte et utilisez l'icône Image <br>de la barre d'outils pour insérer votre visuel]</em></p>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="color: #161616; font-size: 1.5rem; margin-top: 0;">
+                    Niveau 1<br>
+                    <span style="color: #000091;">Lorem ipsum dolor sit amet</span>
+                </h3>
+                <p style="color: #666; line-height: 1.6; font-size: 1rem;">
+                    NIVEAU 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                </p>
+            </div>
+        </div>
+    `,
 "titre": `
         <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; min-height: 450px; text-align: center;">
             <div style="width: 70%; max-width: 800px; border-top: 3px solid #000091; border-left: 3px solid #000091; border-right: 3px solid #000091; height: 40px; margin: 0 auto;"></div>
@@ -3742,7 +3870,11 @@ const header = `<div style="position: absolute; top: 10mm; left: 15mm; right: 15
 
         pageEl.innerHTML = window.DOMPurify.sanitize(
             `${header}<div class="free-slide-content" style="padding-top: 130px; flex: 1; margin-bottom: 10px;">${page.content}</div>${footer}`,
-            { ADD_TAGS: ['img'], ADD_ATTR: ['style'] }
+            { 
+                ADD_TAGS: ['img'], 
+                // CORRECTION : On autorise contenteditable et les data-attributes pour l'édition des titres
+                ADD_ATTR: ['style', 'contenteditable', 'data-page-id', 'data-target-id', 'title'] 
+            }
         );
         container.appendChild(pageEl);
         return;
