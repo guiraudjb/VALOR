@@ -197,6 +197,10 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
 
 export function buildDefaultStructure() {
     const savedFreePages = appState.pages.filter(p => p.type === 'free');
+    // --- ETAPE 1 : SAUVEGARDER LES PAGES VERROUILLÉES ---
+    // On garde de côté toutes les pages qui ont un snapshot (cadenas fermé)
+    const lockedPages = appState.pages.filter(p => p.snapshotData);
+    
     let newAutoPages = [];
     let idCounter = 1;
     const selectMode = document.getElementById('select-report-mode');
@@ -227,7 +231,11 @@ export function buildDefaultStructure() {
             newAutoPages.push(createMapPage(`EPCI : ${epciName}`, { type: 'epci', code: selectedEpci, list: communes }, 'com'));
         }
     }
-    appState.pages = [...newAutoPages, ...savedFreePages.map(p => ({ ...p, visible: p.visible !== undefined ? p.visible : true }))];
+    appState.pages = [...newAutoPages,...lockedPages, ...savedFreePages.map(p => ({ ...p, visible: p.visible !== undefined ? p.visible : true }))];
+    // --- ETAPE 2 : RÉINJECTER LES PAGES VERROUILLÉES ---
+    // On ajoute les anciennes pages verrouillées au début (ou à la fin) de la nouvelle liste
+ 
+    
     updatePagesListUI(); generateReport();
 }
 
@@ -602,3 +610,60 @@ export function generateReport() {
     
     setTimeout(setupScrollTracking, 100);
 }
+
+// --- FONCTION DE VERROUILLAGE ---
+
+window.togglePageLock = (index) => {
+    const page = appState.pages[index];
+    if (!page) return;
+
+    // Si la page est déjà figée, on la libère
+    if (page.snapshotData) {
+        if (confirm("Voulez-vous déverrouiller cette diapositive ?\nElle sera recalculée avec les données actuelles (CSV actif) et risque de changer.")) {
+            delete page.snapshotData;
+            delete page.snapshotConfig;
+            // On force le rafraîchissement
+            updatePagesListUI();
+            generateReport();
+        }
+    } 
+    // Sinon, on la fige (Snapshot)
+    else {
+        // 1. On récupère la configuration actuelle globale
+        const currentConfig = getCurrentConfig();
+        
+        // 2. On calcule les données exactes telles qu'elles sont affichées maintenant
+        const granularity = page.granularity || currentConfig.granularity;
+        const dataMap = getAggregatedDataMap(granularity, page, currentConfig);
+        
+        // 3. On stocke le tout DANS la page
+        page.snapshotData = Array.from(dataMap.entries()); // Conversion Map -> Array pour stockage
+        page.snapshotConfig = JSON.parse(JSON.stringify(currentConfig)); // Copie profonde de la config
+        
+        // 4. Mise à jour de l'interface
+        updatePagesListUI();
+        generateReport();
+    }
+};
+
+window.duplicatePage = (index) => {
+    // 1. On crée une copie profonde de la page
+    const sourcePage = appState.pages[index];
+    // Astuce JSON pour cloner l'objet sans garder les références
+    const newPage = JSON.parse(JSON.stringify(sourcePage));
+
+    // 2. On modifie la copie pour qu'elle soit "neuve" et "vivante"
+    newPage.id = Date.now(); // Nouvel ID unique
+    newPage.title = sourcePage.title + " (Copie)";
+    
+    // IMPORTANT : On retire le snapshot pour que la copie lise les données en direct (CSV actif)
+    delete newPage.snapshotData;
+    delete newPage.snapshotConfig;
+
+    // 3. On insère la copie juste après l'originale
+    appState.pages.splice(index + 1, 0, newPage);
+
+    // 4. On rafraîchit
+    updatePagesListUI();
+    generateReport();
+};
