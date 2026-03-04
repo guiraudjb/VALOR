@@ -203,7 +203,24 @@ window.changePagePosition = (oldIndex, newPosStr) => {
     else { updatePagesListUI(); }
 };
 window.togglePageVisibility = (index) => { appState.pages[index].visible = !appState.pages[index].visible; updatePagesListUI(); generateReport(); };
-window.deletePage = (index) => { if (confirm("Supprimer cette diapositive ?")) { appState.pages.splice(index, 1); updatePagesListUI(); generateReport(); } };
+// Dans js/ui/viewUpdater.js
+
+window.deletePage = (index) => { 
+    const page = appState.pages[index];
+    
+    // --- SÉCURITÉ : BLOCAGE SI VERROUILLÉ ---
+    if (page && page.snapshotData) {
+        alert("🔒 Impossible de supprimer une diapositive verrouillée.\n\nVeuillez d'abord cliquer sur le cadenas pour la déverrouiller.");
+        return;
+    }
+
+    // Suppression normale
+    if (confirm("Supprimer cette diapositive ?")) { 
+        appState.pages.splice(index, 1); 
+        updatePagesListUI(); 
+        generateReport(); 
+    } 
+};
 
 window.toggleAllMaps = () => {
     const allMaps = appState.pages.filter(p => p.type !== 'free'); if (allMaps.length === 0) return;
@@ -217,32 +234,33 @@ window.toggleAllLabels = () => { const allMaps = appState.pages.filter(p => p.ty
 window.toggleAllVisibility = () => { if (appState.pages.length === 0) return; const allEnabled = appState.pages.every(p => p.visible); appState.pages.forEach(p => p.visible = !allEnabled); updatePagesListUI(); generateReport(); };
 window.deleteAllPages = () => { if (appState.pages.length === 0) return; if (confirm("Supprimer TOUTES les diapositives ?")) { appState.pages = []; updatePagesListUI(); generateReport(); } };
 
+// Dans js/ui/viewUpdater.js, remplacez intégralement updatePagesListUI
+
 export function updatePagesListUI() {
-    const container = document.getElementById('pages-list');
+    const container = document.getElementById('pages-list'); 
     if (!container) return;
-
-    container.innerHTML = '';
-
-    // 1. Création de la ligne d'en-tête (Header)
-    const headerRow = document.createElement('div');
-    headerRow.className = 'page-item header';
     
-    // Calcul des états globaux pour les boutons "Tout activer/désactiver"
-    const allMapsOn = appState.pages.every(p => p.showMap !== false); // Par défaut true
-    const allLabelsOn = appState.pages.every(p => p.showLabels);
-    const allTablesOn = appState.pages.every(p => p.showTable);
-    const allVisible = appState.pages.every(p => p.visible);
-    const allRichLabels = appState.pages.every(p => p.richLabels);
-    const allRichTables = appState.pages.every(p => p.richTable);
+    container.innerHTML = '';
+    
+    // États globaux
+    const allMapsList = appState.pages.filter(p => p.type !== 'free');
+    const allMapsOn = allMapsList.length > 0 && allMapsList.every(p => p.showMap !== false);
+    const allLabelsOn = allMapsList.length > 0 && allMapsList.every(p => p.showLabels);
+    const allTablesOn = allMapsList.length > 0 && allMapsList.every(p => p.showTable);
+    const allVisible = appState.pages.length > 0 && appState.pages.every(p => p.visible);
+    const allRichLabels = allMapsList.length > 0 && allMapsList.every(p => p.richLabels);
+    const allRichTables = allMapsList.length > 0 && allMapsList.every(p => p.richTable);
 
-    // Construction HTML de l'en-tête avec la nouvelle colonne FIGER
+    // EN-TÊTE
+    const headerRow = document.createElement('div');
+    headerRow.style.cssText = 'display: flex; justify-content: space-between; align-items: flex-end; padding: 0.5rem 1rem; background: #f4f6ff; border-bottom: 2px solid #000091; position: sticky; top: 0; z-index: 10; font-size: 0.75rem; font-weight: bold; color: #000091; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+
     headerRow.innerHTML = `
         <div style="flex: 1; text-transform: uppercase;">Diapositives</div>
-        
         <div class="page-item-controls" style="align-items: flex-end; gap: 5px;">
             <div style="width: 50px; text-align: center; font-size: 0.65rem;">Ordre</div>
-            
             <div style="width: 35px; text-align: center; font-size: 0.65rem;">Figer</div>
+            <div style="width: 35px; text-align: center; font-size: 0.65rem;">Dupli.</div>
             
             <div style="width: 35px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 0.65rem; margin-bottom: 2px;">Carte</span><button class="btn-icon" onclick="toggleAllMaps()" title="Toutes les cartes" style="padding: 2px; ${allMapsOn ? 'color:#000091;' : ''}"><span class="${allMapsOn ? 'fr-icon-earth-fill' : 'fr-icon-earth-line'}"></span></button></div>
             <div style="width: 35px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 0.65rem; margin-bottom: 2px;">Étiq.</span><button class="btn-icon" onclick="toggleAllLabels()" title="Toutes les étiquettes" style="padding: 2px; ${allLabelsOn ? 'color:#000091;' : ''}"><span class="${allLabelsOn ? 'fr-icon-price-tag-3-fill' : 'fr-icon-price-tag-3-line'}"></span></button></div>
@@ -257,7 +275,7 @@ export function updatePagesListUI() {
     `;
     container.appendChild(headerRow);
 
-    // 2. Création des lignes pour chaque page
+    // BOUCLE DES PAGES
     appState.pages.forEach((page, index) => {
         const item = document.createElement('div'); 
         item.className = `page-item ${!page.visible ? 'is-hidden' : ''}`; 
@@ -265,71 +283,66 @@ export function updatePagesListUI() {
 
         let typeTag = '';
         let controls = '';
-        
-        // Bouton de Verrouillage (Commun)
         const isLocked = !!page.snapshotData; 
+
+        // -- BOUTONS COMMUNS --
         const lockBtn = `
             <div style="width: 35px; display:flex; justify-content:center;">
                 <button class="btn-icon" onclick="window.togglePageLock(${index})" 
-                    title="${isLocked ? 'Déverrouiller' : 'Verrouiller (Figer les données)'}">
+                    title="${isLocked ? 'Déverrouiller' : 'Verrouiller'}">
                     <span class="${isLocked ? 'fr-icon-lock-fill' : 'fr-icon-lock-unlock-line'}" 
                           style="${isLocked ? 'color:#ce0500;' : 'color:#929292;'}"></span>
                 </button>
-            </div>
-        `;
+            </div>`;
+            
         const emptyLockSlot = `<div style="width: 35px;"></div>`;
 
-        // Bouton de Duplication (Commun) - NOUVEAU
         const dupBtn = `
             <div style="width: 35px; display:flex; justify-content:center;">
-                <button class="btn-icon" onclick="window.duplicatePage(${index})" title="Dupliquer cette diapositive">
+                <button class="btn-icon" onclick="window.duplicatePage(${index})" title="Dupliquer">
                     <span class="fr-icon-file-copy-line" style="color:#000091;"></span>
                 </button>
-            </div>
-        `;
+            </div>`;
 
-        // A. PAGE LIBRE
+        // -- LOGIQUE DE SUPPRESSION (Grisé si verrouillé) --
+        const deleteStyle = isLocked ? 'color:#ccc; cursor:not-allowed;' : 'color:#ce0500;';
+        const deleteTitle = isLocked ? 'Déverrouillez pour supprimer' : 'Supprimer la diapo';
+
+        // -- Rendu des contrôles selon le type --
         if (page.type === 'free') {
             typeTag = `<span class="page-tag tag-free">LIBRE</span>`;
             controls = `
-                ${emptyLockSlot}
+                ${emptyLockSlot} ${dupBtn}
                 <div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 60px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div>
                 <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="editPage(${page.id})" title="Éditer"><span class="fr-icon-edit-line" style="color:#000091;"></span></button></div>
-                ${dupBtn} `;
-        } 
-        // B. GRAPHIQUE
-        else if (page.type === 'chart') {
+                <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>
+            `;
+        } else if (page.type === 'chart') {
             typeTag = `<span class="page-tag tag-chart" style="background-color: #fceea7; color: #716000;">GRAPH.</span>`;
-            
+            if (isLocked) typeTag += ` <span class="fr-icon-lock-fill fr-icon--sm" style="color:#ce0500" title="Verrouillé"></span>`;
+
             if (isLocked) {
-                controls = `
-                    ${lockBtn}
+                controls = `${lockBtn} ${dupBtn}
                     <div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 60px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Ajouter au panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>
-                    ${dupBtn} `;
+                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
             } else {
                 const tableIcon = page.showTable ? 'fr-icon-table-fill' : 'fr-icon-table-line';
                 const tableStyle = page.showTable ? 'style="color:#000091"' : '';
-                controls = `
-                    ${lockBtn}
+                controls = `${lockBtn} ${dupBtn}
                     <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.editChartSlide) window.editChartSlide(${page.id})" title="Éditer"><span class="fr-icon-edit-line" style="color:#000091;"></span></button></div>
                     <div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 60px;"></div>
                     <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageTable(${index})" ${tableStyle} title="Tableau"><span class="${tableIcon}"></span></button></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichTable(${index})" ${page.richTable ? 'checked' : ''} title="Tableau Riche" style="cursor: pointer; margin: 0;"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Ajouter au panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>
-                    ${dupBtn} `;
+                    <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichTable(${index})" ${page.richTable ? 'checked' : ''} title="Riche" style="cursor: pointer; margin: 0;"></div>
+                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
             }
-        } 
-        // C. CARTE (MAP)
-        else {
+        } else { // CARTE
             typeTag = `<span class="page-tag tag-map">CARTE</span>`;
-            
+            if (isLocked) typeTag += ` <span class="fr-icon-lock-fill fr-icon--sm" style="color:#ce0500" title="Verrouillé"></span>`;
+
             if (isLocked) {
-                 controls = `
-                    ${lockBtn}
+                controls = `${lockBtn} ${dupBtn}
                     <div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 60px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Ajouter au panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>
-                    ${dupBtn} `;
+                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
             } else {
                 const showMap = page.showMap !== false;
                 const mapIcon = showMap ? 'fr-icon-earth-fill' : 'fr-icon-earth-line';
@@ -339,16 +352,14 @@ export function updatePagesListUI() {
                 const tableIcon = page.showTable ? 'fr-icon-table-fill' : 'fr-icon-table-line';
                 const tableStyle = page.showTable ? 'style="color:#000091"' : '';
                 
-                controls = `
-                    ${lockBtn}
+                controls = `${lockBtn} ${dupBtn}
                     <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageMap(${index})" ${mapStyle} title="Carte"><span class="${mapIcon}"></span></button></div>
                     <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageLabels(${index})" ${labelStyle} title="Étiquettes"><span class="${labelIcon}"></span></button></div>
                     <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichLabels(${index})" ${page.richLabels ? 'checked' : ''} title="Riches" style="cursor: pointer; margin: 0;"></div>
                     <div style="width: 60px; display:flex; justify-content:center;"><input type="number" class="input-size" value="${page.labelSize || 8}" min="4" max="24" onchange="changeLabelSize(${index}, this.value)" title="Taille"></div>
                     <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageTable(${index})" ${tableStyle} title="Tableau"><span class="${tableIcon}"></span></button></div>
                     <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichTable(${index})" ${page.richTable ? 'checked' : ''} title="Riche" style="cursor: pointer; margin: 0;"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Ajouter au panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>
-                    ${dupBtn} `;
+                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
             }
         }
 
@@ -361,13 +372,12 @@ export function updatePagesListUI() {
                 <input type="number" class="input-order" value="${index + 1}" min="1" max="${appState.pages.length}" onchange="changePagePosition(${index}, this.value)" title="Ordre">
                 ${controls}
                 <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageVisibility(${index})" ${visStyle} title="Visibilité"><span class="${visIcon}"></span></button></div>
-                <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon btn-delete" onclick="deletePage(${index})" title="Supprimer"><span class="fr-icon-delete-line" style="color:#ce0500;"></span></button></div>
+                <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon btn-delete" onclick="deletePage(${index})" title="${deleteTitle}"><span class="fr-icon-delete-line" style="${deleteStyle}"></span></button></div>
             </div>
         `;
         container.appendChild(item);
     });
 }
-
 export function updateCosmetics() {
     const globalTitle = document.getElementById('input-titre').value;
     const dateStr = document.getElementById('input-date').value;
