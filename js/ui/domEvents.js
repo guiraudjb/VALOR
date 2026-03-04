@@ -228,6 +228,22 @@ export function setupUIListeners() {
     const btnAddSlide = document.getElementById('btn-add-slide');
     if (btnAddSlide) btnAddSlide.onclick = () => { if (window.editPage) window.editPage(); };
 
+	const btnAddMap = document.getElementById('btn-add-map-slide');
+    if (btnAddMap) {
+        btnAddMap.onclick = () => {
+            const modal = document.getElementById('modal-add-map');
+            
+            // On réinitialise le select sur "Région" par défaut
+            document.getElementById('select-map-type').value = 'region';
+            // On remplit la liste des cibles
+            window.updateMapTargetList();
+            
+            modal.classList.add('fr-modal--opened');
+            modal.showModal();
+        };
+    }
+
+
     // Ajout global au panier
     const btnAddAllCart = document.getElementById('btn-add-all-cart');
     if (btnAddAllCart) btnAddAllCart.onclick = () => { if (window.addAllToCart) window.addAllToCart(); };

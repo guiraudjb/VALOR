@@ -272,6 +272,9 @@
                                         <button class="fr-btn fr-btn--secondary fr-icon-file-text-line fr-btn--icon-left" id="btn-add-slide">
                                             Ajouter une diapo libre (Texte & Images)
                                         </button>
+                                        <button class="fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-map-pin-add-line" id="btn-add-map-slide">
+											Ajouter une carte
+										</button>
                                         <button class="fr-btn fr-btn--secondary fr-icon-bar-chart-box-line fr-btn--icon-left" id="btn-add-chart-slide">
                                             Ajouter un graphique personnalisé
                                         </button>
@@ -705,6 +708,44 @@
             <div id="pages-list" class="page-list-container"></div>
         </div>
     </div>
+    
+    <dialog id="modal-add-map" class="fr-modal" role="dialog" aria-labelledby="modal-add-map-title">
+    <div class="fr-container fr-container--fluid fr-container-md">
+        <div class="fr-grid-row fr-grid-row--center">
+            <div class="fr-col-12 fr-col-md-8 fr-col-lg-6">
+                <div class="fr-modal__body">
+                    <div class="fr-modal__header">
+                        <button class="fr-btn--close fr-btn" title="Fermer" aria-controls="modal-add-map">Fermer</button>
+                    </div>
+                    <div class="fr-modal__content">
+                        <h1 id="modal-add-map-title" class="fr-modal__title">Ajouter une carte unique</h1>
+                        
+                        <div class="fr-input-group">
+                            <label class="fr-label" for="select-map-type">Type de territoire</label>
+                            <select class="fr-select" id="select-map-type" onchange="updateMapTargetList()">
+                                <option value="region">Région</option>
+                                <option value="delegation">Délégation</option>
+                                <option value="department">Département</option>
+                            </select>
+                        </div>
+
+                        <div class="fr-input-group">
+                            <label class="fr-label" for="select-map-target">Territoire cible</label>
+                            <select class="fr-select" id="select-map-target">
+                                </select>
+                        </div>
+                    </div>
+                    <div class="fr-modal__footer">
+                        <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline-reverse fr-btns-group--inline-lg fr-btns-group--icon-left">
+                            <li><button class="fr-btn fr-icon-check-line" onclick="confirmAddMapSlide()">Ajouter la carte</button></li>
+                            <li><button class="fr-btn fr-btn--secondary" aria-controls="modal-add-map">Annuler</button></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</dialog>
 
     <script src="libs/papaparse.min.js"></script>
     <script src="libs/d3.v7.min.js"></script>

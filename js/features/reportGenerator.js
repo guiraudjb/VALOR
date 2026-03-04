@@ -667,3 +667,100 @@ window.duplicatePage = (index) => {
     updatePagesListUI();
     generateReport();
 };
+
+// --- GESTION DE L'AJOUT DE CARTE UNIQUE ---
+
+
+
+// 1. Fonction appelée quand on change le type (Région/Dép/Délégation)
+window.updateMapTargetList = () => {
+    const type = document.getElementById('select-map-type').value;
+    const targetSel = document.getElementById('select-map-target');
+    targetSel.innerHTML = '';
+
+    if (type === 'region') {
+        REGIONS_LIST.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r.code;
+            opt.textContent = r.label;
+            targetSel.appendChild(opt);
+        });
+    } 
+    else if (type === 'delegation') {
+        appState.customDelegations.forEach((del, index) => {
+            const opt = document.createElement('option');
+            opt.value = index; // On stocke l'index pour retrouver la délégation
+            opt.textContent = del.label;
+            targetSel.appendChild(opt);
+        });
+    } 
+    else if (type === 'department') {
+        Object.keys(DEP_NAMES).sort().forEach(code => {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = `${code} - ${DEP_NAMES[code]}`;
+            targetSel.appendChild(opt);
+        });
+    }
+};
+
+// 2. Fonction appelée au clic sur "Ajouter la carte"
+window.confirmAddMapSlide = () => {
+    const type = document.getElementById('select-map-type').value;
+    const targetVal = document.getElementById('select-map-target').value;
+    const targetText = document.getElementById('select-map-target').options[document.getElementById('select-map-target').selectedIndex].text;
+
+    let focus = null;
+    let granularity = 'dep'; // Par défaut (Régions et Délégations affichent des départements)
+    let title = targetText;
+
+    if (type === 'region') {
+        focus = { type: 'region', code: targetVal };
+        granularity = 'dep';
+    } 
+    else if (type === 'delegation') {
+        const del = appState.customDelegations[parseInt(targetVal)];
+        if (del) {
+            focus = { type: 'delegation', list: del.depCodes };
+            title = del.label;
+            granularity = 'dep';
+        }
+    } 
+    else if (type === 'department') {
+        focus = { type: 'department', code: targetVal };
+        granularity = 'com'; // Un département affiche ses communes
+        title = `Département : ${targetText}`;
+    }
+
+    // Création de la nouvelle page
+    const newPage = {
+        id: Date.now(),
+        type: 'map',
+        title: title,
+        focus: focus,
+        granularity: granularity,
+        visible: true,
+        showMap: true,
+        showLabels: true,
+        labelSize: appState.defaultLabelSize || 10,
+        showTable: true,
+        richLabels: false,
+        richTable: false
+    };
+
+    // Ajout à la fin de la liste
+    appState.pages.push(newPage);
+
+    // Fermeture modale et rafraîchissement
+    const modal = document.getElementById('modal-add-map');
+    modal.classList.remove('fr-modal--opened');
+    modal.close();
+
+    updatePagesListUI();
+    generateReport();
+    
+    // Scroll vers la nouvelle page (optionnel)
+    setTimeout(() => {
+        if(window.scrollToPage) window.scrollToPage(newPage.id);
+    }, 200);
+};
