@@ -109,8 +109,13 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
         `; 
     }
 
-    const svg = window.d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).style("width", "100%").style("height", "100%");
-    
+    //const svg = window.d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).style("width", "100%").style("height", "100%");
+    const svg = window.d3.select(container)
+    .append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet") // Force le maintien du ratio au centre
+    .style("width", "100%")
+    .style("height", "auto"); // La hauteur s'ajuste désormais proportionnellement
     const projection = window.d3.geoIdentity().reflectY(true).fitSize([width, height], { type: "FeatureCollection", features: featuresToDraw });
     const path = window.d3.geoPath().projection(projection);
 
