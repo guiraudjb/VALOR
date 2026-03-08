@@ -676,12 +676,96 @@ window.duplicatePage = (index) => {
 
 
 // 1. Fonction appelée quand on change le type (Région/Dép/Délégation)
+window.updateEpciDepFilter = () => {
+    const regCode = document.getElementById('filter-epci-reg').value;
+    const depSelect = document.getElementById('filter-epci-dep');
+    depSelect.innerHTML = '<option value="">Tous les départements</option>';
+    
+    // On remplit les départements en fonction de la région choisie
+    Object.keys(DEP_NAMES).sort().forEach(dep => {
+        const depReg = appState.refData.depToReg ? appState.refData.depToReg.get(dep) : null;
+        if (!regCode || depReg === regCode) {
+            const opt = document.createElement('option');
+            opt.value = dep;
+            opt.textContent = `${dep} - ${DEP_NAMES[dep]}`;
+            depSelect.appendChild(opt);
+        }
+    });
+    
+    // On met à jour la liste des EPCI en cascade
+    window.populateEpciTargetList();
+};
+
+window.populateEpciTargetList = () => {
+    const targetSel = document.getElementById('select-map-target');
+    const regCode = document.getElementById('filter-epci-reg').value;
+    const depCode = document.getElementById('filter-epci-dep').value;
+    
+    targetSel.innerHTML = '';
+    
+    const uniqueEpci = new Map();
+    const validEpciIds = new Set();
+
+    if (appState.refData && appState.refData.epciList) {
+        // 1er passage : on liste les EPCI uniques et on repère ceux qui valident les filtres
+        appState.refData.epciList.forEach(r => {
+            if (r.EPCI && r.LIBEPCI) {
+                uniqueEpci.set(r.EPCI, r.LIBEPCI);
+                
+                // Si on a un filtre actif, on vérifie si l'EPCI y appartient 
+                // (Il suffit qu'une seule de ses communes soit dans le bon Dép/Région pour l'inclure)
+                if (regCode || depCode) {
+                    const comCode = r.CODGEO;
+                    // Déduction du département (gestion spéciale DROM 97x)
+                    const comDep = appState.refData.comToDep?.get(comCode) || (comCode ? (comCode.startsWith('97') ? comCode.substring(0, 3) : comCode.substring(0, 2)) : null);
+                    const comReg = appState.refData.depToReg?.get(comDep);
+                    
+                    let lineMatch = true;
+                    if (depCode && comDep !== depCode) lineMatch = false;
+                    if (regCode && !depCode && comReg !== regCode) lineMatch = false;
+                    
+                    if (lineMatch) validEpciIds.add(r.EPCI);
+                }
+            }
+        });
+        
+        // 2ème passage : on trie et on injecte ceux qui ont été validés
+        const sortedEpci = Array.from(uniqueEpci.entries())
+            .filter(([code]) => (!regCode && !depCode) || validEpciIds.has(code))
+            .sort((a, b) => a[1].localeCompare(b[1]));
+            
+        sortedEpci.forEach(([code, lib]) => {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = lib;
+            targetSel.appendChild(opt);
+        });
+    }
+};
+
+// --- GESTION PRINCIPALE DU MENU CARTE ---
+
 window.updateMapTargetList = () => {
     const type = document.getElementById('select-map-type').value;
     const targetSel = document.getElementById('select-map-target');
+    const epciFilters = document.getElementById('epci-filters');
+    
     targetSel.innerHTML = '';
+    targetSel.disabled = false;
 
-    if (type === 'region') {
+    // Afficher ou masquer le bloc de filtres EPCI
+    if (epciFilters) {
+        epciFilters.style.display = (type === 'epci') ? 'block' : 'none';
+    }
+
+    if (type === 'france_reg' || type === 'france_dep') {
+        const opt = document.createElement('option');
+        opt.value = "france";
+        opt.textContent = "France métropolitaine & DROM";
+        targetSel.appendChild(opt);
+        targetSel.disabled = true; // On grise le menu
+    } 
+    else if (type === 'region') {
         REGIONS_LIST.forEach(r => {
             const opt = document.createElement('option');
             opt.value = r.code;
@@ -692,7 +776,7 @@ window.updateMapTargetList = () => {
     else if (type === 'delegation') {
         appState.customDelegations.forEach((del, index) => {
             const opt = document.createElement('option');
-            opt.value = index; // On stocke l'index pour retrouver la délégation
+            opt.value = index; 
             opt.textContent = del.label;
             targetSel.appendChild(opt);
         });
@@ -705,19 +789,43 @@ window.updateMapTargetList = () => {
             targetSel.appendChild(opt);
         });
     }
-};
-
-// 2. Fonction appelée au clic sur "Ajouter la carte"
+    else if (type === 'epci') {
+        // Initialisation des listes du filtre au premier affichage
+        const regSelect = document.getElementById('filter-epci-reg');
+        if (regSelect && regSelect.options.length <= 1) {
+            REGIONS_LIST.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.code;
+                opt.textContent = r.label;
+                regSelect.appendChild(opt);
+            });
+            window.updateEpciDepFilter(); // Remplira les départements et la cible
+        } else {
+            window.populateEpciTargetList(); // MAJ directe selon les filtres déjà en place
+        }
+    }
+};// 2. Fonction appelée au clic sur "Ajouter la carte"
 window.confirmAddMapSlide = () => {
     const type = document.getElementById('select-map-type').value;
-    const targetVal = document.getElementById('select-map-target').value;
-    const targetText = document.getElementById('select-map-target').options[document.getElementById('select-map-target').selectedIndex].text;
+    const targetSel = document.getElementById('select-map-target');
+    const targetVal = targetSel.value;
+    const targetText = targetSel.options[targetSel.selectedIndex] ? targetSel.options[targetSel.selectedIndex].text : "";
 
     let focus = null;
-    let granularity = 'dep'; // Par défaut (Régions et Délégations affichent des départements)
+    let granularity = 'dep'; // Par défaut
     let title = targetText;
 
-    if (type === 'region') {
+    if (type === 'france_reg') {
+        focus = null; // null = France entière
+        granularity = 'reg';
+        title = "France entière (par Régions)";
+    }
+    else if (type === 'france_dep') {
+        focus = null; // null = France entière
+        granularity = 'dep';
+        title = "France entière (par Départements)";
+    }
+    else if (type === 'region') {
         focus = { type: 'region', code: targetVal };
         granularity = 'dep';
     } 
@@ -733,6 +841,13 @@ window.confirmAddMapSlide = () => {
         focus = { type: 'department', code: targetVal };
         granularity = 'com'; // Un département affiche ses communes
         title = `Département : ${targetText}`;
+    }
+    else if (type === 'epci') {
+        // On récupère toutes les communes appartenant à cet EPCI
+        const communes = appState.refData.epciList.filter(r => r.EPCI === targetVal).map(r => r.CODGEO);
+        focus = { type: 'epci', code: targetVal, list: communes };
+        granularity = 'com'; // Un EPCI affiche ses communes
+        title = `EPCI : ${targetText}`;
     }
 
     // Création de la nouvelle page
