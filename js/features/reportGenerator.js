@@ -24,7 +24,7 @@ export function getBrandHtml(config) {
         </div>`;
 }
 
-export function getStableHeaderHtml(config, brandHtml, customSubtitle = null, customMainTitle = null) {
+export function getStableHeaderHtml(config, brandHtml, customSubtitle = null, customMainTitle = null, pageSuffix = '') {
     const rightLogoHtml = config.globalLogo
         ? `<img src="${config.globalLogo}" style="height: 80px; max-height: 80px; object-fit: contain; margin-left: 15px;" alt="Logo partenaire">`
         : '';
@@ -46,7 +46,7 @@ export function getStableHeaderHtml(config, brandHtml, customSubtitle = null, cu
             </div>
             <div style="display: flex; flex-direction: row; align-items: flex-end; justify-content: flex-end; margin-left: 2rem; flex-shrink: 0; border: none;">
                 <div class="page-subtitle" style="text-align: right; white-space: nowrap; font-size: 1.1rem; color: #666; border: none; line-height: 1; padding-bottom: 8px;">
-                    ${customSubtitle || config.date}
+                    <span class="editable-page-subtitle" contenteditable="true" title="Cliquez pour modifier la date/sous-titre" style="padding: 2px 4px; border-radius: 4px; transition: background-color 0.2s; outline: none; border-bottom: 1px dashed transparent;">${customSubtitle || config.date}</span><span style="color: #666; padding-left: 4px;">${pageSuffix}</span>
                 </div>
                 ${rightLogoHtml}
             </div>
@@ -248,7 +248,7 @@ export function renderPageItem(page, config, dataMap, container) {
         pageEl.className = 'page';
         pageEl.setAttribute('data-page-id', page.id);
 
-const header = `<div style="position: absolute; top: 10mm; left: 15mm; right: 15mm; z-index: 10;">${getStableHeaderHtml(config, brandHtml, null, page.mainTitle)}</div>`;
+const header = `<div style="position: absolute; top: 10mm; left: 15mm; right: 15mm; z-index: 10;">${getStableHeaderHtml(config, brandHtml, page.customSubtitle, page.mainTitle)}</div>`;
         const footer = `<div class="page-footer" style="position: relative; z-index: 10;"><span>${config.footerLeft}</span><span>${config.footerRight}</span></div>`;
 
         pageEl.innerHTML = window.DOMPurify.sanitize(
@@ -273,8 +273,9 @@ const header = `<div style="position: absolute; top: 10mm; left: 15mm; right: 15
         mapPageEl.setAttribute('data-page-id', page.id);
 
         const uid = `map-${page.id}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-        mapPageEl.innerHTML = `
-            ${getStableHeaderHtml(config, brandHtml, null, page.mainTitle)}
+			mapPageEl.innerHTML = `
+            ${getStableHeaderHtml(config, brandHtml, page.customSubtitle, page.mainTitle)}
+            
             <div class="report-layout">
                 <div class="sidebar-legend">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
@@ -429,7 +430,7 @@ const isMultiScale = page.chartConfig.scale.endsWith('_multi');
         const chartHtml = `<${tag} x='${safeX}' y='${safeY}' name='${safeNames}' horizontal='${page.chartConfig.horizontal}' colors='${safeColors}' mean='${optMean}' trend='${optTrend}' moving='${optMoving}' outliers='${optOutliers}'></${tag}>`;
         
         chartPageEl.innerHTML = window.DOMPurify.sanitize(`
-            ${getStableHeaderHtml(config, brandHtml, null, page.mainTitle)}
+		${getStableHeaderHtml(config, brandHtml, page.customSubtitle, page.mainTitle)}
             <div class="report-layout" style="display:block; padding:20px;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
                     <h3 style="color:#000091; margin: 0; font-size: 1.5rem;">
@@ -479,7 +480,9 @@ export function generateTablePages(page, features, dataMap, config, granularity)
     for (let i = 0; i < sorted.length; i += MAX_ROWS) {
         const chunk = sorted.slice(i, i + MAX_ROWS);
         const pageNum = (i / MAX_ROWS) + 1;
-        const pageEl = document.createElement('div'); pageEl.className = 'page';
+        const pageEl = document.createElement('div');
+        pageEl.className = 'page';
+        pageEl.setAttribute('data-page-id', page.id);
         const brandHtml = getBrandHtml(config);
         
 		let headersHTML = `<th style="width:80px">Code</th>`;
@@ -561,7 +564,7 @@ export function generateTablePages(page, features, dataMap, config, granularity)
 
         pageEl.innerHTML = `
         <style>.data-table td, .data-table th { padding: 4px 8px !important; font-size: 0.85rem; }</style>
-        ${getStableHeaderHtml(config, brandHtml, `${config.date} - Page ${pageNum}/${totalPages}`)}
+${getStableHeaderHtml(config, brandHtml, page.customSubtitle, page.mainTitle, `- Page ${pageNum}/${totalPages}`)}
         <div class="report-layout" style="display:block; overflow:hidden;">
             <div class="table-page-content"><table class="data-table"><thead><tr>${headersHTML}</tr></thead><tbody>${rows}</tbody></table></div>
         </div>
