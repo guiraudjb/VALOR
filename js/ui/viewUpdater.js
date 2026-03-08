@@ -392,6 +392,8 @@ export function updatePagesListUI() {
         container.appendChild(item);
     });
 }
+// Dans js/ui/viewUpdater.js
+
 export function updateCosmetics() {
     const globalTitle = document.getElementById('input-titre').value;
     const dateStr = document.getElementById('input-date').value;
@@ -399,25 +401,29 @@ export function updateCosmetics() {
     const footerRight = document.getElementById('input-footer-right').value;
 
     document.querySelectorAll('#report-container .page').forEach(pageEl => {
+        const pageId = parseInt(pageEl.getAttribute('data-page-id'));
+        const pageData = appState.pages.find(p => p.id === pageId);
+
+        // --- PROTECTION : Si la page est verrouillée, on ignore la mise à jour globale ---
+        if (pageData && pageData.snapshotData) {
+            return; // On passe à la page suivante sans rien modifier
+        }
+
         // 1. Pied de page (Footer)
         const footerSpans = pageEl.querySelectorAll('.page-footer span');
         if (footerSpans.length >= 2) {
             footerSpans[0].textContent = footerLeft;
-            // On s'assure de modifier le dernier span (pour ne pas écraser la pagination des tableaux)
             footerSpans[footerSpans.length - 1].textContent = footerRight; 
         }
 
         // 2. Date (Sous-titre)
-        const subtitleEl = pageEl.querySelector('.page-subtitle');
-        if (subtitleEl && !subtitleEl.textContent.includes('Page')) {
+        const subtitleEl = pageEl.querySelector('.editable-page-subtitle');
+        if (subtitleEl) {
             subtitleEl.textContent = dateStr;
         }
         
         // 3. Titre principal
-        // On ne le modifie QUE SI l'utilisateur n'a pas défini de titre spécifique pour cette diapo
-        const pageId = parseInt(pageEl.getAttribute('data-page-id'));
-        const pageData = appState.pages.find(p => p.id === pageId);
-        
+        // On ne modifie que si l'utilisateur n'a pas défini de titre spécifique manuel
         if (pageData && !pageData.mainTitle) {
             const titleSpan = pageEl.querySelector('.editable-report-title');
             if (titleSpan) {
@@ -426,7 +432,6 @@ export function updateCosmetics() {
         }
     });
 }
-
 // --- GESTION DU "DIRTY STATE" (Bouton Actualiser) ---
 
 export function markAsDirty() {
