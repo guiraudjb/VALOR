@@ -232,8 +232,25 @@ window.changeAllLabelSizes = (size) => { const parsedSize = parseInt(size); if (
 window.toggleAllTables = () => { const allMaps = appState.pages.filter(p => p.type !== 'free'); if (allMaps.length === 0) return; const allEnabled = allMaps.every(p => p.showTable); appState.pages.forEach(p => { if (p.type !== 'free') p.showTable = !allEnabled; }); updatePagesListUI(); generateReport(); };
 window.toggleAllLabels = () => { const allMaps = appState.pages.filter(p => p.type !== 'free'); if (allMaps.length === 0) return; const allEnabled = allMaps.every(p => p.showLabels); appState.pages.forEach(p => { if (p.type !== 'free') p.showLabels = !allEnabled; }); updatePagesListUI(); generateReport(); };
 window.toggleAllVisibility = () => { if (appState.pages.length === 0) return; const allEnabled = appState.pages.every(p => p.visible); appState.pages.forEach(p => p.visible = !allEnabled); updatePagesListUI(); generateReport(); };
-window.deleteAllPages = () => { if (appState.pages.length === 0) return; if (confirm("Supprimer TOUTES les diapositives ?")) { appState.pages = []; updatePagesListUI(); generateReport(); } };
 
+window.deleteAllPages = () => { 
+    if (appState.pages.length === 0) return;
+    
+    // On compte le nombre de diapositives qui ne sont PAS verrouillées
+    const unlockedPages = appState.pages.filter(p => !p.snapshotData);
+    
+    if (unlockedPages.length === 0) {
+        alert("🔒 Toutes les diapositives sont verrouillées. Aucune suppression n'a été effectuée.");
+        return;
+    }
+
+    if (confirm(`Supprimer TOUTES les diapositives non verrouillées (${unlockedPages.length} diapositive(s)) ?`)) { 
+        // On remplace le tableau par un tableau ne contenant QUE les diapositives verrouillées
+        appState.pages = appState.pages.filter(p => p.snapshotData); 
+        updatePagesListUI(); 
+        generateReport(); 
+    } 
+};
 // Dans js/ui/viewUpdater.js, remplacez intégralement updatePagesListUI
 
 export function updatePagesListUI() {
@@ -317,52 +334,49 @@ export function updatePagesListUI() {
                 <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="editPage(${page.id})" title="Éditer"><span class="fr-icon-edit-line" style="color:#000091;"></span></button></div>
                 <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>
             `;
-        } else if (page.type === 'chart') {
+} else if (page.type === 'chart') {
             typeTag = `<span class="page-tag tag-chart" style="background-color: #fceea7; color: #716000;">GRAPH.</span>`;
             if (isLocked) typeTag += ` <span class="fr-icon-lock-fill fr-icon--sm" style="color:#ce0500" title="Verrouillé"></span>`;
 
-            if (isLocked) {
-                controls = `${lockBtn} ${dupBtn}
-                    <div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 60px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
-            } else {
-                const tableIcon = page.showTable ? 'fr-icon-table-fill' : 'fr-icon-table-line';
-                const tableStyle = page.showTable ? 'style="color:#000091"' : '';
-                controls = `${lockBtn} ${dupBtn}
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.editChartSlide) window.editChartSlide(${page.id})" title="Éditer"><span class="fr-icon-edit-line" style="color:#000091;"></span></button></div>
-                    <div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 60px;"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageTable(${index})" ${tableStyle} title="Tableau"><span class="${tableIcon}"></span></button></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichTable(${index})" ${page.richTable ? 'checked' : ''} title="Riche" style="cursor: pointer; margin: 0;"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
-            }
+            const tableIcon = page.showTable ? 'fr-icon-table-fill' : 'fr-icon-table-line';
+            const tableStyle = page.showTable ? 'style="color:#000091"' : '';
+            
+            // Si verrouillé, on cache le bouton Éditer. Sinon on l'affiche.
+            const editBtnHtml = isLocked 
+                ? `<div style="width: 35px;"></div>`
+                : `<div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.editChartSlide) window.editChartSlide(${page.id})" title="Éditer"><span class="fr-icon-edit-line" style="color:#000091;"></span></button></div>`;
+
+            controls = `${lockBtn} ${dupBtn}
+                ${editBtnHtml}
+                <div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 60px;"></div>
+                <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageTable(${index})" ${tableStyle} title="Tableau"><span class="${tableIcon}"></span></button></div>
+                <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichTable(${index})" ${page.richTable ? 'checked' : ''} title="Riche" style="cursor: pointer; margin: 0;"></div>
+                <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
+                
         } else { // CARTE
             typeTag = `<span class="page-tag tag-map">CARTE</span>`;
             if (isLocked) typeTag += ` <span class="fr-icon-lock-fill fr-icon--sm" style="color:#ce0500" title="Verrouillé"></span>`;
 
-            if (isLocked) {
-                controls = `${lockBtn} ${dupBtn}
-                    <div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div><div style="width: 60px;"></div><div style="width: 35px;"></div><div style="width: 35px;"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
-            } else {
-                const showMap = page.showMap !== false;
-                const mapIcon = showMap ? 'fr-icon-earth-fill' : 'fr-icon-earth-line';
-                const mapStyle = showMap ? 'style="color:#000091"' : '';
-                const labelIcon = page.showLabels ? 'fr-icon-price-tag-3-fill' : 'fr-icon-price-tag-3-line';
-                const labelStyle = page.showLabels ? 'style="color:#000091"' : '';
-                const tableIcon = page.showTable ? 'fr-icon-table-fill' : 'fr-icon-table-line';
-                const tableStyle = page.showTable ? 'style="color:#000091"' : '';
-                
-                controls = `${lockBtn} ${dupBtn}
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageMap(${index})" ${mapStyle} title="Carte"><span class="${mapIcon}"></span></button></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageLabels(${index})" ${labelStyle} title="Étiquettes"><span class="${labelIcon}"></span></button></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichLabels(${index})" ${page.richLabels ? 'checked' : ''} title="Riches" style="cursor: pointer; margin: 0;"></div>
-                    <div style="width: 60px; display:flex; justify-content:center;"><input type="number" class="input-size" value="${page.labelSize || 8}" min="4" max="24" onchange="changeLabelSize(${index}, this.value)" title="Taille"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageTable(${index})" ${tableStyle} title="Tableau"><span class="${tableIcon}"></span></button></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichTable(${index})" ${page.richTable ? 'checked' : ''} title="Riche" style="cursor: pointer; margin: 0;"></div>
-                    <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
-            }
+            // On affiche toujours ces contrôles, même si la carte est verrouillée
+            const showMap = page.showMap !== false;
+            const mapIcon = showMap ? 'fr-icon-earth-fill' : 'fr-icon-earth-line';
+            const mapStyle = showMap ? 'style="color:#000091"' : '';
+            
+            const labelIcon = page.showLabels ? 'fr-icon-price-tag-3-fill' : 'fr-icon-price-tag-3-line';
+            const labelStyle = page.showLabels ? 'style="color:#000091"' : '';
+            
+            const tableIcon = page.showTable ? 'fr-icon-table-fill' : 'fr-icon-table-line';
+            const tableStyle = page.showTable ? 'style="color:#000091"' : '';
+            
+            controls = `${lockBtn} ${dupBtn}
+                <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageMap(${index})" ${mapStyle} title="Carte"><span class="${mapIcon}"></span></button></div>
+                <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageLabels(${index})" ${labelStyle} title="Étiquettes"><span class="${labelIcon}"></span></button></div>
+                <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichLabels(${index})" ${page.richLabels ? 'checked' : ''} title="Riches" style="cursor: pointer; margin: 0;"></div>
+                <div style="width: 60px; display:flex; justify-content:center;"><input type="number" class="input-size" value="${page.labelSize || 8}" min="4" max="24" onchange="changeLabelSize(${index}, this.value)" title="Taille"></div>
+                <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="togglePageTable(${index})" ${tableStyle} title="Tableau"><span class="${tableIcon}"></span></button></div>
+                <div style="width: 35px; display:flex; justify-content:center;"><input type="checkbox" onchange="togglePageRichTable(${index})" ${page.richTable ? 'checked' : ''} title="Riche" style="cursor: pointer; margin: 0;"></div>
+                <div style="width: 35px; display:flex; justify-content:center;"><button class="btn-icon" onclick="if(window.addToCart) window.addToCart(${index})" title="Panier"><span class="fr-icon-shopping-cart-2-line" style="color:#000091;"></span></button></div>`;
         }
-
         const visIcon = page.visible ? 'fr-icon-eye-fill' : 'fr-icon-eye-off-fill';
         const visStyle = page.visible ? 'style="color:#000091"' : '';
         
