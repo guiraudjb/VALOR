@@ -1,4 +1,5 @@
 import { GEO_ABBR } from '../config/constants.js';
+import { appState } from './state.js';
 
 export function escapeHtml(text) {
     if (!text) return text;
@@ -23,6 +24,7 @@ export const readFileAsDataURL = (file) => {
 
 export function formatValue(val, mode) {
     if (val === undefined || val === null || isNaN(val) || !isFinite(val)) return '-';
+    
     if (['dev_pct', 'share', 'growth'].includes(mode)) {
         const prefix = (val > 0 && mode !== 'share') ? '+' : '';
         return prefix + val.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %';
@@ -30,6 +32,18 @@ export function formatValue(val, mode) {
     if (mode === 'dev_abs') return (val > 0 ? '+' : '') + val.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
     if (mode === 'ratio') return val.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
     if (mode === 'avg') return val.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+    
+    // --- NOUVEAU : Prise en compte du mode Custom et de la précision voulue ---
+    if (mode === 'custom') {
+        // On récupère la précision stockée dans l'état, par défaut 2
+        const prec = parseInt(appState.formulaPrecision);
+        const safePrec = isNaN(prec) ? 2 : prec;
+        return val.toLocaleString('fr-FR', { 
+            minimumFractionDigits: safePrec, 
+            maximumFractionDigits: safePrec 
+        });
+    }
+    
     return val.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
 }
 

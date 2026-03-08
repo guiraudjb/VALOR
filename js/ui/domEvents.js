@@ -14,7 +14,15 @@ import {
 } from '../features/chartGenerator.js';
 
 export function setupUIListeners() {
-    
+    initFormulaAutocomplete();
+    // Gestion de la précision de la formule manuelle
+    const inputPrecision = document.getElementById('input-precision');
+    if (inputPrecision) {
+        inputPrecision.addEventListener('change', (e) => {
+            appState.formulaPrecision = e.target.value;
+            markAsDirty(); // Fait apparaître le bouton Actualiser
+        });
+    }
     window.addEventListener('valor:refreshReport', () => {
         generateReport();
     });
@@ -444,4 +452,35 @@ export function highlightAndScrollToNavItem(pageId) {
         else item.classList.remove('active-page-item');
     });
     if (targetItem && !isAlreadyActive) { const container = document.getElementById('pages-list'); const header = container.firstElementChild; const headerHeight = header ? header.offsetHeight : 45; container.scrollTo({ top: targetItem.offsetTop - headerHeight, behavior: 'smooth' }); }
+}
+
+function initFormulaAutocomplete() {
+    const input = document.getElementById('input-custom-formula');
+    const list = document.getElementById('formula-autocomplete');
+
+    input.addEventListener('input', () => {
+        const val = input.value;
+        const lastBracket = val.lastIndexOf('[');
+        
+        if (lastBracket !== -1 && val.indexOf(']', lastBracket) === -1) {
+            const search = val.substring(lastBracket + 1).toLowerCase();
+            const matches = appState.availableMetrics.filter(m => m.toLowerCase().includes(search));
+            
+            list.innerHTML = matches.map(m => `<div class="suggestion">${m}</div>`).join('');
+            list.style.display = matches.length ? 'block' : 'none';
+            
+            list.querySelectorAll('.suggestion').forEach(div => {
+                div.onclick = () => {
+                    input.value = val.substring(0, lastBracket) + '[' + div.textContent + ']';
+                    list.style.display = 'none';
+                    appState.customFormula = input.value;
+                    markAsDirty(); // Force l'apparition du bouton Actualiser
+                };
+            });
+        } else {
+            list.style.display = 'none';
+        }
+        appState.customFormula = input.value;
+        markAsDirty();
+    });
 }

@@ -166,8 +166,50 @@
                                         <optgroup label="Croisements (Cochez 2 valeurs)">
                                             <option value="ratio">Ratio (A / B)</option>
                                             <option value="growth">Taux d'évolution (A ➔ B)</option>
+                                            <option value="custom">Calcul personnalisé (formule)</option>
                                         </optgroup>
                                     </select>
+                                    <div id="wrapper-custom-formula" style="display:none;" class="fr-input-group fr-mt-2w">
+    <div class="fr-grid-row fr-grid-row--middle fr-mb-1w">
+        <label class="fr-label fr-text--bold fr-col">Éditeur de formule</label>
+        <button class="fr-btn fr-btn--tertiary-no-outline fr-icon-question-line fr-btn--sm" 
+                onclick="document.getElementById('formula-help-modal').showModal()" title="Aide"></button>
+    </div>
+    
+    <div style="position: relative;">
+        <input class="fr-input" type="text" id="input-custom-formula" placeholder="Tapez '[' pour les colonnes...">
+        <div id="formula-autocomplete" class="autocomplete-list" style="display:none;"></div>
+    </div>
+
+    <div class="fr-input-group fr-mt-2w" style="max-width: 150px;">
+        <label class="fr-label fr-text--xs">Décimales</label>
+        <input class="fr-input fr-input--sm" type="number" id="input-precision" value="2" min="0" max="5">
+    </div>
+</div>
+
+<dialog id="formula-help-modal" class="fr-modal" role="dialog" aria-labelledby="formula-help-modal-title">
+    <div class="fr-container fr-container--fluid fr-container-md">
+        <div class="fr-grid-row fr-grid-row--center">
+            <div class="fr-col-12 fr-col-md-8">
+                <div class="fr-modal__body">
+                    <div class="fr-modal__header">
+                        <button class="fr-btn--close fr-btn" aria-controls="formula-help-modal">Fermer</button>
+                    </div>
+                    <div class="fr-modal__content">
+                        <h1 id="formula-help-modal-title" class="fr-modal__title">
+                            Aide au calcul personnalisé
+                        </h1>
+                        <p>Utilisez les crochets <strong>[Nom de colonne]</strong> pour vos variables.</p>
+                        <ul>
+                            <li><code>([Indicateur A] + [Indicateur B]) / 2</code></li>
+                            <li>Priorité des opérations : <code>( )</code>, <code>*</code>, <code>/</code>, <code>+</code>, <code>-</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</dialog>
 
                                     <div class="fr-checkbox-group fr-mt-2w fr-p-2w fr-background-alt--grey" style="border-radius:4px;">
                                         <input type="checkbox" id="check-show-subtotal" checked>
@@ -758,7 +800,7 @@
                         <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline-reverse fr-btns-group--inline-lg fr-btns-group--icon-left">
                             <li><button class="fr-btn fr-icon-check-line" onclick="confirmAddMapSlide()">Ajouter la carte</button></li>
                             <li><button class="fr-btn fr-btn--secondary" aria-controls="modal-add-map">Annuler</button></li>
-                        </ul>
+                        sele</ul>
                     </div>
                 </div>
             </div>

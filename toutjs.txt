@@ -17,7 +17,15 @@ import {
 } from '../features/chartGenerator.js';
 
 export function setupUIListeners() {
-    
+    initFormulaAutocomplete();
+    // Gestion de la précision de la formule manuelle
+    const inputPrecision = document.getElementById('input-precision');
+    if (inputPrecision) {
+        inputPrecision.addEventListener('change', (e) => {
+            appState.formulaPrecision = e.target.value;
+            markAsDirty(); // Fait apparaître le bouton Actualiser
+        });
+    }
     window.addEventListener('valor:refreshReport', () => {
         generateReport();
     });
@@ -448,6 +456,37 @@ export function highlightAndScrollToNavItem(pageId) {
     });
     if (targetItem && !isAlreadyActive) { const container = document.getElementById('pages-list'); const header = container.firstElementChild; const headerHeight = header ? header.offsetHeight : 45; container.scrollTo({ top: targetItem.offsetTop - headerHeight, behavior: 'smooth' }); }
 }
+
+function initFormulaAutocomplete() {
+    const input = document.getElementById('input-custom-formula');
+    const list = document.getElementById('formula-autocomplete');
+
+    input.addEventListener('input', () => {
+        const val = input.value;
+        const lastBracket = val.lastIndexOf('[');
+        
+        if (lastBracket !== -1 && val.indexOf(']', lastBracket) === -1) {
+            const search = val.substring(lastBracket + 1).toLowerCase();
+            const matches = appState.availableMetrics.filter(m => m.toLowerCase().includes(search));
+            
+            list.innerHTML = matches.map(m => `<div class="suggestion">${m}</div>`).join('');
+            list.style.display = matches.length ? 'block' : 'none';
+            
+            list.querySelectorAll('.suggestion').forEach(div => {
+                div.onclick = () => {
+                    input.value = val.substring(0, lastBracket) + '[' + div.textContent + ']';
+                    list.style.display = 'none';
+                    appState.customFormula = input.value;
+                    markAsDirty(); // Force l'apparition du bouton Actualiser
+                };
+            });
+        } else {
+            list.style.display = 'none';
+        }
+        appState.customFormula = input.value;
+        markAsDirty();
+    });
+}
 ./js/ui/viewUpdater.js
 import { appState } from '../core/state.js';
 import { escapeHtml } from '../core/utils.js';
@@ -549,6 +588,19 @@ export function updateMetricControls() {
     const hint = document.getElementById('metric-hint');
     const wrapperShareBase = document.getElementById('wrapper-share-base');
     const wrapperFilter = document.getElementById('wrapper-data-filter');
+    const calcMode = document.getElementById('select-calc-mode').value;
+    const formulaWrapper = document.getElementById('wrapper-custom-formula');
+    const metricsContainer = document.getElementById('metrics-checkboxes-container');
+
+    if (calcMode === 'custom') {
+        formulaWrapper.style.display = 'block';
+        if (metricsContainer) metricsContainer.style.display = 'none';
+    } else {
+        formulaWrapper.style.display = 'none';
+        if (metricsContainer) metricsContainer.style.display = 'flex';
+    }
+
+
 
     if (!wrapperSelect || !checkboxesContainer) return;
 
@@ -1136,6 +1188,7 @@ export const PALETTE_SCALES = {
 ./js/core
 ./js/core/utils.js
 import { GEO_ABBR } from '../config/constants.js';
+import { appState } from './state.js';
 
 export function escapeHtml(text) {
     if (!text) return text;
@@ -1160,6 +1213,7 @@ export const readFileAsDataURL = (file) => {
 
 export function formatValue(val, mode) {
     if (val === undefined || val === null || isNaN(val) || !isFinite(val)) return '-';
+    
     if (['dev_pct', 'share', 'growth'].includes(mode)) {
         const prefix = (val > 0 && mode !== 'share') ? '+' : '';
         return prefix + val.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %';
@@ -1167,6 +1221,18 @@ export function formatValue(val, mode) {
     if (mode === 'dev_abs') return (val > 0 ? '+' : '') + val.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
     if (mode === 'ratio') return val.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
     if (mode === 'avg') return val.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+    
+    // --- NOUVEAU : Prise en compte du mode Custom et de la précision voulue ---
+    if (mode === 'custom') {
+        // On récupère la précision stockée dans l'état, par défaut 2
+        const prec = parseInt(appState.formulaPrecision);
+        const safePrec = isNaN(prec) ? 2 : prec;
+        return val.toLocaleString('fr-FR', { 
+            minimumFractionDigits: safePrec, 
+            maximumFractionDigits: safePrec 
+        });
+    }
+    
     return val.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
 }
 
@@ -1349,6 +1415,8 @@ export const appState = {
     availableMetrics: [],
     selectedMetrics: [],
     calcMode: 'simple',
+    customFormula: '',       // Stockera la chaîne de caractères (ex: "[A]+[B]")
+    formulaPrecision: 2,     // Nombre de décimales par défaut
     shareBase: 'global',
     cart: [],
     pages: [],
@@ -1707,8 +1775,13 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
         `; 
     }
 
-    const svg = window.d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).style("width", "100%").style("height", "100%");
-    
+    //const svg = window.d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).style("width", "100%").style("height", "100%");
+    const svg = window.d3.select(container)
+    .append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet") // Force le maintien du ratio au centre
+    .style("width", "100%")
+    .style("height", "auto"); // La hauteur s'ajuste désormais proportionnellement
     const projection = window.d3.geoIdentity().reflectY(true).fitSize([width, height], { type: "FeatureCollection", features: featuresToDraw });
     const path = window.d3.geoPath().projection(projection);
 
@@ -1730,6 +1803,16 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
             if (dataObj && dataObj._computed !== undefined) {
                 tooltipHtml += `<br><b>Résultat : ${formatValue(dataObj._computed, config.calcMode)}</b><br><hr style="margin:5px 0">`;
                 config.selectedMetrics.forEach((m, idx) => {
+					if (config.calcMode !== 'custom') {
+                config.selectedMetrics.forEach((m, idx) => {
+                    let rowLabel = m;
+                    if (config.calcMode === 'growth') rowLabel = idx === 0 ? `Initiale (${m})` : `Arrivée (${m})`;
+                    if (config.calcMode === 'ratio') rowLabel = idx === 0 ? `Numérateur (${m})` : `Dénominateur (${m})`;
+                    if (['share', 'dev_abs', 'dev_pct'].includes(config.calcMode)) rowLabel = `Valeur brute (${m})`;
+                    tooltipHtml += `<br>${rowLabel} : ${formatValue(dataObj[m], 'simple')}`;
+					});
+					}
+					
                     let rowLabel = m;
                     if (config.calcMode === 'growth') rowLabel = idx === 0 ? `Initiale (${m})` : `Arrivée (${m})`;
                     if (config.calcMode === 'ratio') rowLabel = idx === 0 ? `Numérateur (${m})` : `Dénominateur (${m})`;
@@ -1781,7 +1864,7 @@ if (granularity === 'com') {
             const abbrName = getAbbreviatedName(rawName);
             
             let vals = [];
-            if (['simple', 'top10', 'flop10'].includes(config.calcMode)) {
+            if (['simple', 'top10', 'flop10','custom'].includes(config.calcMode)) {
                 vals.push(formatValue(dataObj._computed, config.calcMode));
             } else {
                 let prefix = "";
@@ -3797,6 +3880,55 @@ export function getCurrentConfig() {
         globalLogo: appState.globalLogo
     };
 }
+// Parseur mathématique sécurisé (Recursive Descent Parser) pour contourner la restriction CSP
+function safeMathEval(expr) {
+    const chars = expr.replace(/\s+/g, '').split('');
+    let index = 0;
+
+    function parseExpression() {
+        let value = parseTerm();
+        while (index < chars.length && (chars[index] === '+' || chars[index] === '-')) {
+            const op = chars[index++];
+            const nextTerm = parseTerm();
+            if (op === '+') value += nextTerm;
+            else value -= nextTerm;
+        }
+        return value;
+    }
+
+    function parseTerm() {
+        let value = parseFactor();
+        while (index < chars.length && (chars[index] === '*' || chars[index] === '/')) {
+            const op = chars[index++];
+            const nextFactor = parseFactor();
+            if (op === '*') value *= nextFactor;
+            else value /= nextFactor;
+        }
+        return value;
+    }
+
+    function parseFactor() {
+        if (index < chars.length && chars[index] === '-') {
+            index++;
+            return -parseFactor(); // Gestion des nombres négatifs
+        }
+        if (index < chars.length && chars[index] === '(') {
+            index++;
+            const value = parseExpression();
+            if (index < chars.length && chars[index] === ')') index++;
+            return value;
+        }
+        const start = index;
+        while (index < chars.length && /[\d.]/.test(chars[index])) {
+            index++;
+        }
+        return parseFloat(chars.slice(start, index).join('')) || 0;
+    }
+
+    return parseExpression();
+}
+
+
 
 export function getAggregatedDataMap(targetGranularity, page, config) {
     const dataMap = new Map();
@@ -3811,22 +3943,22 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
         }
         return dataMap.get(code);
     };
+
     appState.userData.forEach(d => {
         let targetCode = d.code;
-			if (shouldAggregate && appState.sourceGranularity !== targetGranularity) {
-				if (appState.sourceGranularity === 'com' && targetGranularity === 'dep') {
-					targetCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
-				}
-				else if (appState.sourceGranularity === 'dep' && targetGranularity === 'reg') {
-					targetCode = appState.refData.depToReg.get(d.code);
-				}
-				else if (appState.sourceGranularity === 'com' && targetGranularity === 'reg') {
-					// NOUVEAU : Prise en compte sécurisée des DROM pour remonter l'arbre Commune -> Département -> Région
-					//const depCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
-					const depCode = getDepFromCom(d.code, appState);
-					targetCode = appState.refData.depToReg.get(depCode);
-				}
-			}
+        if (shouldAggregate && appState.sourceGranularity !== targetGranularity) {
+            if (appState.sourceGranularity === 'com' && targetGranularity === 'dep') {
+                targetCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
+            }
+            else if (appState.sourceGranularity === 'dep' && targetGranularity === 'reg') {
+                targetCode = appState.refData.depToReg.get(d.code);
+            }
+            else if (appState.sourceGranularity === 'com' && targetGranularity === 'reg') {
+                // NOUVEAU : Prise en compte sécurisée des DROM pour remonter l'arbre Commune -> Département -> Région
+                const depCode = getDepFromCom(d.code, appState);
+                targetCode = appState.refData.depToReg.get(depCode);
+            }
+        }
         if (targetCode) {
             const currentObj = initOrGetObj(targetCode);
             // CORRECTION: On agrège toujours toutes les métriques disponibles pour garantir le fonctionnement des graphiques
@@ -3839,7 +3971,7 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
     const m1 = config.selectedMetrics[0];
     const m2 = config.selectedMetrics.length > 1 ? config.selectedMetrics[1] : null;
     let codesInView = null;
-    
+
     if (config.shareBase === 'view' && page && page.type !== 'free') {
         const features = getFeaturesForPage(page, targetGranularity, appState);
         codesInView = new Set(features.map(f => String(getCodeFromFeature(f, targetGranularity)).trim()));
@@ -3856,9 +3988,11 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
     }
     
     const refAvg = validCount > 0 ? refSum / validCount : 0;
+
     dataMap.forEach((obj, code) => {
         let val = undefined;
-        if (config.selectedMetrics.length > 0) {
+        // La condition inclut le mode "custom" pour être sûr qu'il soit évalué même si metrics est vide
+        if (config.selectedMetrics.length > 0 || config.calcMode === 'custom') {
             const mode = config.calcMode;
             if (['simple', 'top10', 'flop10'].includes(mode)) val = obj[m1];
             else if (mode === 'sum') val = config.selectedMetrics.reduce((s, m) => s + (obj[m] || 0), 0);
@@ -3868,10 +4002,42 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
             else if (mode === 'share') val = refSum ? ((obj[m1] || 0) / refSum) * 100 : 0;
             else if (mode === 'ratio') val = (m1 && m2 && obj[m2]) ? (obj[m1] / obj[m2]) : 0;
             else if (mode === 'growth') val = (m1 && m2 && obj[m1]) ? ((obj[m2] - obj[m1]) / obj[m1]) * 100 : 0;
+            
+            // --- BLOC CUSTOM INTÉGRÉ ICI ---
+else if (mode === 'custom' && appState.customFormula) {
+                val = 0;
+                try {
+                    let expression = appState.customFormula;
+                    
+                    // 1. Remplacement des noms de colonnes par les valeurs numériques
+                    appState.availableMetrics.forEach(metric => {
+                        const v = obj[metric] || 0;
+                        const safeMetric = metric.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        expression = expression.replace(new RegExp(`\\[${safeMetric}\\]`, 'g'), v);
+                    });
+                    
+                    // 2. Sécurité : on ne garde strictement que les chiffres et opérateurs de base
+                    const sanitized = expression.replace(/[^-+*/().0-9]/g, '');
+                    
+                    // 3. NOUVEAU : Évaluation sécurisée (zéro risque CSP)
+                    const rawResult = safeMathEval(sanitized);
+                    
+                    // 4. Arrondi selon la précision choisie
+                    const prec = parseInt(document.getElementById('input-precision')?.value || 2);
+                    val = Number(Math.round(rawResult + 'e' + prec) + 'e-' + prec);
+                    
+                    if (!isFinite(val)) val = 0; // Protection division par zéro
+                } catch (e) {
+                    console.warn("Erreur de formule :", e);
+                    val = 0;
+                }
+            }
         }
+        
+        // On assigne bien la variable "_computed", clé de voûte de l'application
         obj._computed = val;
         obj._inSelection = true;
-        
+
         if (appState.dataFilter && appState.dataFilter.active && appState.dataFilter.operator !== 'none') {
             const fop = appState.dataFilter.operator;
             const fv1 = appState.dataFilter.value1;
@@ -3880,7 +4046,6 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
             const valToTest = (filterMetric === '_computed') ? val : obj[filterMetric];
 
             let keep = true;
-
             if (valToTest === undefined || isNaN(valToTest)) {
                 keep = false;
             } else if (fop === 'gt') {
@@ -3911,9 +4076,9 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
             entries.slice(-10).forEach(e => e[1]._inSelection = true);
         }
     }
+    
     return dataMap;
 }
-
 export function buildDefaultStructure() {
     const savedFreePages = appState.pages.filter(p => p.type === 'free');
     // --- ETAPE 1 : SAUVEGARDER LES PAGES VERROUILLÉES ---
@@ -4218,7 +4383,7 @@ export function generateTablePages(page, features, dataMap, config, granularity)
             });
         } else {
             // Pour une CARTE : Colonne(s) simple(s) et colonne finale Résultat
-            if (page.richTable && !['simple', 'top10', 'flop10'].includes(config.calcMode)) {
+            if (page.richTable && !['simple', 'top10', 'flop10','custom'].includes(config.calcMode)) {
                 config.selectedMetrics.forEach(m => {
                     headersHTML += `<th style="text-align:right">${escapeHtml(m)}</th>`;
                 });
@@ -4265,8 +4430,9 @@ export function generateTablePages(page, features, dataMap, config, granularity)
                 });
             } else {
 
+                
                 // Mode Carte : affichage classique
-                if (page.richTable && !['simple', 'top10', 'flop10'].includes(config.calcMode)) {
+                if (page.richTable && !['simple', 'top10', 'flop10', 'custom'].includes(config.calcMode)) {
                     config.selectedMetrics.forEach(m => {
                         const metricVal = d[m] !== undefined ? formatValue(d[m], 'simple') : '-';
                         rowHtml += `<td style="text-align:right">${metricVal}</td>`;

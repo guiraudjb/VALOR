@@ -98,6 +98,19 @@ export function updateMetricControls() {
     const hint = document.getElementById('metric-hint');
     const wrapperShareBase = document.getElementById('wrapper-share-base');
     const wrapperFilter = document.getElementById('wrapper-data-filter');
+    const calcMode = document.getElementById('select-calc-mode').value;
+    const formulaWrapper = document.getElementById('wrapper-custom-formula');
+    const metricsContainer = document.getElementById('metrics-checkboxes-container');
+
+    if (calcMode === 'custom') {
+        formulaWrapper.style.display = 'block';
+        if (metricsContainer) metricsContainer.style.display = 'none';
+    } else {
+        formulaWrapper.style.display = 'none';
+        if (metricsContainer) metricsContainer.style.display = 'flex';
+    }
+
+
 
     if (!wrapperSelect || !checkboxesContainer) return;
 

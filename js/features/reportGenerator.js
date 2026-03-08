@@ -78,6 +78,55 @@ export function getCurrentConfig() {
         globalLogo: appState.globalLogo
     };
 }
+// Parseur mathématique sécurisé (Recursive Descent Parser) pour contourner la restriction CSP
+function safeMathEval(expr) {
+    const chars = expr.replace(/\s+/g, '').split('');
+    let index = 0;
+
+    function parseExpression() {
+        let value = parseTerm();
+        while (index < chars.length && (chars[index] === '+' || chars[index] === '-')) {
+            const op = chars[index++];
+            const nextTerm = parseTerm();
+            if (op === '+') value += nextTerm;
+            else value -= nextTerm;
+        }
+        return value;
+    }
+
+    function parseTerm() {
+        let value = parseFactor();
+        while (index < chars.length && (chars[index] === '*' || chars[index] === '/')) {
+            const op = chars[index++];
+            const nextFactor = parseFactor();
+            if (op === '*') value *= nextFactor;
+            else value /= nextFactor;
+        }
+        return value;
+    }
+
+    function parseFactor() {
+        if (index < chars.length && chars[index] === '-') {
+            index++;
+            return -parseFactor(); // Gestion des nombres négatifs
+        }
+        if (index < chars.length && chars[index] === '(') {
+            index++;
+            const value = parseExpression();
+            if (index < chars.length && chars[index] === ')') index++;
+            return value;
+        }
+        const start = index;
+        while (index < chars.length && /[\d.]/.test(chars[index])) {
+            index++;
+        }
+        return parseFloat(chars.slice(start, index).join('')) || 0;
+    }
+
+    return parseExpression();
+}
+
+
 
 export function getAggregatedDataMap(targetGranularity, page, config) {
     const dataMap = new Map();
@@ -92,22 +141,22 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
         }
         return dataMap.get(code);
     };
+
     appState.userData.forEach(d => {
         let targetCode = d.code;
-			if (shouldAggregate && appState.sourceGranularity !== targetGranularity) {
-				if (appState.sourceGranularity === 'com' && targetGranularity === 'dep') {
-					targetCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
-				}
-				else if (appState.sourceGranularity === 'dep' && targetGranularity === 'reg') {
-					targetCode = appState.refData.depToReg.get(d.code);
-				}
-				else if (appState.sourceGranularity === 'com' && targetGranularity === 'reg') {
-					// NOUVEAU : Prise en compte sécurisée des DROM pour remonter l'arbre Commune -> Département -> Région
-					//const depCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
-					const depCode = getDepFromCom(d.code, appState);
-					targetCode = appState.refData.depToReg.get(depCode);
-				}
-			}
+        if (shouldAggregate && appState.sourceGranularity !== targetGranularity) {
+            if (appState.sourceGranularity === 'com' && targetGranularity === 'dep') {
+                targetCode = appState.refData.comToDep?.get(d.code) || (d.code.startsWith('97') ? d.code.substring(0, 3) : d.code.substring(0, 2));
+            }
+            else if (appState.sourceGranularity === 'dep' && targetGranularity === 'reg') {
+                targetCode = appState.refData.depToReg.get(d.code);
+            }
+            else if (appState.sourceGranularity === 'com' && targetGranularity === 'reg') {
+                // NOUVEAU : Prise en compte sécurisée des DROM pour remonter l'arbre Commune -> Département -> Région
+                const depCode = getDepFromCom(d.code, appState);
+                targetCode = appState.refData.depToReg.get(depCode);
+            }
+        }
         if (targetCode) {
             const currentObj = initOrGetObj(targetCode);
             // CORRECTION: On agrège toujours toutes les métriques disponibles pour garantir le fonctionnement des graphiques
@@ -120,7 +169,7 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
     const m1 = config.selectedMetrics[0];
     const m2 = config.selectedMetrics.length > 1 ? config.selectedMetrics[1] : null;
     let codesInView = null;
-    
+
     if (config.shareBase === 'view' && page && page.type !== 'free') {
         const features = getFeaturesForPage(page, targetGranularity, appState);
         codesInView = new Set(features.map(f => String(getCodeFromFeature(f, targetGranularity)).trim()));
@@ -137,9 +186,11 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
     }
     
     const refAvg = validCount > 0 ? refSum / validCount : 0;
+
     dataMap.forEach((obj, code) => {
         let val = undefined;
-        if (config.selectedMetrics.length > 0) {
+        // La condition inclut le mode "custom" pour être sûr qu'il soit évalué même si metrics est vide
+        if (config.selectedMetrics.length > 0 || config.calcMode === 'custom') {
             const mode = config.calcMode;
             if (['simple', 'top10', 'flop10'].includes(mode)) val = obj[m1];
             else if (mode === 'sum') val = config.selectedMetrics.reduce((s, m) => s + (obj[m] || 0), 0);
@@ -149,10 +200,42 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
             else if (mode === 'share') val = refSum ? ((obj[m1] || 0) / refSum) * 100 : 0;
             else if (mode === 'ratio') val = (m1 && m2 && obj[m2]) ? (obj[m1] / obj[m2]) : 0;
             else if (mode === 'growth') val = (m1 && m2 && obj[m1]) ? ((obj[m2] - obj[m1]) / obj[m1]) * 100 : 0;
+            
+            // --- BLOC CUSTOM INTÉGRÉ ICI ---
+else if (mode === 'custom' && appState.customFormula) {
+                val = 0;
+                try {
+                    let expression = appState.customFormula;
+                    
+                    // 1. Remplacement des noms de colonnes par les valeurs numériques
+                    appState.availableMetrics.forEach(metric => {
+                        const v = obj[metric] || 0;
+                        const safeMetric = metric.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        expression = expression.replace(new RegExp(`\\[${safeMetric}\\]`, 'g'), v);
+                    });
+                    
+                    // 2. Sécurité : on ne garde strictement que les chiffres et opérateurs de base
+                    const sanitized = expression.replace(/[^-+*/().0-9]/g, '');
+                    
+                    // 3. NOUVEAU : Évaluation sécurisée (zéro risque CSP)
+                    const rawResult = safeMathEval(sanitized);
+                    
+                    // 4. Arrondi selon la précision choisie
+                    const prec = parseInt(document.getElementById('input-precision')?.value || 2);
+                    val = Number(Math.round(rawResult + 'e' + prec) + 'e-' + prec);
+                    
+                    if (!isFinite(val)) val = 0; // Protection division par zéro
+                } catch (e) {
+                    console.warn("Erreur de formule :", e);
+                    val = 0;
+                }
+            }
         }
+        
+        // On assigne bien la variable "_computed", clé de voûte de l'application
         obj._computed = val;
         obj._inSelection = true;
-        
+
         if (appState.dataFilter && appState.dataFilter.active && appState.dataFilter.operator !== 'none') {
             const fop = appState.dataFilter.operator;
             const fv1 = appState.dataFilter.value1;
@@ -161,7 +244,6 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
             const valToTest = (filterMetric === '_computed') ? val : obj[filterMetric];
 
             let keep = true;
-
             if (valToTest === undefined || isNaN(valToTest)) {
                 keep = false;
             } else if (fop === 'gt') {
@@ -192,9 +274,9 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
             entries.slice(-10).forEach(e => e[1]._inSelection = true);
         }
     }
+    
     return dataMap;
 }
-
 export function buildDefaultStructure() {
     const savedFreePages = appState.pages.filter(p => p.type === 'free');
     // --- ETAPE 1 : SAUVEGARDER LES PAGES VERROUILLÉES ---
@@ -499,7 +581,7 @@ export function generateTablePages(page, features, dataMap, config, granularity)
             });
         } else {
             // Pour une CARTE : Colonne(s) simple(s) et colonne finale Résultat
-            if (page.richTable && !['simple', 'top10', 'flop10'].includes(config.calcMode)) {
+            if (page.richTable && !['simple', 'top10', 'flop10','custom'].includes(config.calcMode)) {
                 config.selectedMetrics.forEach(m => {
                     headersHTML += `<th style="text-align:right">${escapeHtml(m)}</th>`;
                 });
@@ -546,8 +628,9 @@ export function generateTablePages(page, features, dataMap, config, granularity)
                 });
             } else {
 
+                
                 // Mode Carte : affichage classique
-                if (page.richTable && !['simple', 'top10', 'flop10'].includes(config.calcMode)) {
+                if (page.richTable && !['simple', 'top10', 'flop10', 'custom'].includes(config.calcMode)) {
                     config.selectedMetrics.forEach(m => {
                         const metricVal = d[m] !== undefined ? formatValue(d[m], 'simple') : '-';
                         rowHtml += `<td style="text-align:right">${metricVal}</td>`;

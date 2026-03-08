@@ -6,6 +6,8 @@ export const appState = {
     availableMetrics: [],
     selectedMetrics: [],
     calcMode: 'simple',
+    customFormula: '',       // Stockera la chaîne de caractères (ex: "[A]+[B]")
+    formulaPrecision: 2,     // Nombre de décimales par défaut
     shareBase: 'global',
     cart: [],
     pages: [],

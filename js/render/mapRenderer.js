@@ -137,6 +137,16 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
             if (dataObj && dataObj._computed !== undefined) {
                 tooltipHtml += `<br><b>Résultat : ${formatValue(dataObj._computed, config.calcMode)}</b><br><hr style="margin:5px 0">`;
                 config.selectedMetrics.forEach((m, idx) => {
+					if (config.calcMode !== 'custom') {
+                config.selectedMetrics.forEach((m, idx) => {
+                    let rowLabel = m;
+                    if (config.calcMode === 'growth') rowLabel = idx === 0 ? `Initiale (${m})` : `Arrivée (${m})`;
+                    if (config.calcMode === 'ratio') rowLabel = idx === 0 ? `Numérateur (${m})` : `Dénominateur (${m})`;
+                    if (['share', 'dev_abs', 'dev_pct'].includes(config.calcMode)) rowLabel = `Valeur brute (${m})`;
+                    tooltipHtml += `<br>${rowLabel} : ${formatValue(dataObj[m], 'simple')}`;
+					});
+					}
+					
                     let rowLabel = m;
                     if (config.calcMode === 'growth') rowLabel = idx === 0 ? `Initiale (${m})` : `Arrivée (${m})`;
                     if (config.calcMode === 'ratio') rowLabel = idx === 0 ? `Numérateur (${m})` : `Dénominateur (${m})`;
@@ -188,7 +198,7 @@ if (granularity === 'com') {
             const abbrName = getAbbreviatedName(rawName);
             
             let vals = [];
-            if (['simple', 'top10', 'flop10'].includes(config.calcMode)) {
+            if (['simple', 'top10', 'flop10','custom'].includes(config.calcMode)) {
                 vals.push(formatValue(dataObj._computed, config.calcMode));
             } else {
                 let prefix = "";
