@@ -363,7 +363,7 @@ const header = `<div style="position: absolute; top: 10mm; left: 15mm; right: 15
         mapPageEl.setAttribute('data-page-id', page.id);
 
         const uid = `map-${page.id}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-			mapPageEl.innerHTML = `
+            mapPageEl.innerHTML = `
             ${getStableHeaderHtml(config, brandHtml, page.customSubtitle, page.mainTitle)}
             
             <div class="report-layout">
@@ -414,7 +414,7 @@ const isMultiScale = page.chartConfig.scale.endsWith('_multi');
                 return ca.toString().localeCompare(cb.toString());
             });
 
-				filtered.forEach(f => {
+                filtered.forEach(f => {
                 const code = getCodeFromFeature(f, granularity);
                 const d = dataMap.get(code);
                 let name = code;
@@ -482,7 +482,7 @@ const isMultiScale = page.chartConfig.scale.endsWith('_multi');
             }
             
             // 3. Construction des axes selon le type de graphique
-			if (page.chartConfig.type === 'pie' || page.chartConfig.type === 'line' || page.chartConfig.type === 'radar') {
+            if (page.chartConfig.type === 'pie' || page.chartConfig.type === 'line' || page.chartConfig.type === 'radar') {
                 // Pour Camembert / Courbe / Radar : 1 seule série (l'entité), et N points/axes (les métriques)
                 const xLabels = page.chartConfig.metrics.map(m => m === '_computed' ? 'Résultat' : m);
                 safeX = escapeHtml(JSON.stringify(xLabels));
@@ -520,7 +520,7 @@ const isMultiScale = page.chartConfig.scale.endsWith('_multi');
         const chartHtml = `<${tag} x='${safeX}' y='${safeY}' name='${safeNames}' horizontal='${page.chartConfig.horizontal}' colors='${safeColors}' mean='${optMean}' trend='${optTrend}' moving='${optMoving}' outliers='${optOutliers}'></${tag}>`;
         
         chartPageEl.innerHTML = window.DOMPurify.sanitize(`
-		${getStableHeaderHtml(config, brandHtml, page.customSubtitle, page.mainTitle)}
+        ${getStableHeaderHtml(config, brandHtml, page.customSubtitle, page.mainTitle)}
             <div class="report-layout" style="display:block; padding:20px;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
                     <h3 style="color:#000091; margin: 0; font-size: 1.5rem;">
@@ -536,7 +536,7 @@ const isMultiScale = page.chartConfig.scale.endsWith('_multi');
         `, { 
             ADD_TAGS: ['bar-chart', 'pie-chart', 'line-chart', 'radar-chart'], 
             // NOUVEAU : On autorise les nouveaux attributs dans DOMPurify
-			ADD_ATTR: ['x', 'y', 'name', 'horizontal', 'colors', 'mean', 'trend', 'moving', 'outliers', 'contenteditable', 'data-page-id', 'data-target-id', 'title']
+            ADD_ATTR: ['x', 'y', 'name', 'horizontal', 'colors', 'mean', 'trend', 'moving', 'outliers', 'contenteditable', 'data-page-id', 'data-target-id', 'title']
         });
         
         container.appendChild(chartPageEl);
@@ -575,7 +575,7 @@ export function generateTablePages(page, features, dataMap, config, granularity)
         pageEl.setAttribute('data-page-id', page.id);
         const brandHtml = getBrandHtml(config);
         
-		let headersHTML = `<th style="width:80px">Code</th>`;
+        let headersHTML = `<th style="width:80px">Code</th>`;
         if (granularity === 'com') headersHTML += `<th>Commune</th><th>Département</th>`;
         else if (granularity === 'dep') headersHTML += `<th>Département</th><th>Région</th>`;
         else headersHTML += `<th>Région</th>`;
@@ -587,7 +587,7 @@ export function generateTablePages(page, features, dataMap, config, granularity)
                 const label = m === '_computed' ? `Résultat (${appState.calcMode})` : escapeHtml(m);
                 headersHTML += `<th style="text-align:right; color:#000091;">${label}</th>`;
             });
-		} else {
+        } else {
             // Pour une CARTE : Colonne(s) simple(s) et colonne finale Résultat
             // CORRECTIF : On retire 'custom' pour permettre l'affichage des variables dans les tableaux riches
             if (page.richTable && !['simple', 'top10', 'flop10'].includes(config.calcMode)) {
@@ -607,7 +607,7 @@ export function generateTablePages(page, features, dataMap, config, granularity)
             let name = code;
             let parent = "-";
 
-			if (granularity === 'com') {
+            if (granularity === 'com') {
                 // NOUVEAU : nom_officiel et protection DROM (startsWith 97)
                 name = appState.refData.communes.get(code) || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
                 //const depCode = appState.refData.comToDep?.get(code) || (code.startsWith('97') ? code.substring(0, 3) : (code || "").substring(0, 2));

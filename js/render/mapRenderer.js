@@ -82,7 +82,7 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
     
     const interpolator = PALETTE_SCALES[config.palette] || PALETTE_SCALES["sequentialDescending"];
     const colorScale = window.d3.scaleSequential(interpolator).domain(domain);
-	const legendDiv = document.getElementById(legendId);
+    const legendDiv = document.getElementById(legendId);
     if(legendDiv) { 
         legendDiv.style.background = PALETTE_GRADIENTS[config.palette];
         
@@ -137,16 +137,16 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
             if (dataObj && dataObj._computed !== undefined) {
                 tooltipHtml += `<br><b>Résultat : ${formatValue(dataObj._computed, config.calcMode)}</b><br><hr style="margin:5px 0">`;
                 config.selectedMetrics.forEach((m, idx) => {
-					if (config.calcMode !== 'custom') {
+                    if (config.calcMode !== 'custom') {
                 config.selectedMetrics.forEach((m, idx) => {
                     let rowLabel = m;
                     if (config.calcMode === 'growth') rowLabel = idx === 0 ? `Initiale (${m})` : `Arrivée (${m})`;
                     if (config.calcMode === 'ratio') rowLabel = idx === 0 ? `Numérateur (${m})` : `Dénominateur (${m})`;
                     if (['share', 'dev_abs', 'dev_pct'].includes(config.calcMode)) rowLabel = `Valeur brute (${m})`;
                     tooltipHtml += `<br>${rowLabel} : ${formatValue(dataObj[m], 'simple')}`;
-					});
-					}
-					
+                    });
+                    }
+                    
                     let rowLabel = m;
                     if (config.calcMode === 'growth') rowLabel = idx === 0 ? `Initiale (${m})` : `Arrivée (${m})`;
                     if (config.calcMode === 'ratio') rowLabel = idx === 0 ? `Numérateur (${m})` : `Dénominateur (${m})`;
@@ -162,7 +162,7 @@ export function drawD3Map(pageData, config, dataMap, mapId, legendId, subtotalId
 if (granularity === 'com') {
         let depFeatures = getGeoFeatures(appState.geoData.dep, 'a_dep2021').features;
         
-		if (pageData.focus && pageData.focus.type === 'region') {
+        if (pageData.focus && pageData.focus.type === 'region') {
             depFeatures = depFeatures.filter(f => (f.properties.reg || f.properties.code_insee_de_la_region) === pageData.focus.code);
         }
         else if (pageData.focus && pageData.focus.type === 'department') {

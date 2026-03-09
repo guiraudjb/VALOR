@@ -236,7 +236,7 @@ export function setupUIListeners() {
     const btnAddSlide = document.getElementById('btn-add-slide');
     if (btnAddSlide) btnAddSlide.onclick = () => { if (window.editPage) window.editPage(); };
 
-	const btnAddMap = document.getElementById('btn-add-map-slide');
+    const btnAddMap = document.getElementById('btn-add-map-slide');
     if (btnAddMap) {
         btnAddMap.onclick = () => {
             const modal = document.getElementById('modal-add-map');
