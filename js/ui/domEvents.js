@@ -23,6 +23,23 @@ export function setupUIListeners() {
             markAsDirty(); // Fait apparaître le bouton Actualiser
         });
     }
+    
+    const btnFormulaHelp = document.getElementById('btn-formula-help');
+    if (btnFormulaHelp) {
+        btnFormulaHelp.addEventListener('click', () => {
+            alert(
+                "💡 AIDE - CALCUL PERSONNALISÉ\n\n" +
+                "1. Tapez le caractère  [  pour ouvrir la liste des variables disponibles.\n" +
+                "2. Cliquez sur une variable pour l'insérer (ex: [Population]).\n" +
+                "3. Utilisez les opérateurs classiques :  +   -   * /\n" +
+                "4. Utilisez les parenthèses  ( )  pour gérer les priorités mathématiques.\n\n" +
+                "Exemple valide :\n" +
+                "([Population] / [Surface]) * 100"
+            );
+        });
+    }
+    
+    
     window.addEventListener('valor:refreshReport', () => {
         generateReport();
     });
