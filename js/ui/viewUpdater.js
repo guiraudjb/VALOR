@@ -100,17 +100,18 @@ export function updateMetricControls() {
     const wrapperFilter = document.getElementById('wrapper-data-filter');
     const calcMode = document.getElementById('select-calc-mode').value;
     const formulaWrapper = document.getElementById('wrapper-custom-formula');
+    
+    // Ancien ID de conteneur, conservé par sécurité pour la rétrocompatibilité
     const metricsContainer = document.getElementById('metrics-checkboxes-container');
 
+    // 1. GESTION DE L'AFFICHAGE DE L'ÉDITEUR DE FORMULE
     if (calcMode === 'custom') {
-        formulaWrapper.style.display = 'block';
+        if (formulaWrapper) formulaWrapper.style.display = 'block';
         if (metricsContainer) metricsContainer.style.display = 'none';
     } else {
-        formulaWrapper.style.display = 'none';
+        if (formulaWrapper) formulaWrapper.style.display = 'none';
         if (metricsContainer) metricsContainer.style.display = 'flex';
     }
-
-
 
     if (!wrapperSelect || !checkboxesContainer) return;
 
@@ -119,6 +120,7 @@ export function updateMetricControls() {
         checkboxesContainer.innerHTML = '';
         const mode = appState.calcMode;
 
+        // 2. GESTION DE LA BASE DE RÉFÉRENCE (Parts et Écarts)
         if (wrapperShareBase) {
             if (['share', 'dev_abs', 'dev_pct', 'top10', 'flop10'].includes(mode)) {
                 wrapperShareBase.style.display = 'block';
@@ -128,53 +130,120 @@ export function updateMetricControls() {
             }
         }
 
-        if (['ratio', 'growth'].includes(mode)) {
-            hint.innerHTML = mode === 'growth' ? `<span class="fr-icon-info-line" style="color:#000091;"></span> Sélectionnez l'année de départ et d'arrivée.` : `<span class="fr-icon-info-line" style="color:#000091;"></span> Sélectionnez le numérateur et le dénominateur.`;
+        // 3. NOUVEAU : GESTION DU MODE CUSTOM (Badges)
+        if (mode === 'custom') {
+            if (hint) {
+                hint.innerHTML = `<span class="fr-icon-info-line" style="color:#000091;"></span> Les variables détectées dans votre formule s'affichent ci-dessous.`;
+            }
+            
+            if (appState.selectedMetrics.length === 0) {
+                checkboxesContainer.innerHTML = '<p class="fr-text--sm fr-mb-0" style="color:#666; font-style:italic;">Tapez "[" dans l\'éditeur pour ajouter une donnée à la formule.</p>';
+            } else {
+                appState.selectedMetrics.forEach(metric => {
+                    const badge = document.createElement('span');
+                    badge.className = 'fr-badge fr-badge--info fr-mr-1v fr-mb-1v';
+                    badge.innerText = metric;
+                    checkboxesContainer.appendChild(badge);
+                });
+            }
+        } 
+        // 4. GESTION DES RATIOS ET ÉVOLUTIONS (2 Selects)
+        else if (['ratio', 'growth'].includes(mode)) {
+            if (hint) {
+                hint.innerHTML = mode === 'growth' 
+                    ? `<span class="fr-icon-info-line" style="color:#000091;"></span> Sélectionnez l'année de départ et d'arrivée.` 
+                    : `<span class="fr-icon-info-line" style="color:#000091;"></span> Sélectionnez le numérateur et le dénominateur.`;
+            }
 
-            if (appState.selectedMetrics.length < 2) appState.selectedMetrics = [appState.availableMetrics[0], appState.availableMetrics[1] || appState.availableMetrics[0]];
+            if (appState.selectedMetrics.length < 2) {
+                appState.selectedMetrics = [
+                    appState.availableMetrics[0], 
+                    appState.availableMetrics[1] || appState.availableMetrics[0]
+                ];
+            }
 
             const labelA = mode === 'growth' ? "Valeur initiale (Départ)" : "Numérateur (A)";
             const labelB = mode === 'growth' ? "Valeur d'arrivée (Fin)" : "Dénominateur (B)";
-
-            const optionsA = appState.availableMetrics.map(m => `<option value="${escapeHtml(m)}" ${appState.selectedMetrics[0] === m ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('');
-            const optionsB = appState.availableMetrics.map(m => `<option value="${escapeHtml(m)}" ${appState.selectedMetrics[1] === m ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('');
-
+            
+            const optionsA = appState.availableMetrics.map(m => 
+                `<option value="${escapeHtml(m)}" ${appState.selectedMetrics[0] === m ? 'selected' : ''}>${escapeHtml(m)}</option>`
+            ).join('');
+            
+            const optionsB = appState.availableMetrics.map(m => 
+                `<option value="${escapeHtml(m)}" ${appState.selectedMetrics[1] === m ? 'selected' : ''}>${escapeHtml(m)}</option>`
+            ).join('');
+            
             checkboxesContainer.innerHTML = `
-                <div class="fr-select-group fr-mb-1v"><label class="fr-label fr-text--sm" style="font-weight:bold">${labelA}</label><select class="fr-select" id="select-metric-a">${optionsA}</select></div>
-                <div class="fr-select-group"><label class="fr-label fr-text--sm" style="font-weight:bold">${labelB}</label><select class="fr-select" id="select-metric-b">${optionsB}</select></div>
+                <div class="fr-select-group fr-mb-1v">
+                    <label class="fr-label fr-text--sm" style="font-weight:bold">${labelA}</label>
+                    <select class="fr-select" id="select-metric-a">${optionsA}</select>
+                </div>
+                <div class="fr-select-group">
+                    <label class="fr-label fr-text--sm" style="font-weight:bold">${labelB}</label>
+                    <select class="fr-select" id="select-metric-b">${optionsB}</select>
+                </div>
             `;
-
+            
             const updateAB = () => { 
-                appState.selectedMetrics = [document.getElementById('select-metric-a').value, document.getElementById('select-metric-b').value]; 
-                markAsDirty(); // <-- MODIFICATION ICI
+                appState.selectedMetrics = [
+                    document.getElementById('select-metric-a').value, 
+                    document.getElementById('select-metric-b').value
+                ];
+                markAsDirty();
             };
+            
             document.getElementById('select-metric-a').addEventListener('change', updateAB);
             document.getElementById('select-metric-b').addEventListener('change', updateAB);
 
-        } else {
+        } 
+        // 5. GESTION CLASSIQUE (Simple, Somme, Moyenne, Palmarès)
+        else {
             const isMulti = ['sum', 'avg'].includes(mode);
             const inputType = isMulti ? 'checkbox' : 'radio';
-            hint.innerHTML = isMulti ? `Cochez les données à inclure.` : `Sélectionnez la donnée source.`;
-
+            
+            if (hint) {
+                hint.innerHTML = isMulti 
+                    ? `Cochez les données à inclure.` 
+                    : `Sélectionnez la donnée source.`;
+            }
+            
             appState.availableMetrics.forEach((metric, index) => {
-                const div = document.createElement('div'); div.className = `fr-${inputType}-group fr-${inputType}-group--sm`;
-                const input = document.createElement('input'); input.type = inputType; input.id = `input-metric-${index}`; input.value = metric; input.name = 'metric-selection';
+                const div = document.createElement('div'); 
+                div.className = `fr-${inputType}-group fr-${inputType}-group--sm`;
+                
+                const input = document.createElement('input'); 
+                input.type = inputType; 
+                input.id = `input-metric-${index}`; 
+                input.value = metric; 
+                input.name = 'metric-selection';
 
-                if (appState.selectedMetrics.includes(metric)) input.checked = true;
+                if (appState.selectedMetrics.includes(metric)) {
+                    input.checked = true;
+                }
                 
                 input.addEventListener('change', () => {
                     appState.selectedMetrics = Array.from(document.querySelectorAll('input[name="metric-selection"]:checked')).map(cb => cb.value);
+                    
+                    // Sécurité : forcer une sélection par défaut si tout est décoché en mode radio (valeur simple)
                     if (appState.selectedMetrics.length === 0 && !isMulti) { 
                         appState.selectedMetrics = [metric]; 
                         input.checked = true; 
                     }
-                    markAsDirty(); // <-- MODIFICATION ICI
+                    
+                    markAsDirty();
                 });
 
-                const label = document.createElement('label'); label.className = 'fr-label'; label.htmlFor = `input-metric-${index}`; label.innerText = metric;
-                div.appendChild(input); div.appendChild(label); checkboxesContainer.appendChild(div);
+                const label = document.createElement('label');
+                label.className = 'fr-label'; 
+                label.htmlFor = `input-metric-${index}`; 
+                label.innerText = metric;
+                
+                div.appendChild(input); 
+                div.appendChild(label); 
+                checkboxesContainer.appendChild(div);
             });
         }
+        
         wrapperSelect.style.display = 'block';
         if (wrapperFilter) wrapperFilter.style.display = 'block';
     } else {
@@ -182,7 +251,6 @@ export function updateMetricControls() {
         if (wrapperFilter) wrapperFilter.style.display = 'none';
     }
 }
-
 // --- GESTION DE LA STRUCTURE ET DU MENU (Global et Individuel) ---
 
 window.togglePageMap = (index) => {

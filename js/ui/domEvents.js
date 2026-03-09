@@ -457,11 +457,12 @@ export function highlightAndScrollToNavItem(pageId) {
 function initFormulaAutocomplete() {
     const input = document.getElementById('input-custom-formula');
     const list = document.getElementById('formula-autocomplete');
-
+    
     input.addEventListener('input', () => {
         const val = input.value;
         const lastBracket = val.lastIndexOf('[');
         
+        // 1. Gestion de l'autocomplétion
         if (lastBracket !== -1 && val.indexOf(']', lastBracket) === -1) {
             const search = val.substring(lastBracket + 1).toLowerCase();
             const matches = appState.availableMetrics.filter(m => m.toLowerCase().includes(search));
@@ -474,13 +475,31 @@ function initFormulaAutocomplete() {
                     input.value = val.substring(0, lastBracket) + '[' + div.textContent + ']';
                     list.style.display = 'none';
                     appState.customFormula = input.value;
-                    markAsDirty(); // Force l'apparition du bouton Actualiser
+                    triggerCustomFormulaUpdate(); // Nouvelle fonction d'aide
                 };
             });
         } else {
             list.style.display = 'none';
         }
+        
         appState.customFormula = input.value;
-        markAsDirty();
+        triggerCustomFormulaUpdate(); // Nouvelle fonction d'aide
     });
+}
+
+// Fonction d'aide pour mettre à jour l'interface dynamiquement
+function triggerCustomFormulaUpdate() {
+    // Extraction des variables entre crochets
+    const matches = appState.customFormula.match(/\[(.*?)\]/g) || [];
+    const detectedMetrics = [...new Set(matches.map(m => m.slice(1, -1)))]; // Nettoyage et dédoublonnage
+    
+    // Mise à jour de l'état global (seulement si la métrique existe vraiment)
+    appState.selectedMetrics = detectedMetrics.filter(m => appState.availableMetrics.includes(m));
+    
+    // Appel du rafraîchissement visuel du panneau droit
+    import('./viewUpdater.js').then(module => {
+        module.updateMetricControls();
+    });
+    
+    markAsDirty();
 }

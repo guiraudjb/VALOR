@@ -202,34 +202,42 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
             else if (mode === 'growth') val = (m1 && m2 && obj[m1]) ? ((obj[m2] - obj[m1]) / obj[m1]) * 100 : 0;
             
             // --- BLOC CUSTOM INTÉGRÉ ICI ---
-else if (mode === 'custom' && appState.customFormula) {
+// --- BLOC CUSTOM SÉCURISÉ ---
+            else if (mode === 'custom' && appState.customFormula) {
                 val = 0;
                 try {
                     let expression = appState.customFormula;
                     
-                    // 1. Remplacement des noms de colonnes par les valeurs numériques
+                    // 1. Remplacement de la virgule décimale française par un point
+                    expression = expression.replace(/,/g, '.');
+
+                    // 2. Remplacement des noms de colonnes par les valeurs numériques
                     appState.availableMetrics.forEach(metric => {
                         const v = obj[metric] || 0;
                         const safeMetric = metric.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        expression = expression.replace(new RegExp(`\\[${safeMetric}\\]`, 'g'), v);
+                        // AJOUT : On encadre la valeur par des parenthèses pour protéger les nombres négatifs (ex: "-5")
+                        expression = expression.replace(new RegExp(`\\[${safeMetric}\\]`, 'g'), `(${v})`);
                     });
-                    
-                    // 2. Sécurité : on ne garde strictement que les chiffres et opérateurs de base
+
+                    // 3. Sécurité : on ne garde strictement que les chiffres et opérateurs de base
                     const sanitized = expression.replace(/[^-+*/().0-9]/g, '');
                     
-                    // 3. NOUVEAU : Évaluation sécurisée (zéro risque CSP)
+                    // 4. Évaluation sécurisée via le parseur maison
                     const rawResult = safeMathEval(sanitized);
                     
-                    // 4. Arrondi selon la précision choisie
+                    // 5. Arrondi selon la précision choisie
                     const prec = parseInt(document.getElementById('input-precision')?.value || 2);
                     val = Number(Math.round(rawResult + 'e' + prec) + 'e-' + prec);
                     
-                    if (!isFinite(val)) val = 0; // Protection division par zéro
+                    // Protection division par zéro ou infinité
+                    if (!isFinite(val)) val = 0;
+                    
                 } catch (e) {
-                    console.warn("Erreur de formule :", e);
+                    console.warn("Erreur de syntaxe dans la formule personnalisée :", e);
                     val = 0;
                 }
             }
+        
         }
         
         // On assigne bien la variable "_computed", clé de voûte de l'application
@@ -579,11 +587,14 @@ export function generateTablePages(page, features, dataMap, config, granularity)
                 const label = m === '_computed' ? `Résultat (${appState.calcMode})` : escapeHtml(m);
                 headersHTML += `<th style="text-align:right; color:#000091;">${label}</th>`;
             });
-        } else {
+		} else {
             // Pour une CARTE : Colonne(s) simple(s) et colonne finale Résultat
-            if (page.richTable && !['simple', 'top10', 'flop10','custom'].includes(config.calcMode)) {
+            // CORRECTIF : On retire 'custom' pour permettre l'affichage des variables dans les tableaux riches
+            if (page.richTable && !['simple', 'top10', 'flop10'].includes(config.calcMode)) {
                 config.selectedMetrics.forEach(m => {
-                    headersHTML += `<th style="text-align:right">${escapeHtml(m)}</th>`;
+                    // Ajout d'un préfixe visuel si on est en mode formule personnalisée
+                    const headerLabel = config.calcMode === 'custom' ? `Var: ${m}` : m;
+                    headersHTML += `<th style="text-align:right">${escapeHtml(headerLabel)}</th>`;
                 });
             }
             headersHTML += `<th style="text-align:right; color:#000091;">Résultat</th>`;
@@ -630,15 +641,18 @@ export function generateTablePages(page, features, dataMap, config, granularity)
 
                 
                 // Mode Carte : affichage classique
-                if (page.richTable && !['simple', 'top10', 'flop10', 'custom'].includes(config.calcMode)) {
+// Mode Carte : affichage classique
+                // CORRECTIF : On retire 'custom' ici aussi pour peupler les colonnes
+                if (page.richTable && !['simple', 'top10', 'flop10'].includes(config.calcMode)) {
                     config.selectedMetrics.forEach(m => {
                         const metricVal = d[m] !== undefined ? formatValue(d[m], 'simple') : '-';
                         rowHtml += `<td style="text-align:right">${metricVal}</td>`;
                     });
                 }
             
-                
                 rowHtml += `<td style="text-align:right; font-weight:bold; color:#000091;">${formatValue(d._computed, config.calcMode)}</td>`;
+            
+                
             }
             
             rowHtml += `</tr>`;
