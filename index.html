@@ -1,821 +1,1796 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr" data-fr-scheme="light">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+    />
     <title>V.A.L.O.R.</title>
-    <link rel="icon" type="image/svg+xml" href="libs/dsfr-v1.14.3/dist/favicon/favicon.svg">
-    <link rel="stylesheet" href="libs/dsfr-v1.14.3/dist/dsfr/dsfr.min.css">
-    <link rel="stylesheet" href="libs/dsfr-v1.14.3/dist/utility/utility.min.css">
-    <link rel="stylesheet" href="libs/dsfr-v1.14.3/dist/utility/icons/icons.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="libs/dsfr-v1.14.3/dist/favicon/favicon.svg"
+    />
+    <link rel="stylesheet" href="libs/dsfr-v1.14.3/dist/dsfr/dsfr.min.css" />
+    <link
+      rel="stylesheet"
+      href="libs/dsfr-v1.14.3/dist/utility/utility.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="libs/dsfr-v1.14.3/dist/utility/icons/icons.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
     <style>
-        /* Styles pour la barre horizontale personnalisée */
-        .config-main-wrapper { background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e5e5e5; margin-bottom: 2rem; }
-        .config-nav-bar { display: flex; align-items: center; border-bottom: 1px solid #e5e5e5; background: #f6f6f6; border-radius: 8px 8px 0 0; flex-wrap: wrap; }
-        .nav-tabs-container { display: flex; flex: 1; overflow-x: auto; }
-        .nav-tab { background: transparent; border: none; padding: 1rem 1.2rem; font-weight: bold; color: #666; cursor: pointer; border-bottom: 3px solid transparent; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s; }
-        .nav-tab:hover:not(.active) { background: #eeeeee; }
-        .nav-tab.active { color: #000091; border-bottom-color: #000091; background: #ffffff; }
-        .nav-actions { display: flex; gap: 10px; padding: 0.5rem 1rem; align-items: center; }
-        
-        /* Styles pour les sections */
-        .config-panel-section { display: none; padding: 2rem; animation: fadeIn 0.3s ease-in-out; }
-        .config-panel-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+      /* Styles pour la barre horizontale personnalisée */
+      .config-main-wrapper {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e5e5;
+        margin-bottom: 2rem;
+      }
+      .config-nav-bar {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #e5e5e5;
+        background: #f6f6f6;
+        border-radius: 8px 8px 0 0;
+        flex-wrap: wrap;
+      }
+      .nav-tabs-container {
+        display: flex;
+        flex: 1;
+        overflow-x: auto;
+      }
+      .nav-tab {
+        background: transparent;
+        border: none;
+        padding: 1rem 1.2rem;
+        font-weight: bold;
+        color: #666;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        transition: all 0.2s;
+      }
+      .nav-tab:hover:not(.active) {
+        background: #eeeeee;
+      }
+      .nav-tab.active {
+        color: #000091;
+        border-bottom-color: #000091;
+        background: #ffffff;
+      }
+      .nav-actions {
+        display: flex;
+        gap: 10px;
+        padding: 0.5rem 1rem;
+        align-items: center;
+      }
+
+      /* Styles pour les sections */
+      .config-panel-section {
+        display: none;
+        padding: 2rem;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      .config-panel-section.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div id="config-panel" class="fr-background-alt--grey fr-pb-4w">
-        <div class="fr-container-fluid">
-            <div class="top-bar fr-pb-2w fr-pt-2w fr-mb-3w" style="border-bottom: 1px solid #ddd;">
-                <div class="header-left-group">
-                    <div class="fr-header__brand fr-enlarge-link">
-                        <div class="fr-header__brand-top">
-                            <div class="fr-header__logo">
-                                <p class="fr-logo" id="main-brand-text">Direction Générale<br>des jolies cartes</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="brand-block">
-                        <span class="acronym fr-text-title--blue-france">V.A.L.O.R.</span>
-                        <span class="meaning">Visualisation Automatisée de Lectures et d'Observations Régionales</span>
-                    </div>
+      <div class="fr-container-fluid">
+        <div
+          class="top-bar fr-pb-2w fr-pt-2w fr-mb-3w"
+          style="border-bottom: 1px solid #ddd"
+        >
+          <div class="header-left-group">
+            <div class="fr-header__brand fr-enlarge-link">
+              <div class="fr-header__brand-top">
+                <div class="fr-header__logo">
+                  <p class="fr-logo" id="main-brand-text">
+                    Direction Générale<br />des jolies cartes
+                  </p>
                 </div>
-                <div class="training-links" style="padding-left: 2rem; border-left: 1px solid #ddd; display: flex; flex-direction: column; justify-content: center; gap: 0.25rem;">
-                    <a href="./documentation/Guide de Formation VALOR_v1.pdf" target="_blank" rel="noopener noreferrer" class="fr-link fr-link--sm fr-icon-file-pdf-line fr-link--icon-left fr-mb-0">
-                        Guide de formation utilisateur
-                    </a>
-                    <a href="./data/donnees_valor_formation_2026.csv" download class="fr-link fr-link--sm fr-icon-download-line fr-link--icon-left fr-mb-0">
-                        Fichier CSV de formation
-                    </a>
+              </div>
+            </div>
+            <div class="brand-block">
+              <span class="acronym fr-text-title--blue-france">V.A.L.O.R.</span>
+              <span class="meaning"
+                >Visualisation Automatisée de Lectures et d'Observations
+                Régionales</span
+              >
+            </div>
+          </div>
+          <div
+            class="training-links"
+            style="
+              padding-left: 2rem;
+              border-left: 1px solid #ddd;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              gap: 0.25rem;
+            "
+          >
+            <a
+              href="./documentation/Guide de Formation VALOR_v1.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="fr-link fr-link--sm fr-icon-file-pdf-line fr-link--icon-left fr-mb-0"
+            >
+              Guide de formation utilisateur
+            </a>
+            <a
+              href="./data/donnees_valor_formation_2026.csv"
+              download
+              class="fr-link fr-link--sm fr-icon-download-line fr-link--icon-left fr-mb-0"
+            >
+              Fichier CSV de formation
+            </a>
+          </div>
+
+          <div class="about-wrapper">
+            <button class="fr-btn fr-btn--secondary btn-about">
+              <span class="fr-icon-information-line fr-mr-1v"></span> À propos
+            </button>
+            <div class="tooltip-content">
+              <h6>Confidentialité & Sécurité</h6>
+              <p class="fr-text--xs">
+                V.A.L.O.R. traite vos données exclusivement en
+                <strong>local</strong>. Aucun fichier n'est transmis à un
+                serveur tiers ou stocké en dehors de votre navigateur.
+              </p>
+              <hr class="fr-pb-1v" />
+              <h6>Format des données à importer</h6>
+              <p class="fr-text--xs">
+                Le fichier doit être au format <strong>CSV</strong>.
+              </p>
+              <ul class="fr-text--xs">
+                <li><strong>Colonne 1 :</strong> Code Géographique (INSEE)</li>
+                <li>
+                  <strong>Colonnes suivantes :</strong> Valeurs numériques
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-main-wrapper">
+          <div class="config-nav-bar">
+            <div class="nav-tabs-container">
+              <button
+                class="nav-tab active"
+                onclick="switchConfigTab(event, 'panel-source')"
+              >
+                📂 1. Source & Territoire
+              </button>
+              <button
+                class="nav-tab"
+                onclick="switchConfigTab(event, 'panel-calculs')"
+              >
+                📊 2. Indicateurs & Calculs
+              </button>
+              <button
+                class="nav-tab"
+                onclick="switchConfigTab(event, 'panel-filtres')"
+              >
+                🎛️ 3. Filtres & Ciblages
+              </button>
+              <button
+                class="nav-tab"
+                onclick="switchConfigTab(event, 'panel-habillage')"
+              >
+                🎨 4. Habillage & Esthétique
+              </button>
+              <button
+                class="nav-tab"
+                onclick="switchConfigTab(event, 'panel-diapos')"
+              >
+                ➕ 5. Vues additionnelles
+              </button>
+              <button
+                class="nav-tab"
+                onclick="switchConfigTab(event, 'panel-systeme')"
+              >
+                ⚙️ 6. Système & Sécurité
+              </button>
+            </div>
+            <div class="nav-actions">
+              <div
+                style="
+                  display: flex;
+                  justify-content: center;
+                  gap: 10px;
+                  align-items: center;
+                  padding-bottom: 5px;
+                "
+              >
+                <button
+                  class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-arrow-up-s-line"
+                  onclick="window.navigateToSlide('first')"
+                  title="Aller à la première diapo"
+                  style="padding: 2px 6px"
+                ></button>
+                <button
+                  class="fr-btn fr-btn--secondary fr-btn--sm"
+                  onclick="window.promptGoToSlide()"
+                  title="Aller à la diapo numéro..."
+                  style="padding: 2px 8px; font-size: 0.75rem"
+                >
+                  N°...
+                </button>
+                <button
+                  class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-arrow-down-s-line"
+                  onclick="window.navigateToSlide('last')"
+                  title="Aller à la dernière diapo"
+                  style="padding: 2px 6px"
+                ></button>
+              </div>
+              <button
+                class="fr-btn fr-btn--sm fr-icon-shopping-cart-2-fill fr-btn--icon-left fr-ml-2w"
+                id="btn-open-cart"
+              >
+                Panier (<span id="cart-count">0</span>)
+              </button>
+
+              <button
+                class="fr-btn fr-btn--tertiary fr-btn--sm"
+                id="btn-reset-structure"
+              >
+                Réinitialiser
+              </button>
+              <button
+                class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-printer-line fr-btn--icon-left"
+                id="btn-export"
+                title="Aperçu PDF"
+              >
+                Aperçu PDF
+              </button>
+
+              <button
+                id="btn-actualiser"
+                class="fr-btn fr-btn--sm fr-icon-refresh-line fr-btn--icon-left"
+                style="display: none"
+              >
+                Actualiser le rapport
+              </button>
+            </div>
+          </div>
+
+          <div class="config-content">
+            <div id="panel-source" class="config-panel-section active">
+              <div class="fr-grid-row fr-grid-row--gutters">
+                <div class="fr-col-12 fr-col-lg-6">
+                  <label class="fr-label">Données (Format CSV)</label>
+                  <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-2v">
+                    <p class="fr-text--xs fr-mb-0">
+                      <strong>RGPD :</strong> Le traitement s'effectue
+                      localement. Assurez-vous du respect du
+                      <strong>secret statistique</strong>.
+                    </p>
+                  </div>
+                  <input
+                    class="fr-upload"
+                    type="file"
+                    id="csv-file"
+                    accept=".csv"
+                  />
                 </div>
-                    
-                <div class="about-wrapper">
-                    <button class="fr-btn fr-btn--secondary btn-about"><span class="fr-icon-information-line fr-mr-1v"></span> À propos</button>
-                    <div class="tooltip-content">
-                        <h6>Confidentialité & Sécurité</h6>
-                        <p class="fr-text--xs">
-                            V.A.L.O.R. traite vos données exclusivement en <strong>local</strong>. 
-                            Aucun fichier n'est transmis à un serveur tiers ou stocké en dehors de votre navigateur.
-                        </p>
-                        <hr class="fr-pb-1v">
-                        <h6>Format des données à importer</h6>
-                        <p class="fr-text--xs">Le fichier doit être au format <strong>CSV</strong>.</p>
-                        <ul class="fr-text--xs">
-                            <li><strong>Colonne 1 :</strong> Code Géographique (INSEE)</li>
-                            <li><strong>Colonnes suivantes :</strong> Valeurs numériques</li>
-                        </ul>
-                    </div>
+                <div class="fr-col-12 fr-col-lg-6">
+                  <label class="fr-label"
+                    >Mode de Rapport (Échelle géographique)</label
+                  >
+                  <select class="fr-select fr-mb-2v" id="select-report-mode">
+                    <option value="mode-nat-reg" selected>
+                      France Entière + Régions
+                    </option>
+                    <option value="mode-nat-del">
+                      France Entière + Délégations
+                    </option>
+                    <option value="mode-dep-com">Département + Communes</option>
+                    <option value="mode-epci">Projection par EPCI</option>
+                  </select>
+
+                  <div
+                    id="wrapper-manage-del"
+                    class="fr-mt-1v"
+                    style="display: none"
+                  >
+                    <button
+                      class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-settings-5-line fr-btn--icon-left"
+                      id="btn-open-del-modal"
+                      style="width: 100%"
+                    >
+                      Configurer les délégations
+                    </button>
+                  </div>
+
+                  <div
+                    id="wrapper-select-dept"
+                    class="fr-mt-1v"
+                    style="display: none"
+                  >
+                    <label class="fr-label">Choix Département</label>
+                    <select class="fr-select" id="select-dept-target"></select>
+                  </div>
+
+                  <div
+                    id="wrapper-epci-selectors"
+                    class="fr-mt-1v fr-p-2w fr-background-alt--grey"
+                    style="display: none; border-left: 2px solid #000091"
+                  >
+                    <label class="fr-label fr-text--sm">Région</label
+                    ><select
+                      class="fr-select fr-select--sm fr-mb-1v"
+                      id="select-epci-reg"
+                    >
+                      <option value="">-- Choisir --</option>
+                    </select>
+                    <label class="fr-label fr-text--sm">Département</label
+                    ><select
+                      class="fr-select fr-select--sm fr-mb-1v"
+                      id="select-epci-dep"
+                    >
+                      <option value="">-- Choisir --</option>
+                    </select>
+                    <label class="fr-label fr-text--sm">EPCI</label
+                    ><select
+                      class="fr-select fr-select--sm"
+                      id="select-epci-id"
+                    >
+                      <option value="">-- Choisir --</option>
+                    </select>
+                  </div>
                 </div>
+              </div>
             </div>
 
-            <div class="config-main-wrapper">
-                
-                <div class="config-nav-bar">
-                    <div class="nav-tabs-container">
-                        <button class="nav-tab active" onclick="switchConfigTab(event, 'panel-source')">📂 1. Source & Territoire</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-calculs')">📊 2. Indicateurs & Calculs</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-filtres')">🎛️ 3. Filtres & Ciblages</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-habillage')">🎨 4. Habillage & Esthétique</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-diapos')">➕ 5. Vues additionnelles</button>
-                        <button class="nav-tab" onclick="switchConfigTab(event, 'panel-systeme')">⚙️ 6. Système & Sécurité</button>
-                    </div>
-                    <div class="nav-actions">
-                        <div style="display: flex; justify-content: center; gap: 10px; align-items: center; padding-bottom: 5px;">
-                            <button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-arrow-up-s-line" onclick="window.navigateToSlide('first')" title="Aller à la première diapo" style="padding: 2px 6px;"></button>
-                            <button class="fr-btn fr-btn--secondary fr-btn--sm" onclick="window.promptGoToSlide()" title="Aller à la diapo numéro..." style="padding: 2px 8px; font-size: 0.75rem;">N°...</button>
-                            <button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-arrow-down-s-line" onclick="window.navigateToSlide('last')" title="Aller à la dernière diapo" style="padding: 2px 6px;"></button>
-                        </div>
-                        <button class="fr-btn fr-btn--sm fr-icon-shopping-cart-2-fill fr-btn--icon-left fr-ml-2w"
-                        id="btn-open-cart">Panier (<span id="cart-count">0</span>)</button>
-                        
-                        <button class="fr-btn fr-btn--tertiary fr-btn--sm"
-                        id="btn-reset-structure">Réinitialiser</button>
-                        <button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-printer-line fr-btn--icon-left" id="btn-export" title="Aperçu PDF">Aperçu PDF</button>
-                        
-                        <button id="btn-actualiser" class="fr-btn fr-btn--sm fr-icon-refresh-line fr-btn--icon-left" style="display: none;">
-                            Actualiser le rapport
+            <div id="panel-calculs" class="config-panel-section">
+              <div id="wrapper-metric-select" style="display: none">
+                <div class="fr-grid-row fr-grid-row--gutters">
+                  <div class="fr-col-12 fr-col-lg-4">
+                    <label
+                      class="fr-label fr-text-title--blue-france fr-text--bold"
+                      >Méthode d'Analyse</label
+                    >
+                    <select class="fr-select fr-mb-3v" id="select-calc-mode">
+                      <optgroup label="Valeurs & Cumuls">
+                        <option value="simple" selected>Valeur Simple</option>
+                        <option value="sum">Somme (Cumul)</option>
+                        <option value="avg">Moyenne</option>
+                      </optgroup>
+                      <optgroup label="Disparités & Poids">
+                        <option value="dev_abs">
+                          Écart à la Moyenne (Absolu)
+                        </option>
+                        <option value="dev_pct">Écart à la Moyenne (%)</option>
+                        <option value="share">Poids dans le Total (%)</option>
+                      </optgroup>
+                      <optgroup label="Classements">
+                        <option value="top10">Palmarès : Top 10</option>
+                        <option value="flop10">Palmarès : Flop 10</option>
+                      </optgroup>
+                      <optgroup label="Croisements (Cochez 2 valeurs)">
+                        <option value="ratio">Ratio (A / B)</option>
+                        <option value="growth">Taux d'évolution (A ➔ B)</option>
+                        <option value="custom">
+                          Calcul personnalisé (formule)
+                        </option>
+                      </optgroup>
+                    </select>
+                    <div
+                      id="wrapper-custom-formula"
+                      style="display: none"
+                      class="fr-input-group fr-mt-2w"
+                    >
+                      <div class="fr-grid-row fr-grid-row--middle fr-mb-1w">
+                        <label class="fr-label fr-text--bold fr-col"
+                          >Éditeur de formule</label
+                        >
+                        <button
+                          type="button"
+                          id="btn-formula-help"
+                          class="fr-btn fr-btn--sm fr-btn--secondary"
+                        >
+                          Aide
                         </button>
-                    </div>
-                </div>
+                      </div>
 
-                <div class="config-content">
-                    
-                    <div id="panel-source" class="config-panel-section active">
-                        <div class="fr-grid-row fr-grid-row--gutters">
-                            <div class="fr-col-12 fr-col-lg-6">
-                                <label class="fr-label">Données (Format CSV)</label>
-                                <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-2v">
-                                    <p class="fr-text--xs fr-mb-0">
-                                    <strong>RGPD :</strong> Le traitement s'effectue localement. Assurez-vous du respect du <strong>secret statistique</strong>.
-                                    </p>
-                                </div>
-                                <input class="fr-upload" type="file" id="csv-file" accept=".csv">
+                      <div style="position: relative">
+                        <input
+                          class="fr-input"
+                          type="text"
+                          id="input-custom-formula"
+                          placeholder="Tapez '[' pour les colonnes..."
+                        />
+                        <div
+                          id="formula-autocomplete"
+                          class="autocomplete-list"
+                          style="display: none"
+                        ></div>
+                      </div>
+
+                      <div
+                        class="fr-input-group fr-mt-2w"
+                        style="max-width: 150px"
+                      >
+                        <label class="fr-label fr-text--xs">Décimales</label>
+                        <input
+                          class="fr-input fr-input--sm"
+                          type="number"
+                          id="input-precision"
+                          value="2"
+                          min="0"
+                          max="5"
+                        />
+                      </div>
+                    </div>
+
+                    <dialog
+                      id="formula-help-modal"
+                      class="fr-modal"
+                      role="dialog"
+                      aria-labelledby="formula-help-modal-title"
+                    >
+                      <div
+                        class="fr-container fr-container--fluid fr-container-md"
+                      >
+                        <div class="fr-grid-row fr-grid-row--center">
+                          <div class="fr-col-12 fr-col-md-8">
+                            <div class="fr-modal__body">
+                              <div class="fr-modal__header">
+                                <button
+                                  class="fr-btn--close fr-btn"
+                                  aria-controls="formula-help-modal"
+                                >
+                                  Fermer
+                                </button>
+                              </div>
+                              <div class="fr-modal__content">
+                                <h1
+                                  id="formula-help-modal-title"
+                                  class="fr-modal__title"
+                                >
+                                  Aide au calcul personnalisé
+                                </h1>
+                                <p>
+                                  Utilisez les crochets
+                                  <strong>[Nom de colonne]</strong> pour vos
+                                  variables.
+                                </p>
+                                <ul>
+                                  <li>
+                                    <code
+                                      >([Indicateur A] + [Indicateur B]) /
+                                      2</code
+                                    >
+                                  </li>
+                                  <li>
+                                    Priorité des opérations : <code>( )</code>,
+                                    <code>*</code>, <code>/</code>,
+                                    <code>+</code>, <code>-</code>
+                                  </li>
+                                </ul>
+                              </div>
                             </div>
-                            <div class="fr-col-12 fr-col-lg-6">
-                                <label class="fr-label">Mode de Rapport (Échelle géographique)</label>
-                                <select class="fr-select fr-mb-2v" id="select-report-mode">
-                                    <option value="mode-nat-reg" selected>France Entière + Régions</option>
-                                    <option value="mode-nat-del">France Entière + Délégations</option>
-                                    <option value="mode-dep-com">Département + Communes</option>
-                                    <option value="mode-epci">Projection par EPCI</option>
-                                </select>
-                                
-                                <div id="wrapper-manage-del" class="fr-mt-1v" style="display:none;">
-                                    <button class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-settings-5-line fr-btn--icon-left" id="btn-open-del-modal" style="width:100%;">Configurer les délégations</button>
-                                </div>
-                                
-                                <div id="wrapper-select-dept" class="fr-mt-1v" style="display:none;">
-                                    <label class="fr-label">Choix Département</label>
-                                    <select class="fr-select" id="select-dept-target"></select>
-                                </div>
-                                
-                                <div id="wrapper-epci-selectors" class="fr-mt-1v fr-p-2w fr-background-alt--grey" style="display:none; border-left:2px solid #000091;">
-                                    <label class="fr-label fr-text--sm">Région</label><select class="fr-select fr-select--sm fr-mb-1v" id="select-epci-reg"><option value="">-- Choisir --</option></select>
-                                    <label class="fr-label fr-text--sm">Département</label><select class="fr-select fr-select--sm fr-mb-1v" id="select-epci-dep"><option value="">-- Choisir --</option></select>
-                                    <label class="fr-label fr-text--sm">EPCI</label><select class="fr-select fr-select--sm" id="select-epci-id"><option value="">-- Choisir --</option></select>
-                                </div>
-                            </div>
+                          </div>
                         </div>
-                    </div>
+                      </div>
+                    </dialog>
 
-                    <div id="panel-calculs" class="config-panel-section">
-                        <div id="wrapper-metric-select" style="display:none;">
-                            <div class="fr-grid-row fr-grid-row--gutters">
-                                <div class="fr-col-12 fr-col-lg-4">
-                                    <label class="fr-label fr-text-title--blue-france fr-text--bold">Méthode d'Analyse</label>
-                                    <select class="fr-select fr-mb-3v" id="select-calc-mode">
-                                        <optgroup label="Valeurs & Cumuls">
-                                            <option value="simple" selected>Valeur Simple</option>
-                                            <option value="sum">Somme (Cumul)</option>
-                                            <option value="avg">Moyenne</option>
-                                        </optgroup>
-                                        <optgroup label="Disparités & Poids">
-                                            <option value="dev_abs">Écart à la Moyenne (Absolu)</option>
-                                            <option value="dev_pct">Écart à la Moyenne (%)</option>
-                                            <option value="share">Poids dans le Total (%)</option>
-                                        </optgroup>
-                                        <optgroup label="Classements">
-                                            <option value="top10">Palmarès : Top 10</option>
-                                            <option value="flop10">Palmarès : Flop 10</option>
-                                        </optgroup>
-                                        <optgroup label="Croisements (Cochez 2 valeurs)">
-                                            <option value="ratio">Ratio (A / B)</option>
-                                            <option value="growth">Taux d'évolution (A ➔ B)</option>
-                                            <option value="custom">Calcul personnalisé (formule)</option>
-                                        </optgroup>
-                                    </select>
-                                    <div id="wrapper-custom-formula" style="display:none;" class="fr-input-group fr-mt-2w">
-    <div class="fr-grid-row fr-grid-row--middle fr-mb-1w">
-        <label class="fr-label fr-text--bold fr-col">Éditeur de formule</label>
-<button type="button" id="btn-formula-help" class="fr-btn fr-btn--sm fr-btn--secondary">Aide</button>
-    </div>
-    
-    <div style="position: relative;">
-        <input class="fr-input" type="text" id="input-custom-formula" placeholder="Tapez '[' pour les colonnes...">
-        <div id="formula-autocomplete" class="autocomplete-list" style="display:none;"></div>
-    </div>
-
-    <div class="fr-input-group fr-mt-2w" style="max-width: 150px;">
-        <label class="fr-label fr-text--xs">Décimales</label>
-        <input class="fr-input fr-input--sm" type="number" id="input-precision" value="2" min="0" max="5">
-    </div>
-</div>
-
-<dialog id="formula-help-modal" class="fr-modal" role="dialog" aria-labelledby="formula-help-modal-title">
-    <div class="fr-container fr-container--fluid fr-container-md">
-        <div class="fr-grid-row fr-grid-row--center">
-            <div class="fr-col-12 fr-col-md-8">
-                <div class="fr-modal__body">
-                    <div class="fr-modal__header">
-                        <button class="fr-btn--close fr-btn" aria-controls="formula-help-modal">Fermer</button>
+                    <div
+                      class="fr-checkbox-group fr-mt-2w fr-p-2w fr-background-alt--grey"
+                      style="border-radius: 4px"
+                    >
+                      <input type="checkbox" id="check-show-subtotal" checked />
+                      <label class="fr-label" for="check-show-subtotal"
+                        >Afficher le sous-total global de la carte</label
+                      >
                     </div>
-                    <div class="fr-modal__content">
-                        <h1 id="formula-help-modal-title" class="fr-modal__title">
-                            Aide au calcul personnalisé
-                        </h1>
-                        <p>Utilisez les crochets <strong>[Nom de colonne]</strong> pour vos variables.</p>
-                        <ul>
-                            <li><code>([Indicateur A] + [Indicateur B]) / 2</code></li>
-                            <li>Priorité des opérations : <code>( )</code>, <code>*</code>, <code>/</code>, <code>+</code>, <code>-</code></li>
-                        </ul>
-                    </div>
+                  </div>
+
+                  <div class="fr-col-12 fr-col-lg-8">
+                    <label
+                      class="fr-label fr-text-title--blue-france fr-text--bold"
+                      >Données à inclure</label
+                    >
+                    <div
+                      id="metric-checkboxes"
+                      style="
+                        display: flex;
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                        column-gap: 2rem;
+                        row-gap: 0.5rem;
+                        background: #f9f9f9;
+                        padding: 15px;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        max-height: 250px;
+                        overflow-y: auto;
+                      "
+                    ></div>
+                    <p
+                      id="metric-hint"
+                      class="fr-hint-text fr-mt-1v"
+                      style="font-size: 0.75rem"
+                    >
+                      Les étiquettes de la carte s'adapteront automatiquement.
+                    </p>
+                  </div>
                 </div>
+              </div>
             </div>
-        </div>
-    </div>
-</dialog>
 
-                                    <div class="fr-checkbox-group fr-mt-2w fr-p-2w fr-background-alt--grey" style="border-radius:4px;">
-                                        <input type="checkbox" id="check-show-subtotal" checked>
-                                        <label class="fr-label" for="check-show-subtotal">Afficher le sous-total global de la carte</label>
-                                    </div>
-                                </div>
-                                
-                                <div class="fr-col-12 fr-col-lg-8">
-                                    <label class="fr-label fr-text-title--blue-france fr-text--bold">Données à inclure</label>
-                                    <div id="metric-checkboxes" style="display: flex; flex-direction: row; flex-wrap: wrap; column-gap: 2rem; row-gap: 0.5rem; background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; max-height: 250px; overflow-y: auto;">
-                                        </div>
-                                    <p id="metric-hint" class="fr-hint-text fr-mt-1v" style="font-size:0.75rem;">Les étiquettes de la carte s'adapteront automatiquement.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="panel-filtres" class="config-panel-section">
-                        <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--center">
-                            
-                            <div id="wrapper-share-base" class="fr-col-12 fr-col-md-8 fr-col-lg-5" style="display:none; background:#f4f6ff; padding:20px; border: 1px solid #dcdcfe; border-radius:8px;">
-                                <label class="fr-label fr-text-title--blue-france fr-text--bold" style="font-size: 1.1rem;">Base de référence</label>
-                                <p class="fr-text--xs fr-mb-2v">Utilisée pour calculer les parts et les écarts :</p>
-                                <select class="fr-select" id="select-share-base">
-                                    <option value="global" selected>Ensemble des données du fichier (Global)</option>
-                                    <option value="view">Uniquement les entités affichées (Vue courante)</option>
-                                </select>
-                            </div>
-                            
-                            <div id="wrapper-data-filter" class="fr-col-12 fr-col-md-8 fr-col-lg-6" style="display:none; background:#fff3f3; padding:20px; border:1px solid #ffcdcc; border-left:4px solid #ce0500; border-radius:8px;">
-                                <div class="fr-checkbox-group">
-                                    <input type="checkbox" id="check-enable-filter" name="checkboxes-filter">
-                                    <label class="fr-label fr-text-default--error fr-text--bold" for="check-enable-filter" style="font-size: 1.1rem;">Activer le filtre de données</label>
-                                </div>
-                                <div id="filter-controls" style="display:none; margin-top:15px;">
-                                    <label class="fr-label fr-text--sm">Métrique à filtrer</label>
-                                    <select class="fr-select fr-select--sm fr-mb-2v" id="select-filter-metric">
-                                        <option value="_computed">Résultat final calculé</option>
-                                    </select>
-                                    <label class="fr-label fr-text--sm">Condition</label>
-                                    <select class="fr-select fr-select--sm fr-mb-2v" id="select-filter-operator">
-                                        <option value="none">-- Choisir l'opérateur --</option>
-                                        <option value="gt">Supérieur à (>)</option>
-                                        <option value="lt">Inférieur à (<)</option>
-                                        <option value="eq">Égal à (=)</option>
-                                        <option value="between">Compris entre</option>
-                                    </select>
-                                    <div class="fr-input-group fr-input-group--sm" style="margin-bottom:0;">
-                                        <input class="fr-input fr-input--sm fr-mb-1v" type="number" id="input-filter-val1" placeholder="Valeur">
-                                        <input class="fr-input fr-input--sm" type="number" id="input-filter-val2" placeholder="Valeur maximum" style="display:none;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="panel-habillage" class="config-panel-section">
-                        <div class="fr-grid-row fr-grid-row--gutters">
-                            <div class="fr-col-12 fr-col-md-6">
-                                <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">En-tête de la page</h6>
-                                <label class="fr-label">Titre par défaut</label>
-                                <input class="fr-input" type="text" id="input-titre" value="Analyse Territoriale">
-                                
-                                <label class="fr-label fr-mt-2v">Date (Sous-titre)</label>
-                                <input class="fr-input" type="text" id="input-date" value="02/02/2026">
-                                
-                                <label class="fr-label fr-mt-2v">Logo d'en-tête (Haut-Droite)</label>
-                                <input class="fr-upload" type="file" id="input-global-logo" accept="image/*">
-                                
-                                <hr class="fr-mt-3v fr-mb-3v">
-                                <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">Esthétique de la Carte</h6>
-                                <label class="fr-label">Palette de couleurs</label>
-                                <select class="fr-select fr-mb-2v" id="select-palette"></select>
-                            </div>
-                            <div class="fr-col-12 fr-col-md-6">
-                                <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">Marque de l'État (Haut-Gauche)</h6>
-                                <label class="fr-label">Ligne 1</label>
-                                <input class="fr-input" type="text" id="input-brand-1" value="Direction Générale">
-                                <label class="fr-label fr-mt-2v">Ligne 2</label>
-                                <input class="fr-input" type="text" id="input-brand-2" value="des jolies cartes">
-                                
-                                <hr class="fr-mt-3v fr-mb-3v">
-                                <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">Pied de page</h6>
-                                <label class="fr-label">Source (gauche)</label>
-                                <input class="fr-input" type="text" id="input-footer-left" value="Source: V.A.L.O.R.">
-                                <label class="fr-label fr-mt-2v">Crédits (droite)</label>
-                                <input class="fr-input" type="text" id="input-footer-right" value="Généré par V.A.L.O.R.">
-                            </div>
-                            
-                        </div>
-                    </div>
-
-                    <div id="panel-diapos" class="config-panel-section">
-                        <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--center">
-                            <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
-                                <div style="background: #f4f6ff; border: 1px solid #dcdcfe; padding: 2rem; border-radius: 8px; text-align: center;">
-                                    <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">Ajouter des vues personnalisées</h6>
-                                    <p class="fr-text--sm fr-mb-4w" style="color: #666;">
-                                        Enrichissez votre rapport en intercalant des diapositives textuelles libres ou des graphiques spécifiques directement depuis cet espace.
-                                    </p>
-                                    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-                                        <button class="fr-btn fr-btn--secondary fr-icon-file-text-line fr-btn--icon-left" id="btn-add-slide">
-                                            Ajouter une diapo libre (Texte & Images)
-                                        </button>
-                                        <button class="fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-map-pin-add-line" id="btn-add-map-slide">
-                                            Ajouter une carte
-                                        </button>
-                                        <button class="fr-btn fr-btn--secondary fr-icon-bar-chart-box-line fr-btn--icon-left" id="btn-add-chart-slide">
-                                            Ajouter un graphique personnalisé
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="panel-systeme" class="config-panel-section">
-                        <div class="fr-grid-row fr-grid-row--gutters" style="align-items: stretch;">
-                            
-                            <div class="fr-col-12 fr-col-md-8" style="display: flex;">
-                                <div style="flex: 1; border: 1px solid #ddd; padding: 1.5rem; border-radius: 4px; background: #ffffff; display: flex; flex-direction: column;">
-                                    <h6 class="fr-h6 fr-mb-1v" style="font-size: 1.1rem; color: #161616;">Chemins de référence géographiques</h6>
-                                    <p class="fr-text--xs fr-mb-3v" style="color: #666;">Ces fichiers JSON sont utilisés par le moteur D3.js pour tracer les frontières.</p>
-                                    <div id="ref-paths-container" style="flex: 1; border: 1px solid #eee; border-radius: 4px; background: #f9f9f9; overflow-x: auto; display: flex; flex-direction: column; justify-content: center;">
-                                        </div>
-                                </div>
-                            </div>
-
-                            <div class="fr-col-12 fr-col-md-4" style="display: flex;">
-                                <div style="flex: 1; background: #fff3f3; border: 1px solid #ffcdcc; padding: 1.5rem; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between;">
-                                    <div>
-                                        <h6 class="fr-text--sm fr-mb-1v fr-text-default--error fr-text--bold" style="text-transform: uppercase;"><span class="fr-icon-warning-line"></span> Zone de danger</h6>
-                                        <p class="fr-text--xs fr-mt-2v" style="color: #666;">
-                                            Cette action supprime définitivement le cache, vos délégations personnalisées et vide votre panier.
-                                        </p>
-                                    </div>
-                                    <button id="btn-wipe-data" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-delete-line fr-btn--icon-left fr-mt-3v fr-text-default--error" style="box-shadow: inset 0 0 0 1px #ce0500; width: 100%; justify-content: center;">
-                                        Réinitialiser l'application
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
+            <div id="panel-filtres" class="config-panel-section">
+              <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--center">
+                <div
+                  id="wrapper-share-base"
+                  class="fr-col-12 fr-col-md-8 fr-col-lg-5"
+                  style="
+                    display: none;
+                    background: #f4f6ff;
+                    padding: 20px;
+                    border: 1px solid #dcdcfe;
+                    border-radius: 8px;
+                  "
+                >
+                  <label
+                    class="fr-label fr-text-title--blue-france fr-text--bold"
+                    style="font-size: 1.1rem"
+                    >Base de référence</label
+                  >
+                  <p class="fr-text--xs fr-mb-2v">
+                    Utilisée pour calculer les parts et les écarts :
+                  </p>
+                  <select class="fr-select" id="select-share-base">
+                    <option value="global" selected>
+                      Ensemble des données du fichier (Global)
+                    </option>
+                    <option value="view">
+                      Uniquement les entités affichées (Vue courante)
+                    </option>
+                  </select>
                 </div>
+
+                <div
+                  id="wrapper-data-filter"
+                  class="fr-col-12 fr-col-md-8 fr-col-lg-6"
+                  style="
+                    display: none;
+                    background: #fff3f3;
+                    padding: 20px;
+                    border: 1px solid #ffcdcc;
+                    border-left: 4px solid #ce0500;
+                    border-radius: 8px;
+                  "
+                >
+                  <div class="fr-checkbox-group">
+                    <input
+                      type="checkbox"
+                      id="check-enable-filter"
+                      name="checkboxes-filter"
+                    />
+                    <label
+                      class="fr-label fr-text-default--error fr-text--bold"
+                      for="check-enable-filter"
+                      style="font-size: 1.1rem"
+                      >Activer le filtre de données</label
+                    >
+                  </div>
+                  <div
+                    id="filter-controls"
+                    style="display: none; margin-top: 15px"
+                  >
+                    <label class="fr-label fr-text--sm"
+                      >Métrique à filtrer</label
+                    >
+                    <select
+                      class="fr-select fr-select--sm fr-mb-2v"
+                      id="select-filter-metric"
+                    >
+                      <option value="_computed">Résultat final calculé</option>
+                    </select>
+                    <label class="fr-label fr-text--sm">Condition</label>
+                    <select
+                      class="fr-select fr-select--sm fr-mb-2v"
+                      id="select-filter-operator"
+                    >
+                      <option value="none">-- Choisir l'opérateur --</option>
+                      <option value="gt">Supérieur à (>)</option>
+                      <option value="lt">Inférieur à (<)</option>
+                      <option value="eq">Égal à (=)</option>
+                      <option value="between">Compris entre</option>
+                    </select>
+                    <div
+                      class="fr-input-group fr-input-group--sm"
+                      style="margin-bottom: 0"
+                    >
+                      <input
+                        class="fr-input fr-input--sm fr-mb-1v"
+                        type="number"
+                        id="input-filter-val1"
+                        placeholder="Valeur"
+                      />
+                      <input
+                        class="fr-input fr-input--sm"
+                        type="number"
+                        id="input-filter-val2"
+                        placeholder="Valeur maximum"
+                        style="display: none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <div id="panel-habillage" class="config-panel-section">
+              <div class="fr-grid-row fr-grid-row--gutters">
+                <div class="fr-col-12 fr-col-md-6">
+                  <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">
+                    En-tête de la page
+                  </h6>
+                  <label class="fr-label">Titre par défaut</label>
+                  <input
+                    class="fr-input"
+                    type="text"
+                    id="input-titre"
+                    value="Analyse Territoriale"
+                  />
+
+                  <label class="fr-label fr-mt-2v">Date (Sous-titre)</label>
+                  <input
+                    class="fr-input"
+                    type="text"
+                    id="input-date"
+                    value="02/02/2026"
+                  />
+
+                  <label class="fr-label fr-mt-2v"
+                    >Logo d'en-tête (Haut-Droite)</label
+                  >
+                  <input
+                    class="fr-upload"
+                    type="file"
+                    id="input-global-logo"
+                    accept="image/*"
+                  />
+
+                  <hr class="fr-mt-3v fr-mb-3v" />
+                  <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">
+                    Esthétique de la Carte
+                  </h6>
+                  <label class="fr-label">Palette de couleurs</label>
+                  <select
+                    class="fr-select fr-mb-2v"
+                    id="select-palette"
+                  ></select>
+                </div>
+                <div class="fr-col-12 fr-col-md-6">
+                  <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">
+                    Marque de l'État (Haut-Gauche)
+                  </h6>
+                  <label class="fr-label">Ligne 1</label>
+                  <input
+                    class="fr-input"
+                    type="text"
+                    id="input-brand-1"
+                    value="Direction Générale"
+                  />
+                  <label class="fr-label fr-mt-2v">Ligne 2</label>
+                  <input
+                    class="fr-input"
+                    type="text"
+                    id="input-brand-2"
+                    value="des jolies cartes"
+                  />
+
+                  <hr class="fr-mt-3v fr-mb-3v" />
+                  <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">
+                    Pied de page
+                  </h6>
+                  <label class="fr-label">Source (gauche)</label>
+                  <input
+                    class="fr-input"
+                    type="text"
+                    id="input-footer-left"
+                    value="Source: V.A.L.O.R."
+                  />
+                  <label class="fr-label fr-mt-2v">Crédits (droite)</label>
+                  <input
+                    class="fr-input"
+                    type="text"
+                    id="input-footer-right"
+                    value="Généré par V.A.L.O.R."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div id="panel-diapos" class="config-panel-section">
+              <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--center">
+                <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
+                  <div
+                    style="
+                      background: #f4f6ff;
+                      border: 1px solid #dcdcfe;
+                      padding: 2rem;
+                      border-radius: 8px;
+                      text-align: center;
+                    "
+                  >
+                    <h6 class="fr-h6 fr-mb-2v fr-text-title--blue-france">
+                      Ajouter des vues personnalisées
+                    </h6>
+                    <p class="fr-text--sm fr-mb-4w" style="color: #666">
+                      Enrichissez votre rapport en intercalant des diapositives
+                      textuelles libres ou des graphiques spécifiques
+                      directement depuis cet espace.
+                    </p>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: center;
+                        gap: 1rem;
+                        flex-wrap: wrap;
+                      "
+                    >
+                      <button
+                        class="fr-btn fr-btn--secondary fr-icon-file-text-line fr-btn--icon-left"
+                        id="btn-add-slide"
+                      >
+                        Ajouter une diapo libre (Texte & Images)
+                      </button>
+                      <button
+                        class="fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-map-pin-add-line"
+                        id="btn-add-map-slide"
+                      >
+                        Ajouter une carte
+                      </button>
+                      <button
+                        class="fr-btn fr-btn--secondary fr-icon-bar-chart-box-line fr-btn--icon-left"
+                        id="btn-add-chart-slide"
+                      >
+                        Ajouter un graphique personnalisé
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="panel-systeme" class="config-panel-section">
+              <div
+                class="fr-grid-row fr-grid-row--gutters"
+                style="align-items: stretch"
+              >
+                <div class="fr-col-12 fr-col-md-8" style="display: flex">
+                  <div
+                    style="
+                      flex: 1;
+                      border: 1px solid #ddd;
+                      padding: 1.5rem;
+                      border-radius: 4px;
+                      background: #ffffff;
+                      display: flex;
+                      flex-direction: column;
+                    "
+                  >
+                    <h6
+                      class="fr-h6 fr-mb-1v"
+                      style="font-size: 1.1rem; color: #161616"
+                    >
+                      Chemins de référence géographiques
+                    </h6>
+                    <p class="fr-text--xs fr-mb-3v" style="color: #666">
+                      Ces fichiers JSON sont utilisés par le moteur D3.js pour
+                      tracer les frontières.
+                    </p>
+                    <div
+                      id="ref-paths-container"
+                      style="
+                        flex: 1;
+                        border: 1px solid #eee;
+                        border-radius: 4px;
+                        background: #f9f9f9;
+                        overflow-x: auto;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                      "
+                    ></div>
+                  </div>
+                </div>
+
+                <div class="fr-col-12 fr-col-md-4" style="display: flex">
+                  <div
+                    style="
+                      flex: 1;
+                      background: #fff3f3;
+                      border: 1px solid #ffcdcc;
+                      padding: 1.5rem;
+                      border-radius: 4px;
+                      display: flex;
+                      flex-direction: column;
+                      justify-content: space-between;
+                    "
+                  >
+                    <div>
+                      <h6
+                        class="fr-text--sm fr-mb-1v fr-text-default--error fr-text--bold"
+                        style="text-transform: uppercase"
+                      >
+                        <span class="fr-icon-warning-line"></span> Zone de
+                        danger
+                      </h6>
+                      <p class="fr-text--xs fr-mt-2v" style="color: #666">
+                        Cette action supprime définitivement le cache, vos
+                        délégations personnalisées et vide votre panier.
+                      </p>
+                    </div>
+                    <button
+                      id="btn-wipe-data"
+                      class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-delete-line fr-btn--icon-left fr-mt-3v fr-text-default--error"
+                      style="
+                        box-shadow: inset 0 0 0 1px #ce0500;
+                        width: 100%;
+                        justify-content: center;
+                      "
+                    >
+                      Réinitialiser l'application
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <script>
-        function switchConfigTab(event, panelId) {
-            event.preventDefault();
-            // Masquer tous les panneaux
-            document.querySelectorAll('.config-panel-section').forEach(function(panel) {
-                panel.classList.remove('active');
-            });
-            // Retirer l'état actif de tous les onglets
-            document.querySelectorAll('.nav-tab').forEach(function(tab) {
-                tab.classList.remove('active');
-            });
-            
-            // Afficher le panneau et activer l'onglet cliqué
-            document.getElementById(panelId).classList.add('active');
-            event.target.classList.add('active');
-        }
+      function switchConfigTab(event, panelId) {
+        event.preventDefault();
+        // Masquer tous les panneaux
+        document
+          .querySelectorAll(".config-panel-section")
+          .forEach(function (panel) {
+            panel.classList.remove("active");
+          });
+        // Retirer l'état actif de tous les onglets
+        document.querySelectorAll(".nav-tab").forEach(function (tab) {
+          tab.classList.remove("active");
+        });
+
+        // Afficher le panneau et activer l'onglet cliqué
+        document.getElementById(panelId).classList.add("active");
+        event.target.classList.add("active");
+      }
     </script>
 
-    <dialog aria-labelledby="modal-del-title" role="dialog" id="modal-manage-delegations" class="fr-modal">
-        <div class="fr-container fr-container--fluid fr-container-md">
-            <div class="fr-grid-row fr-grid-row--center">
-                <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
-                    <div class="fr-modal__body">
-                        <div class="fr-modal__header"><button class="fr-btn--close fr-btn"
-                                id="btn-close-del-modal">Fermer</button></div>
-
-                        <div class="fr-modal__content">
-                            <h1 class="fr-modal__title" id="modal-del-title"><span
-                                    class="fr-icon-settings-5-line"></span> Gestion des Délégations</h1>
-                            <div id="delegation-list-container" class="fr-mb-3w"
-                                style="max-height: 250px; overflow-y: auto;"></div>
-                            <hr>
-                            <div class="fr-p-2w fr-background-alt--grey fr-mt-2w"
-                                style="border-left: 4px solid #000091;">
-                                <h4 class="fr-h6 fr-mb-1w" id="del-form-title">Ajouter une délégation</h4><input
-                                    type="hidden" id="del-edit-index" value="-1">
-                                <div class="fr-input-group fr-mb-1w"><label class="fr-label">Nom de la
-                                        délégation</label><input class="fr-input" type="text" id="del-input-name"
-                                        placeholder="Ex: Délégation Grand Ouest"></div>
-                                <div class="fr-input-group fr-mb-2w"><label class="fr-label">Départements
-                                        rattachés</label><textarea class="fr-input" id="del-input-deps"
-                                        rows="2"></textarea></div>
-                                <div class="fr-btns-group fr-btns-group--inline"><button
-                                        class="fr-btn fr-btn--secondary fr-btn--sm"
-                                        id="btn-save-delegation">Enregistrer</button><button
-                                        class="fr-btn fr-btn--tertiary fr-btn--sm" id="btn-cancel-delegation"
-                                        style="display:none;">Annuler l'édition</button></div>
-                            </div>
-                        </div>
-
-                        <div class="fr-modal__footer"
-                            style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                            <div class="fr-modal__footer" style="display: flex; justify-content: flex-end; gap: 1rem;">
-                                <button class="fr-btn fr-btn--secondary"
-                                    id="btn-reset-delegations">Réinitialiser</button>
-                                <button class="fr-btn" id="btn-apply-delegations">Appliquer et fermer</button>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                
-                                <button class="fr-btn fr-icon-printer-line fr-btn--icon-left"
-                                    onclick="window.printCart()">Générer le PDF</button>
-                                <button class="fr-btn fr-btn--secondary fr-icon-delete-bin-line fr-btn--icon-left"
-                                    onclick="window.clearCart()">Vider</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </dialog>
-
-    <dialog aria-labelledby="modal-title" role="dialog" id="modal-edit-slide" class="fr-modal">
-        <div class="fr-container fr-container--fluid fr-container-md">
-            <div class="fr-grid-row fr-grid-row--center">
-                <div class="fr-col-12 fr-col-md-11 fr-col-lg-10">
-                    <div class="fr-modal__body">
-                        <div class="fr-modal__header"><button class="fr-btn--close fr-btn"
-                                id="btn-close-modal">Fermer</button></div>
-                        <div class="fr-modal__content">
-                            <h1 class="fr-modal__title">Éditeur de diapositive</h1><input type="hidden"
-                                id="edit-slide-id">
-                            <div class="fr-grid-row fr-grid-row--gutters">
-                                <div class="fr-col-12"><label class="fr-label">Titre de la diapo</label><input
-                                        class="fr-input" type="text" id="slide-title" placeholder="Mon titre"></div>
-                            </div>
-                            <label class="fr-label fr-mt-2v">Contenu</label>
-                            <div class="editor-container">
-                                <div class="editor-toolbar">
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="execCmd('bold')" title="Gras"><b>B</b></button>
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="execCmd('italic')" title="Italique"><i>I</i></button>
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="execCmd('underline')" title="Souligné"><u>U</u></button>
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="execCmd('removeFormat')" title="Effacer le style"><span
-                                            class="fr-icon-delete-bin-line"></span></button>
-
-                                    <span class="separator"></span>
-
-                                    <select class="editor-btn" style="width: auto; padding: 4px;"
-                                        onchange="execCmd('fontSize', this.value); this.selectedIndex=0;"
-                                        title="Taille de la police">
-                                        <option value="">Taille...</option>
-                                        <option value="1">Très petit</option>
-                                        <option value="2">Petit</option>
-                                        <option value="3">Normal</option>
-                                        <option value="5">Grand</option>
-                                        <option value="7">Très grand</option>
-                                    </select>
-
-                                    <span class="separator"></span>
-
-                                    <input type="file" id="wysiwyg-image-upload" accept="image/*" style="display:none;"
-                                        onchange="insertWysiwygImage(this)">
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="document.getElementById('wysiwyg-image-upload').click()"
-                                        title="Insérer une image"><span class="fr-icon-image-line"></span></button>
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="openIconPicker()" title="Insérer un pictogramme DSFR"><span
-                                            class="fr-icon-star-line"></span></button>
-                                    <select class="editor-btn" style="width: auto; padding: 4px;"
-                                        onchange="execCmd('insertHTML', this.value); this.selectedIndex=0;"
-                                        title="Insérer un émoticon">
-                                        <option value="">😀 Emoji...</option>
-                                        <option value="💡">💡 Idée</option>
-                                        <option value="⚠️">⚠️ Attention</option>
-                                        <option value="✅">✅ Validé</option>
-                                        <option value="❌">❌ Refusé</option>
-                                        <option value="📊">📊 Graphique</option>
-                                        <option value="📉">📉 Baisse</option>
-                                        <option value="🌍">🌍 Carte</option>
-                                    </select>
-
-                                    <span class="separator"></span>
-
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="execCmd('justifyLeft')" title="Gauche"><span
-                                            class="fr-icon-align-left"></span></button>
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="execCmd('justifyCenter')" title="Centrer"><span
-                                            class="fr-icon-align-center"></span></button>
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="execCmd('justifyRight')" title="Droite"><span
-                                            class="fr-icon-align-right"></span></button>
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="execCmd('justifyFull')" title="Justifier"><span
-                                            class="fr-icon-align-justify"></span></button>
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="insertCustomList('ul')" title="Liste à puces"><span
-                                            class="fr-icon-list-unordered"></span></button>
-
-                                    <span class="separator"></span>
-
-                                    <button class="editor-btn" onmousedown="event.preventDefault();"
-                                        onclick="insertDynamicTable()" title="Insérer Tableau"><span
-                                            class="fr-icon-table-line"></span></button>
-
-                                    <span class="separator" style="flex:1"></span>
-
-                                    <button class="editor-btn btn-source" onclick="toggleSourceMode()"
-                                        title="Voir le Code HTML">&lt;/&gt; Code</button>
-                                        <span class="separator" style="flex:1"></span>
-
-                                        <select id="template-select" class="editor-btn" style="width: auto; padding: 4px; border: 1px solid #000091; color: #000091; font-weight: bold; background: #f4f6ff;" onchange="insertTemplate(this.value)" title="Insérer un modèle de diapositive">
-
-                                            <option value="">+ Modèles de diapo...</option>
-                                            <option value="titre">👑 Page de titre (Page 1)</option>
-                                            <option value="titre_v2">👑 Page de titre (Épurée)</option>
-                                            <option value="sommaire">📑 Sommaire (Page 2)</option>
-                                            <option value="sommaire_v2">📑 Sommaire (Colonnes)</option>
-                                            <option value="intercalaire">🔖 Intercalaire (Page 3)</option>
-                                            <option value="intercalaire_v2">🔖 Intercalaire (Centré)</option>
-                                            <option value="1col">📄 1 Colonne (Page 4)</option>
-                                            <option value="2cols">🪟 2 Colonnes (Page 5/6)</option>
-                                            <option value="3cols">🪟 3 Colonnes (Page 7)</option>
-                                            <option value="texte_3cols">📄 Texte 3 colonnes</option>
-                                            <option value="4kpi">🎯 4 Chiffres Clés (Page 8)</option>
-                                            <option value="timeline">⏱️ Frise / Étapes (Page 9)</option>
-                                            <option value="blocs_valeurs">🪟 Texte + 4 Blocs</option>
-                                            <option value="image_texte">🖼️ Image + Texte latéral</option>
-                                        </select>
-
-
-                                </div>
-
-                                <div id="visual-editor" class="wysiwyg-editor" contenteditable="true">
-                                    <p>Cliquez ici pour rédiger votre contenu...</p>
-                                </div><textarea id="source-editor" class="source-editor"></textarea>
-                            </div>
-                        </div>
-                        <div class="fr-modal__footer"><button class="fr-btn" id="btn-save-slide">Enregistrer</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </dialog>
-
-    <dialog aria-labelledby="modal-cart-title" role="dialog" id="modal-manage-cart" class="fr-modal">
-        <div class="fr-container fr-container--fluid fr-container-md">
-            <div class="fr-grid-row fr-grid-row--center">
-                <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
-                    <div class="fr-modal__body">
-                        <div class="fr-modal__header"><button class="fr-btn--close fr-btn"
-                                onclick="document.getElementById('modal-manage-cart').classList.remove('fr-modal--opened'); document.getElementById('modal-manage-cart').close();">Fermer</button>
-                        </div>
-                        <div class="fr-modal__content">
-                            <h1 class="fr-modal__title" id="modal-cart-title"><span
-                                    class="fr-icon-shopping-cart-2-line"></span> Mon Panier d'Export</h1>
-                            <p class="fr-text--sm fr-mb-2w">Réorganisez vos vues sauvegardées (issues de plusieurs jeux
-                                de données) avant l'export final.</p>
-                            <div id="cart-list-container" class="fr-mb-3w" style="max-height: 400px; overflow-y: auto;">
-                            </div>
-                        </div>
-                        <div class="fr-modal__footer"
-                            style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                            <div style="display: flex; gap: 10px;">
-                                <button class="fr-btn fr-icon-download-line fr-btn--icon-left"
-                                    onclick="window.exportProject()"
-                                    title="Télécharger le contenu du panier sous forme de fichier">Sauvegarder le
-                                    projet</button>
-                                <button class="fr-btn fr-btn--secondary fr-icon-download-line fr-btn--icon-left"
-                                    onclick="window.exportAllCartToCSV()"
-                                    title="Exporter toutes les données des cartes en CSV">Export global (CSV)</button>
-
-                                <input type="file" id="input-import-project" accept=".json" style="display:none;"
-                                    onchange="window.importProject(event)">
-                                <button class="fr-btn fr-btn--secondary fr-icon-upload-line fr-btn--icon-left"
-                                    onclick="document.getElementById('input-import-project').click()"
-                                    title="Charger un projet existant">Importer</button>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button class="fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-layout-line" id="btn-cart-to-editor">
-                                Transférer vers l'éditeur</button>
-                                <button class="fr-btn fr-icon-printer-line fr-btn--icon-left"
-                                    onclick="window.printCart()">Générer le PDF</button>
-                                <button class="fr-btn fr-btn--secondary fr-icon-delete-bin-line fr-btn--icon-left"
-                                    onclick="window.clearCart()">Vider</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </dialog>
-
-    <dialog aria-labelledby="modal-icon-title" role="dialog" id="modal-dsfr-icons" class="fr-modal">
-        <div class="fr-container fr-container--fluid fr-container-md">
-            <div class="fr-grid-row fr-grid-row--center">
-                <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
-                    <div class="fr-modal__body">
-                        <div class="fr-modal__header"><button class="fr-btn--close fr-btn"
-                                onclick="closeIconPicker()">Fermer</button></div>
-                        <div class="fr-modal__content">
-                            <h1 class="fr-modal__title" id="modal-icon-title"><span class="fr-icon-star-line"></span>
-                                Bibliothèque graphique DSFR</h1>
-                            <div class="fr-select-group fr-mb-3w">
-                                <label class="fr-label" for="icon-category-select">Filtrer par thème</label>
-                                <select class="fr-select" id="icon-category-select"
-                                    onchange="renderIconGrid(this.value)"></select>
-                            </div>
-                            <div id="icon-picker-grid" class="icon-grid"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </dialog>
-
-
-<dialog aria-labelledby="modal-chart-title" role="dialog" id="modal-chart-slide" class="fr-modal">
-    <div class="fr-container fr-container--fluid fr-container-md">
+    <dialog
+      aria-labelledby="modal-del-title"
+      role="dialog"
+      id="modal-manage-delegations"
+      class="fr-modal"
+    >
+      <div class="fr-container fr-container--fluid fr-container-md">
         <div class="fr-grid-row fr-grid-row--center">
-            <div class="fr-col-12 fr-col-md-11 fr-col-lg-10">
-                <div class="fr-modal__body">
-                    <div class="fr-modal__header"><button class="fr-btn--close fr-btn" id="btn-close-chart-modal">Fermer</button></div>
-                    <div class="fr-modal__content">
-                        <h1 class="fr-modal__title" id="modal-chart-title"><span class="fr-icon-bar-chart-box-line"></span> Ajouter un graphique</h1>
-                        <input type="hidden" id="chart-slide-id">
-                        
-                        <div class="fr-grid-row fr-grid-row--gutters">
-                            <div class="fr-col-6">
-                                <label class="fr-label">Titre (Optionnel)</label>
-                                <input class="fr-input fr-mb-2w" type="text" id="chart-slide-title" placeholder="Généré automatiquement si vide">
+          <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
+            <div class="fr-modal__body">
+              <div class="fr-modal__header">
+                <button class="fr-btn--close fr-btn" id="btn-close-del-modal">
+                  Fermer
+                </button>
+              </div>
 
-                                <label class="fr-label fr-text-title--blue-france fr-text--bold">1. Périmètre Géographique</label>
-                                <select class="fr-select fr-mb-2v" id="chart-select-scale">
-                                    <optgroup label="Comparaison de territoires (1 à N métriques)">
-                                        <option value="france">Nationale (Détail par Département)</option>
-                                        <option value="reg_by_dep">Région (Détail par Département)</option>
-                                        <option value="del_by_dep">Délégation (Détail par Département)</option>
-                                        <option value="dep_by_com">Département (Détail par Commune)</option>
-                                        <option value="epci_by_com">EPCI (Détail par Commune)</option>
-                                    </optgroup>
-                                    <optgroup label="Analyse d'un territoire (Multivaleurs)">
-                                        <option value="france_multi">France entière (Agrégée)</option>
-                                        <option value="reg_multi">Région spécifique</option>
-                                        <option value="dep_multi">Département spécifique</option>
-                                        <option value="epci_multi">EPCI spécifique</option>
-                                        <option value="com_multi">Commune spécifique</option>
-                                    </optgroup>
-                                </select>
-                                
-                                <div id="chart-epci-filters" style="display:none; border-left:2px solid #000091;" class="fr-mb-2v fr-p-2w fr-background-alt--grey">
-                                    <label class="fr-label fr-text--sm">Filtre Région</label>
-                                    <select class="fr-select fr-select--sm fr-mb-1v" id="chart-select-epci-reg"></select>
-                                    <label class="fr-label fr-text--sm">Filtre Département</label>
-                                    <select class="fr-select fr-select--sm" id="chart-select-epci-dep"></select>
-                                </div>
-
-                                <div id="wrapper-chart-entity" style="display:none;" class="fr-mb-2w">
-                                    <label class="fr-label" id="label-chart-entity">Entité cible</label>
-                                    <select class="fr-select" id="chart-select-entity"></select>
-                                </div>
-
-                                <div id="wrapper-chart-com" style="display:none;" class="fr-mb-2w">
-                                    <label class="fr-label" id="label-chart-com">Rechercher une commune</label>
-                                    <input class="fr-input" type="text" id="chart-input-com" list="chart-datalist-com" placeholder="Ex: 75056 (Code INSEE)">
-                                    <datalist id="chart-datalist-com"></datalist>
-                                </div>
-
-                                <label class="fr-label fr-mt-2w fr-text-title--blue-france fr-text--bold">2. Type de graphique</label>
-                                <select class="fr-select" id="chart-select-type">
-                                    <option value="bar">Barres (Comparaison)</option>
-                                    <option value="line">Courbes (Évolution / Profil)</option>
-                                    <option value="pie">Camembert (Répartition)</option>
-                                    <option value="radar">Toile d'araignée (Radar)</option>
-                                </select>
-                                
-                                <label class="fr-label fr-mt-2w fr-text-title--blue-france fr-text--bold">Options d'analyse & d'affichage</label>
-                                <div id="chart-options-wrapper" class="fr-mt-1v fr-p-2w fr-background-alt--grey" style="border-radius:4px;">
-                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
-                                        <input type="checkbox" id="chart-opt-horizontal" name="chart-opt-horizontal">
-                                        <label class="fr-label" for="chart-opt-horizontal">Afficher horizontalement</label>
-                                    </div>
-                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
-                                        <input type="checkbox" id="chart-opt-mean" name="chart-opt-mean">
-                                        <label class="fr-label" for="chart-opt-mean">📊 Tracer la ligne de moyenne</label>
-                                    </div>
-                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
-                                        <input type="checkbox" id="chart-opt-trend" name="chart-opt-trend">
-                                        <label class="fr-label" for="chart-opt-trend">📈 Tracer la ligne de tendance (Régression)</label>
-                                    </div>
-                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
-                                        <input type="checkbox" id="chart-opt-moving" name="chart-opt-moving">
-                                        <label class="fr-label" for="chart-opt-moving">🌊 Tracer la moyenne mobile (Période 3)</label>
-                                    </div>
-                                    <div class="fr-checkbox-group fr-checkbox-group--sm">
-                                        <input type="checkbox" id="chart-opt-outliers" name="chart-opt-outliers">
-                                        <label class="fr-label" for="chart-opt-outliers">🚨 Surligner les valeurs aberrantes (Rouge)</label>
-                                    </div>
-                                </div>
-
-                                <label class="fr-label fr-mt-2w fr-text-title--blue-france fr-text--bold">4. Palette de couleurs</label>
-                                <select class="fr-select" id="chart-select-palette"></select>
-
-                            </div>
-                            
-                            <div class="fr-col-6">
-                                <label class="fr-label fr-text-title--blue-france fr-text--bold">3. Valeurs à afficher</label>
-                                <p class="fr-hint-text">Vous pouvez sélectionner plusieurs indicateurs.</p>
-                                
-                                <div id="chart-metric-checkboxes" style="background:#f9f9f9; padding:10px; border:1px solid #ddd; max-height:250px; overflow-y:auto; border-radius:4px;">
-                                </div>
-
-                                <div id="chart-pie-warning" class="fr-mt-2v fr-text-default--error fr-text--bold" style="display:none; font-size:0.8rem;">
-                                    <span class="fr-icon-warning-line"></span> Un camembert n'est lisible qu'avec 1 seule métrique sélectionnée.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="fr-modal__footer">
-                        <button class="fr-btn" id="btn-save-chart-slide">Générer le graphique</button>
-                    </div>
+              <div class="fr-modal__content">
+                <h1 class="fr-modal__title" id="modal-del-title">
+                  <span class="fr-icon-settings-5-line"></span> Gestion des
+                  Délégations
+                </h1>
+                <div
+                  id="delegation-list-container"
+                  class="fr-mb-3w"
+                  style="max-height: 250px; overflow-y: auto"
+                ></div>
+                <hr />
+                <div
+                  class="fr-p-2w fr-background-alt--grey fr-mt-2w"
+                  style="border-left: 4px solid #000091"
+                >
+                  <h4 class="fr-h6 fr-mb-1w" id="del-form-title">
+                    Ajouter une délégation
+                  </h4>
+                  <input type="hidden" id="del-edit-index" value="-1" />
+                  <div class="fr-input-group fr-mb-1w">
+                    <label class="fr-label">Nom de la délégation</label
+                    ><input
+                      class="fr-input"
+                      type="text"
+                      id="del-input-name"
+                      placeholder="Ex: Délégation Grand Ouest"
+                    />
+                  </div>
+                  <div class="fr-input-group fr-mb-2w">
+                    <label class="fr-label">Départements rattachés</label
+                    ><textarea
+                      class="fr-input"
+                      id="del-input-deps"
+                      rows="2"
+                    ></textarea>
+                  </div>
+                  <div class="fr-btns-group fr-btns-group--inline">
+                    <button
+                      class="fr-btn fr-btn--secondary fr-btn--sm"
+                      id="btn-save-delegation"
+                    >
+                      Enregistrer</button
+                    ><button
+                      class="fr-btn fr-btn--tertiary fr-btn--sm"
+                      id="btn-cancel-delegation"
+                      style="display: none"
+                    >
+                      Annuler l'édition
+                    </button>
+                  </div>
                 </div>
+              </div>
+
+              <div
+                class="fr-modal__footer"
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  flex-wrap: wrap;
+                  gap: 10px;
+                "
+              >
+                <div
+                  class="fr-modal__footer"
+                  style="display: flex; justify-content: flex-end; gap: 1rem"
+                >
+                  <button
+                    class="fr-btn fr-btn--secondary"
+                    id="btn-reset-delegations"
+                  >
+                    Réinitialiser
+                  </button>
+                  <button class="fr-btn" id="btn-apply-delegations">
+                    Appliquer et fermer
+                  </button>
+                </div>
+                <div style="display: flex; gap: 10px">
+                  <button
+                    class="fr-btn fr-icon-printer-line fr-btn--icon-left"
+                    onclick="window.printCart()"
+                  >
+                    Générer le PDF
+                  </button>
+                  <button
+                    class="fr-btn fr-btn--secondary fr-icon-delete-bin-line fr-btn--icon-left"
+                    onclick="window.clearCart()"
+                  >
+                    Vider
+                  </button>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
-</dialog>
+      </div>
+    </dialog>
+
+    <dialog
+      aria-labelledby="modal-title"
+      role="dialog"
+      id="modal-edit-slide"
+      class="fr-modal"
+    >
+      <div class="fr-container fr-container--fluid fr-container-md">
+        <div class="fr-grid-row fr-grid-row--center">
+          <div class="fr-col-12 fr-col-md-11 fr-col-lg-10">
+            <div class="fr-modal__body">
+              <div class="fr-modal__header">
+                <button class="fr-btn--close fr-btn" id="btn-close-modal">
+                  Fermer
+                </button>
+              </div>
+              <div class="fr-modal__content">
+                <h1 class="fr-modal__title">Éditeur de diapositive</h1>
+                <input type="hidden" id="edit-slide-id" />
+                <div class="fr-grid-row fr-grid-row--gutters">
+                  <div class="fr-col-12">
+                    <label class="fr-label">Titre de la diapo</label
+                    ><input
+                      class="fr-input"
+                      type="text"
+                      id="slide-title"
+                      placeholder="Mon titre"
+                    />
+                  </div>
+                </div>
+                <label class="fr-label fr-mt-2v">Contenu</label>
+                <div class="editor-container">
+                  <div class="editor-toolbar">
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="execCmd('bold')"
+                      title="Gras"
+                    >
+                      <b>B</b>
+                    </button>
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="execCmd('italic')"
+                      title="Italique"
+                    >
+                      <i>I</i>
+                    </button>
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="execCmd('underline')"
+                      title="Souligné"
+                    >
+                      <u>U</u>
+                    </button>
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="execCmd('removeFormat')"
+                      title="Effacer le style"
+                    >
+                      <span class="fr-icon-delete-bin-line"></span>
+                    </button>
+
+                    <span class="separator"></span>
+
+                    <select
+                      class="editor-btn"
+                      style="width: auto; padding: 4px"
+                      onchange="
+                        execCmd('fontSize', this.value);
+                        this.selectedIndex = 0;
+                      "
+                      title="Taille de la police"
+                    >
+                      <option value="">Taille...</option>
+                      <option value="1">Très petit</option>
+                      <option value="2">Petit</option>
+                      <option value="3">Normal</option>
+                      <option value="5">Grand</option>
+                      <option value="7">Très grand</option>
+                    </select>
+
+                    <span class="separator"></span>
+
+                    <input
+                      type="file"
+                      id="wysiwyg-image-upload"
+                      accept="image/*"
+                      style="display: none"
+                      onchange="insertWysiwygImage(this)"
+                    />
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="
+                        document.getElementById('wysiwyg-image-upload').click()
+                      "
+                      title="Insérer une image"
+                    >
+                      <span class="fr-icon-image-line"></span>
+                    </button>
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="openIconPicker()"
+                      title="Insérer un pictogramme DSFR"
+                    >
+                      <span class="fr-icon-star-line"></span>
+                    </button>
+                    <select
+                      class="editor-btn"
+                      style="width: auto; padding: 4px"
+                      onchange="
+                        execCmd('insertHTML', this.value);
+                        this.selectedIndex = 0;
+                      "
+                      title="Insérer un émoticon"
+                    >
+                      <option value="">😀 Emoji...</option>
+                      <option value="💡">💡 Idée</option>
+                      <option value="⚠️">⚠️ Attention</option>
+                      <option value="✅">✅ Validé</option>
+                      <option value="❌">❌ Refusé</option>
+                      <option value="📊">📊 Graphique</option>
+                      <option value="📉">📉 Baisse</option>
+                      <option value="🌍">🌍 Carte</option>
+                    </select>
+
+                    <span class="separator"></span>
+
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="execCmd('justifyLeft')"
+                      title="Gauche"
+                    >
+                      <span class="fr-icon-align-left"></span>
+                    </button>
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="execCmd('justifyCenter')"
+                      title="Centrer"
+                    >
+                      <span class="fr-icon-align-center"></span>
+                    </button>
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="execCmd('justifyRight')"
+                      title="Droite"
+                    >
+                      <span class="fr-icon-align-right"></span>
+                    </button>
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="execCmd('justifyFull')"
+                      title="Justifier"
+                    >
+                      <span class="fr-icon-align-justify"></span>
+                    </button>
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="insertCustomList('ul')"
+                      title="Liste à puces"
+                    >
+                      <span class="fr-icon-list-unordered"></span>
+                    </button>
+
+                    <span class="separator"></span>
+
+                    <button
+                      class="editor-btn"
+                      onmousedown="event.preventDefault()"
+                      onclick="insertDynamicTable()"
+                      title="Insérer Tableau"
+                    >
+                      <span class="fr-icon-table-line"></span>
+                    </button>
+
+                    <span class="separator" style="flex: 1"></span>
+
+                    <button
+                      class="editor-btn btn-source"
+                      onclick="toggleSourceMode()"
+                      title="Voir le Code HTML"
+                    >
+                      &lt;/&gt; Code
+                    </button>
+                    <span class="separator" style="flex: 1"></span>
+
+                    <select
+                      id="template-select"
+                      class="editor-btn"
+                      style="
+                        width: auto;
+                        padding: 4px;
+                        border: 1px solid #000091;
+                        color: #000091;
+                        font-weight: bold;
+                        background: #f4f6ff;
+                      "
+                      onchange="insertTemplate(this.value)"
+                      title="Insérer un modèle de diapositive"
+                    >
+                      <option value="">+ Modèles de diapo...</option>
+                      <option value="titre">👑 Page de titre (Page 1)</option>
+                      <option value="titre_v2">
+                        👑 Page de titre (Épurée)
+                      </option>
+                      <option value="sommaire">📑 Sommaire (Page 2)</option>
+                      <option value="sommaire_v2">
+                        📑 Sommaire (Colonnes)
+                      </option>
+                      <option value="intercalaire">
+                        🔖 Intercalaire (Page 3)
+                      </option>
+                      <option value="intercalaire_v2">
+                        🔖 Intercalaire (Centré)
+                      </option>
+                      <option value="1col">📄 1 Colonne (Page 4)</option>
+                      <option value="2cols">🪟 2 Colonnes (Page 5/6)</option>
+                      <option value="3cols">🪟 3 Colonnes (Page 7)</option>
+                      <option value="texte_3cols">📄 Texte 3 colonnes</option>
+                      <option value="4kpi">🎯 4 Chiffres Clés (Page 8)</option>
+                      <option value="timeline">
+                        ⏱️ Frise / Étapes (Page 9)
+                      </option>
+                      <option value="blocs_valeurs">🪟 Texte + 4 Blocs</option>
+                      <option value="image_texte">
+                        🖼️ Image + Texte latéral
+                      </option>
+                    </select>
+                  </div>
+
+                  <div
+                    id="visual-editor"
+                    class="wysiwyg-editor"
+                    contenteditable="true"
+                  >
+                    <p>Cliquez ici pour rédiger votre contenu...</p>
+                  </div>
+                  <textarea id="source-editor" class="source-editor"></textarea>
+                </div>
+              </div>
+              <div class="fr-modal__footer">
+                <button class="fr-btn" id="btn-save-slide">Enregistrer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog
+      aria-labelledby="modal-cart-title"
+      role="dialog"
+      id="modal-manage-cart"
+      class="fr-modal"
+    >
+      <div class="fr-container fr-container--fluid fr-container-md">
+        <div class="fr-grid-row fr-grid-row--center">
+          <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
+            <div class="fr-modal__body">
+              <div class="fr-modal__header">
+                <button
+                  class="fr-btn--close fr-btn"
+                  onclick="
+                    document
+                      .getElementById('modal-manage-cart')
+                      .classList.remove('fr-modal--opened');
+                    document.getElementById('modal-manage-cart').close();
+                  "
+                >
+                  Fermer
+                </button>
+              </div>
+              <div class="fr-modal__content">
+                <h1 class="fr-modal__title" id="modal-cart-title">
+                  <span class="fr-icon-shopping-cart-2-line"></span> Mon Panier
+                  d'Export
+                </h1>
+                <p class="fr-text--sm fr-mb-2w">
+                  Réorganisez vos vues sauvegardées (issues de plusieurs jeux de
+                  données) avant l'export final.
+                </p>
+                <div
+                  id="cart-list-container"
+                  class="fr-mb-3w"
+                  style="max-height: 400px; overflow-y: auto"
+                ></div>
+              </div>
+              <div
+                class="fr-modal__footer"
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  flex-wrap: wrap;
+                  gap: 10px;
+                "
+              >
+                <div style="display: flex; gap: 10px">
+                  <button
+                    class="fr-btn fr-icon-download-line fr-btn--icon-left"
+                    onclick="window.exportProject()"
+                    title="Télécharger le contenu du panier sous forme de fichier"
+                  >
+                    Sauvegarder le projet
+                  </button>
+                  <button
+                    class="fr-btn fr-btn--secondary fr-icon-download-line fr-btn--icon-left"
+                    onclick="window.exportAllCartToCSV()"
+                    title="Exporter toutes les données des cartes en CSV"
+                  >
+                    Export global (CSV)
+                  </button>
+
+                  <input
+                    type="file"
+                    id="input-import-project"
+                    accept=".json"
+                    style="display: none"
+                    onchange="window.importProject(event)"
+                  />
+                  <button
+                    class="fr-btn fr-btn--secondary fr-icon-upload-line fr-btn--icon-left"
+                    onclick="
+                      document.getElementById('input-import-project').click()
+                    "
+                    title="Charger un projet existant"
+                  >
+                    Importer
+                  </button>
+                </div>
+                <div style="display: flex; gap: 10px">
+                  <button
+                    class="fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-layout-line"
+                    id="btn-cart-to-editor"
+                  >
+                    Transférer vers l'éditeur
+                  </button>
+                  <button
+                    class="fr-btn fr-icon-printer-line fr-btn--icon-left"
+                    onclick="window.printCart()"
+                  >
+                    Générer le PDF
+                  </button>
+                  <button
+                    class="fr-btn fr-btn--secondary fr-icon-delete-bin-line fr-btn--icon-left"
+                    onclick="window.clearCart()"
+                  >
+                    Vider
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog
+      aria-labelledby="modal-icon-title"
+      role="dialog"
+      id="modal-dsfr-icons"
+      class="fr-modal"
+    >
+      <div class="fr-container fr-container--fluid fr-container-md">
+        <div class="fr-grid-row fr-grid-row--center">
+          <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
+            <div class="fr-modal__body">
+              <div class="fr-modal__header">
+                <button
+                  class="fr-btn--close fr-btn"
+                  onclick="closeIconPicker()"
+                >
+                  Fermer
+                </button>
+              </div>
+              <div class="fr-modal__content">
+                <h1 class="fr-modal__title" id="modal-icon-title">
+                  <span class="fr-icon-star-line"></span> Bibliothèque graphique
+                  DSFR
+                </h1>
+                <div class="fr-select-group fr-mb-3w">
+                  <label class="fr-label" for="icon-category-select"
+                    >Filtrer par thème</label
+                  >
+                  <select
+                    class="fr-select"
+                    id="icon-category-select"
+                    onchange="renderIconGrid(this.value)"
+                  ></select>
+                </div>
+                <div id="icon-picker-grid" class="icon-grid"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog
+      aria-labelledby="modal-chart-title"
+      role="dialog"
+      id="modal-chart-slide"
+      class="fr-modal"
+    >
+      <div class="fr-container fr-container--fluid fr-container-md">
+        <div class="fr-grid-row fr-grid-row--center">
+          <div class="fr-col-12 fr-col-md-11 fr-col-lg-10">
+            <div class="fr-modal__body">
+              <div class="fr-modal__header">
+                <button class="fr-btn--close fr-btn" id="btn-close-chart-modal">
+                  Fermer
+                </button>
+              </div>
+              <div class="fr-modal__content">
+                <h1 class="fr-modal__title" id="modal-chart-title">
+                  <span class="fr-icon-bar-chart-box-line"></span> Ajouter un
+                  graphique
+                </h1>
+                <input type="hidden" id="chart-slide-id" />
+
+                <div class="fr-grid-row fr-grid-row--gutters">
+                  <div class="fr-col-6">
+                    <label class="fr-label">Titre (Optionnel)</label>
+                    <input
+                      class="fr-input fr-mb-2w"
+                      type="text"
+                      id="chart-slide-title"
+                      placeholder="Généré automatiquement si vide"
+                    />
+
+                    <label
+                      class="fr-label fr-text-title--blue-france fr-text--bold"
+                      >1. Périmètre Géographique</label
+                    >
+                    <select class="fr-select fr-mb-2v" id="chart-select-scale">
+                      <optgroup
+                        label="Comparaison de territoires (1 à N métriques)"
+                      >
+                        <option value="france">
+                          Nationale (Détail par Département)
+                        </option>
+                        <option value="reg_by_dep">
+                          Région (Détail par Département)
+                        </option>
+                        <option value="del_by_dep">
+                          Délégation (Détail par Département)
+                        </option>
+                        <option value="dep_by_com">
+                          Département (Détail par Commune)
+                        </option>
+                        <option value="epci_by_com">
+                          EPCI (Détail par Commune)
+                        </option>
+                      </optgroup>
+                      <optgroup label="Analyse d'un territoire (Multivaleurs)">
+                        <option value="france_multi">
+                          France entière (Agrégée)
+                        </option>
+                        <option value="reg_multi">Région spécifique</option>
+                        <option value="dep_multi">
+                          Département spécifique
+                        </option>
+                        <option value="epci_multi">EPCI spécifique</option>
+                        <option value="com_multi">Commune spécifique</option>
+                      </optgroup>
+                    </select>
+
+                    <div
+                      id="chart-epci-filters"
+                      style="display: none; border-left: 2px solid #000091"
+                      class="fr-mb-2v fr-p-2w fr-background-alt--grey"
+                    >
+                      <label class="fr-label fr-text--sm">Filtre Région</label>
+                      <select
+                        class="fr-select fr-select--sm fr-mb-1v"
+                        id="chart-select-epci-reg"
+                      ></select>
+                      <label class="fr-label fr-text--sm"
+                        >Filtre Département</label
+                      >
+                      <select
+                        class="fr-select fr-select--sm"
+                        id="chart-select-epci-dep"
+                      ></select>
+                    </div>
+
+                    <div
+                      id="wrapper-chart-entity"
+                      style="display: none"
+                      class="fr-mb-2w"
+                    >
+                      <label class="fr-label" id="label-chart-entity"
+                        >Entité cible</label
+                      >
+                      <select
+                        class="fr-select"
+                        id="chart-select-entity"
+                      ></select>
+                    </div>
+
+                    <div
+                      id="wrapper-chart-com"
+                      style="display: none"
+                      class="fr-mb-2w"
+                    >
+                      <label class="fr-label" id="label-chart-com"
+                        >Rechercher une commune</label
+                      >
+                      <input
+                        class="fr-input"
+                        type="text"
+                        id="chart-input-com"
+                        list="chart-datalist-com"
+                        placeholder="Ex: 75056 (Code INSEE)"
+                      />
+                      <datalist id="chart-datalist-com"></datalist>
+                    </div>
+
+                    <label
+                      class="fr-label fr-mt-2w fr-text-title--blue-france fr-text--bold"
+                      >2. Type de graphique</label
+                    >
+                    <select class="fr-select" id="chart-select-type">
+                      <option value="bar">Barres (Comparaison)</option>
+                      <option value="line">Courbes (Évolution / Profil)</option>
+                      <option value="pie">Camembert (Répartition)</option>
+                      <option value="radar">Toile d'araignée (Radar)</option>
+                    </select>
+
+                    <label
+                      class="fr-label fr-mt-2w fr-text-title--blue-france fr-text--bold"
+                      >Options d'analyse & d'affichage</label
+                    >
+                    <div
+                      id="chart-options-wrapper"
+                      class="fr-mt-1v fr-p-2w fr-background-alt--grey"
+                      style="border-radius: 4px"
+                    >
+                      <div class="fr-checkbox-group fr-checkbox-group--sm">
+                        <input
+                          type="checkbox"
+                          id="chart-opt-horizontal"
+                          name="chart-opt-horizontal"
+                        />
+                        <label class="fr-label" for="chart-opt-horizontal"
+                          >Afficher horizontalement</label
+                        >
+                      </div>
+                      <div class="fr-checkbox-group fr-checkbox-group--sm">
+                        <input
+                          type="checkbox"
+                          id="chart-opt-mean"
+                          name="chart-opt-mean"
+                        />
+                        <label class="fr-label" for="chart-opt-mean"
+                          >📊 Tracer la ligne de moyenne</label
+                        >
+                      </div>
+                      <div class="fr-checkbox-group fr-checkbox-group--sm">
+                        <input
+                          type="checkbox"
+                          id="chart-opt-trend"
+                          name="chart-opt-trend"
+                        />
+                        <label class="fr-label" for="chart-opt-trend"
+                          >📈 Tracer la ligne de tendance (Régression)</label
+                        >
+                      </div>
+                      <div class="fr-checkbox-group fr-checkbox-group--sm">
+                        <input
+                          type="checkbox"
+                          id="chart-opt-moving"
+                          name="chart-opt-moving"
+                        />
+                        <label class="fr-label" for="chart-opt-moving"
+                          >🌊 Tracer la moyenne mobile (Période 3)</label
+                        >
+                      </div>
+                      <div class="fr-checkbox-group fr-checkbox-group--sm">
+                        <input
+                          type="checkbox"
+                          id="chart-opt-outliers"
+                          name="chart-opt-outliers"
+                        />
+                        <label class="fr-label" for="chart-opt-outliers"
+                          >🚨 Surligner les valeurs aberrantes (Rouge)</label
+                        >
+                      </div>
+                    </div>
+
+                    <label
+                      class="fr-label fr-mt-2w fr-text-title--blue-france fr-text--bold"
+                      >4. Palette de couleurs</label
+                    >
+                    <select
+                      class="fr-select"
+                      id="chart-select-palette"
+                    ></select>
+                  </div>
+
+                  <div class="fr-col-6">
+                    <label
+                      class="fr-label fr-text-title--blue-france fr-text--bold"
+                      >3. Valeurs à afficher</label
+                    >
+                    <p class="fr-hint-text">
+                      Vous pouvez sélectionner plusieurs indicateurs.
+                    </p>
+
+                    <div
+                      id="chart-metric-checkboxes"
+                      style="
+                        background: #f9f9f9;
+                        padding: 10px;
+                        border: 1px solid #ddd;
+                        max-height: 250px;
+                        overflow-y: auto;
+                        border-radius: 4px;
+                      "
+                    ></div>
+
+                    <div
+                      id="chart-pie-warning"
+                      class="fr-mt-2v fr-text-default--error fr-text--bold"
+                      style="display: none; font-size: 0.8rem"
+                    >
+                      <span class="fr-icon-warning-line"></span> Un camembert
+                      n'est lisible qu'avec 1 seule métrique sélectionnée.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="fr-modal__footer">
+                <button class="fr-btn" id="btn-save-chart-slide">
+                  Générer le graphique
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
 
     <div id="report-container"></div>
     <div id="d3-tooltip" class="d3-tooltip"></div>
 
     <div id="structure-panel" class="floating-bottom-bar">
-        <div class="fr-container-fluid">
-            <div class="structure-header"></div>
-            <div id="pages-list" class="page-list-container"></div>
-        </div>
+      <div class="fr-container-fluid">
+        <div class="structure-header"></div>
+        <div id="pages-list" class="page-list-container"></div>
+      </div>
     </div>
-    
-    <dialog id="modal-add-map" class="fr-modal" role="dialog" aria-labelledby="modal-add-map-title">
-    <div class="fr-container fr-container--fluid fr-container-md">
-        <div class="fr-grid-row fr-grid-row--center">
-            <div class="fr-col-12 fr-col-md-8 fr-col-lg-6">
-                <div class="fr-modal__body">
-                    <div class="fr-modal__header">
-                        <button class="fr-btn--close fr-btn" title="Fermer" aria-controls="modal-add-map">Fermer</button>
-                    </div>
-                    <div class="fr-modal__content">
-                        <h1 id="modal-add-map-title" class="fr-modal__title">Ajouter une carte unique</h1>
-                        
-                        <div class="fr-input-group">
-                            <label class="fr-label" for="select-map-type">Type de territoire</label>
-                             <select class="fr-select" id="select-map-type" onchange="updateMapTargetList()">
-                                <option value="" selected disabled>Choisir un type...</option>
-                                <option value="france_reg">France entière (par Régions)</option>
-                                <option value="france_dep">France entière (par Départements)</option>
-                                <option value="region">Région</option>
-                                <option value="delegation">Délégation personnalisée</option>
-                                <option value="department">Département</option>
-                                <option value="epci">EPCI</option>
-                            </select>
-                        </div>
-                        
-                        <div id="epci-filters" style="display: none; margin-bottom: 1.5rem; padding: 1rem; background-color: #f6f6f6; border-radius: 4px; border-left: 4px solid #000091;">
-                            <div class="fr-input-group" style="margin-bottom: 1rem;">
-                                <label class="fr-label" for="filter-epci-reg">Filtrer par Région (Optionnel)</label>
-                                <select class="fr-select" id="filter-epci-reg" onchange="updateEpciDepFilter()">
-                                    <option value="">Toutes les régions</option>
-                                </select>
-                            </div>
-                            <div class="fr-input-group" style="margin-bottom: 0;">
-                                <label class="fr-label" for="filter-epci-dep">Filtrer par Département (Optionnel)</label>
-                                <select class="fr-select" id="filter-epci-dep" onchange="populateEpciTargetList()">
-                                    <option value="">Tous les départements</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="fr-input-group">
-                            <label class="fr-label" for="select-map-target">Territoire cible</label>
-                            <select class="fr-select" id="select-map-target">
-                                </select>
-                        </div>
-                    </div>
-                    <div class="fr-modal__footer">
-                        <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline-reverse fr-btns-group--inline-lg fr-btns-group--icon-left">
-                            <li><button class="fr-btn fr-icon-check-line" onclick="confirmAddMapSlide()">Ajouter la carte</button></li>
-                            <li><button class="fr-btn fr-btn--secondary" aria-controls="modal-add-map">Annuler</button></li>
-                        </ul>
-                    </div>
+    <dialog
+      id="modal-add-map"
+      class="fr-modal"
+      role="dialog"
+      aria-labelledby="modal-add-map-title"
+    >
+      <div class="fr-container fr-container--fluid fr-container-md">
+        <div class="fr-grid-row fr-grid-row--center">
+          <div class="fr-col-12 fr-col-md-8 fr-col-lg-6">
+            <div class="fr-modal__body">
+              <div class="fr-modal__header">
+                <button
+                  class="fr-btn--close fr-btn"
+                  title="Fermer"
+                  aria-controls="modal-add-map"
+                >
+                  Fermer
+                </button>
+              </div>
+              <div class="fr-modal__content">
+                <h1 id="modal-add-map-title" class="fr-modal__title">
+                  Ajouter une carte unique
+                </h1>
+
+                <div class="fr-input-group">
+                  <label class="fr-label" for="select-map-type"
+                    >Type de territoire</label
+                  >
+                  <select
+                    class="fr-select"
+                    id="select-map-type"
+                    onchange="updateMapTargetList()"
+                  >
+                    <option value="" selected disabled>
+                      Choisir un type...
+                    </option>
+                    <option value="france_reg">
+                      France entière (par Régions)
+                    </option>
+                    <option value="france_dep">
+                      France entière (par Départements)
+                    </option>
+                    <option value="region">Région</option>
+                    <option value="delegation">Délégation personnalisée</option>
+                    <option value="department">Département</option>
+                    <option value="epci">EPCI</option>
+                  </select>
                 </div>
+
+                <div
+                  id="epci-filters"
+                  style="
+                    display: none;
+                    margin-bottom: 1.5rem;
+                    padding: 1rem;
+                    background-color: #f6f6f6;
+                    border-radius: 4px;
+                    border-left: 4px solid #000091;
+                  "
+                >
+                  <div class="fr-input-group" style="margin-bottom: 1rem">
+                    <label class="fr-label" for="filter-epci-reg"
+                      >Filtrer par Région (Optionnel)</label
+                    >
+                    <select
+                      class="fr-select"
+                      id="filter-epci-reg"
+                      onchange="updateEpciDepFilter()"
+                    >
+                      <option value="">Toutes les régions</option>
+                    </select>
+                  </div>
+                  <div class="fr-input-group" style="margin-bottom: 0">
+                    <label class="fr-label" for="filter-epci-dep"
+                      >Filtrer par Département (Optionnel)</label
+                    >
+                    <select
+                      class="fr-select"
+                      id="filter-epci-dep"
+                      onchange="populateEpciTargetList()"
+                    >
+                      <option value="">Tous les départements</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="fr-input-group">
+                  <label class="fr-label" for="select-map-target"
+                    >Territoire cible</label
+                  >
+                  <select class="fr-select" id="select-map-target"></select>
+                </div>
+              </div>
+              <div class="fr-modal__footer">
+                <ul
+                  class="fr-btns-group fr-btns-group--right fr-btns-group--inline-reverse fr-btns-group--inline-lg fr-btns-group--icon-left"
+                >
+                  <li>
+                    <button
+                      class="fr-btn fr-icon-check-line"
+                      onclick="confirmAddMapSlide()"
+                    >
+                      Ajouter la carte
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      class="fr-btn fr-btn--secondary"
+                      aria-controls="modal-add-map"
+                    >
+                      Annuler
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
-</dialog>
+      </div>
+    </dialog>
 
     <script src="libs/papaparse.min.js"></script>
     <script src="libs/d3.v7.min.js"></script>
     <script src="libs/topojson.v3.min.js"></script>
     <script src="libs/purify.min.js"></script>
-    <script type="module" src="libs/dsfr-v1.14.3/dist/dsfr/dsfr.module.min.js"></script>
+    <script
+      type="module"
+      src="libs/dsfr-v1.14.3/dist/dsfr/dsfr.module.min.js"
+    ></script>
     <script src="libs/chart.min.js"></script>
     <script type="module" src="js/chart-components.js"></script>
     <script type="module" src="js/main.js"></script>
-    
-</body>
-
+  </body>
 </html>
