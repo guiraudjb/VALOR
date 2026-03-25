@@ -12,18 +12,17 @@ echo "Appuyez sur [ENTRÉE] dans ce terminal pour arrêter le serveur."
 echo "--------------------------------------------------"
 
 # 1. Lancer le serveur HTTP en arrière-plan
-# On utilise Python qui est natif sur macOS et Linux
+# CORRECTIF BUG 1 : On appelle server.py au lieu du module natif défaillant
 if command -v python3 &>/dev/null; then
-    python3 -m http.server $PORT > /dev/null 2>&1 &
+    python3 server.py > /dev/null 2>&1 &
     SERVER_PID=$!
 elif command -v python &>/dev/null; then
-    python -m SimpleHTTPServer $PORT > /dev/null 2>&1 &
+    python server.py > /dev/null 2>&1 &
     SERVER_PID=$!
 else
     echo "Erreur : Python n'est pas installé sur ce système."
     exit 1
 fi
-
 # Attendre une petite seconde pour que le serveur soit bien en écoute
 sleep 1
 

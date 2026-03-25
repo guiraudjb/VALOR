@@ -213,11 +213,20 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
 
                     // 2. Remplacement des noms de colonnes par les valeurs numériques
                     appState.availableMetrics.forEach(metric => {
-                        const v = obj[metric] || 0;
-                        const safeMetric = metric.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        // AJOUT : On encadre la valeur par des parenthèses pour protéger les nombres négatifs (ex: "-5")
-                        expression = expression.replace(new RegExp(`\\[${safeMetric}\\]`, 'g'), `(${v})`);
-                    });
+							const v = obj[metric] || 0;
+							const safeMetric = metric.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+							
+							// CORRECTIF BUG 4 : Forcer le formatage classique sans "e" (notation scientifique)
+							// On utilise 'en-US' pour garantir la présence du point décimal requis par l'interpréteur
+							let safeNumStr = Number(v).toLocaleString('en-US', { 
+								useGrouping: false, 
+								maximumFractionDigits: 15 
+							});
+							
+							// On encadre la valeur par des parenthèses pour protéger les nombres négatifs
+							expression = expression.replace(new RegExp(`\\[${safeMetric}\\]`, 'g'), `(${safeNumStr})`);
+						});
+                    
 
                     // 3. Sécurité : on ne garde strictement que les chiffres et opérateurs de base
                     const sanitized = expression.replace(/[^-+*/().0-9]/g, '');
@@ -611,7 +620,7 @@ export function generateTablePages(page, features, dataMap, config, granularity)
                 // NOUVEAU : nom_officiel et protection DROM (startsWith 97)
                 name = appState.refData.communes.get(code) || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
                 //const depCode = appState.refData.comToDep?.get(code) || (code.startsWith('97') ? code.substring(0, 3) : (code || "").substring(0, 2));
-                const depCode = getDepFromCom(d.code, appState);
+                const depCode = getDepFromCom(code, appState);
                 parent = DEP_NAMES[depCode] || depCode;
             } else if (granularity === 'dep') {
                 name = DEP_NAMES[code] || f.properties.nom_officiel || f.properties.libelle || f.properties.nom || code;
@@ -739,6 +748,9 @@ window.togglePageLock = (index) => {
         // 3. On stocke le tout DANS la page
         page.snapshotData = Array.from(dataMap.entries()); // Conversion Map -> Array pour stockage
         page.snapshotConfig = JSON.parse(JSON.stringify(currentConfig)); // Copie profonde de la config
+        
+        // CORRECTIF BUG 3 : On purge le logo Base64 du snapshot pour libérer la RAM
+        delete page.snapshotConfig.globalLogo;
         
         // 4. Mise à jour de l'interface
         updatePagesListUI();

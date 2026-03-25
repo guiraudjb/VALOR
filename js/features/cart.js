@@ -250,7 +250,7 @@ function getEntityInfo(code, granularity) {
     if (granularity === 'com') {
         name = appState.refData.communes.get(code) || code;
         //const depCode = appState.refData.comToDep?.get(code) || (code.startsWith('97') ? code.substring(0,3) : code.substring(0,2));
-        const depCode = getDepFromCom(d.code, appState);
+        const depCode = getDepFromCom(code, appState); 
         parent = DEP_NAMES[depCode] || depCode;
     } else if (granularity === 'dep') {
         name = DEP_NAMES[code] || code;
