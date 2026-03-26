@@ -275,4 +275,13 @@ body { margin: 0; padding: 0; padding-bottom: 250px; background: white; font-fam
         padding: 0 !important;
         background-color: transparent !important;
     }
+    .annotation-toolbar {
+        display: none !important;
+    }
+
+    /* Optionnel : Masque aussi les poignées de contrôle (déplacer/supprimer) */
+    .annotations-layer g[style*="cursor: move"], 
+    .annotations-layer g[style*="cursor: pointer"] {
+        display: none !important;
+    }
 }

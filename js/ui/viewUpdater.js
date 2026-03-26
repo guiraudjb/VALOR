@@ -262,7 +262,7 @@ export function updateMetricControls() {
     }
     // 5. GESTION CLASSIQUE (Simple, Somme, Moyenne, Palmarès)
     else {
-      const isMulti = ["sum", "avg"].includes(mode);
+      const isMulti = ["sum", "avg","median"].includes(mode);
       const inputType = isMulti ? "checkbox" : "radio";
 
       if (hint) {

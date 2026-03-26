@@ -346,6 +346,7 @@ export function drawD3Map(
         let prefix = "";
         if (config.calcMode === "sum") prefix = "Σ:";
         else if (config.calcMode === "avg") prefix = "Moy:";
+        else if (config.calcMode === 'median') prefix = "Med:";
         else if (config.calcMode === "ratio") prefix = "R:";
         else if (config.calcMode === "growth") prefix = "Évol:";
         else if (config.calcMode === "share") prefix = "Part:";
@@ -466,4 +467,318 @@ export function drawD3Map(
       .style("fill", (d) => getContrastStyle(d.bgColor).fill)
       .text((d) => d.text);
   }
+    // ==========================================
+    // NOUVEAU : COUCHE D'ANNOTATIONS VECTORIELLES (V12 - Support total Icônes & Pictogrammes)
+    // ==========================================
+    
+    // --- 1. GESTION GLOBALE DE LA MODALE D'ICÔNES POUR LA CARTE ---
+    if (!window.mapIconPickerListenerAdded) {
+        window.mapIconPickerListenerAdded = true;
+        // L'état stocke désormais un objet pour savoir si c'est une classe ou une image
+        window.activeMapIconData = { type: 'class', value: 'fr-icon-map-pin-2-fill' }; 
+        
+        window.openMapIconPicker = function(pageId) {
+            window.mapIconPickerActive = true;
+            window.currentMapPageId = pageId;
+            
+            if (typeof window.openIconPicker === 'function') {
+                window.openIconPicker(); 
+            }
+            
+            const modal = document.getElementById('modal-dsfr-icons');
+            if (modal) {
+                if (typeof modal.showModal === 'function' && !modal.open) modal.showModal();
+                modal.classList.add('fr-modal--opened');
+            }
+        };
+
+        // Intercepteur intelligent
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('modal-dsfr-icons');
+            if (window.mapIconPickerActive && modal && modal.contains(e.target)) {
+                
+                if (e.target.closest('.fr-btn--close')) {
+                    window.mapIconPickerActive = false; return;
+                }
+
+                const grid = document.getElementById('icon-picker-grid');
+                if (!grid || !grid.contains(e.target)) return; 
+
+                let iconData = null;
+                let el = e.target;
+                
+                // On remonte l'arbre DOM pour trouver ce sur quoi l'utilisateur a cliqué
+                while (el && el !== grid) {
+                    // Test 1 : Est-ce une image (Pictogramme) ?
+                    if (el.tagName === 'IMG' && el.getAttribute('src')) {
+                        iconData = { type: 'src', value: el.getAttribute('src') }; break;
+                    }
+                    const imgChild = el.querySelector('img');
+                    if (imgChild && imgChild.getAttribute('src')) {
+                        iconData = { type: 'src', value: imgChild.getAttribute('src') }; break;
+                    }
+
+                    // Test 2 : Est-ce une classe CSS (Icône simple) ?
+                    let classStr = typeof el.className === 'string' ? el.className : (el.getAttribute('class') || '');
+                    let match = classStr.match(/(?:fr\-icon\-|fr\-fi\-)(?!-)[a-zA-Z0-9\-]+/); // Regex précise
+                    if (match) { iconData = { type: 'class', value: match[0] }; break; }
+                    
+                    const classChild = el.querySelector('[class*="fr-icon-"], [class*="fr-fi-"]');
+                    if (classChild) {
+                        let childClassStr = typeof classChild.className === 'string' ? classChild.className : (classChild.getAttribute('class') || '');
+                        let matchChild = childClassStr.match(/(?:fr\-icon\-|fr\-fi\-)(?!-)[a-zA-Z0-9\-]+/);
+                        if (matchChild) { iconData = { type: 'class', value: matchChild[0] }; break; }
+                    }
+
+                    el = el.parentElement;
+                }
+
+                if (iconData) {
+                    e.preventDefault(); e.stopPropagation(); // On bloque l'éditeur WYSIWYG
+
+                    window.activeMapIconData = iconData;
+                    
+                    // Mise à jour visuelle des boutons selon le type trouvé
+                    const btnClass = iconData.type === 'class' ? iconData.value : 'fr-icon-image-fill';
+                    const btnChoose = document.querySelector(`.btn-choose-map-icon[data-page-id="${window.currentMapPageId}"]`);
+                    if (btnChoose) btnChoose.className = `fr-btn fr-btn--sm fr-btn--secondary ${btnClass} btn-choose-map-icon`;
+                    
+                    const btnMain = document.querySelector(`.btn-draw-icon[data-page-id="${window.currentMapPageId}"]`);
+                    if (btnMain) btnMain.className = `fr-btn fr-btn--sm fr-btn--secondary ${btnClass} btn-draw-icon`;
+
+                    modal.classList.remove('fr-modal--opened');
+                    if (typeof modal.close === 'function') modal.close();
+                    
+                    window.mapIconPickerActive = false;
+                }
+            }
+        }, true);
+    }
+
+    // --- 2. DÉFINITION DES POINTEURS ---
+    const defs = svg.append("defs");
+    defs.append("marker").attr("id", "arrowhead-dark").attr("viewBox", "0 -5 10 10").attr("refX", 8).attr("refY", 0).attr("orient", "auto").attr("markerWidth", 6).attr("markerHeight", 6).append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "#000091");
+    defs.append("marker").attr("id", "arrowhead-light").attr("viewBox", "0 -5 10 10").attr("refX", 8).attr("refY", 0).attr("orient", "auto").attr("markerWidth", 6).attr("markerHeight", 6).append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "#FFFFFF");
+
+    const annotationsGroup = svg.append("g").attr("class", "annotations-layer");
+
+    let isDraggingAnno = false; let draggingAnnoIndex = null; let dragStartMouse = null; let dragStartAnnoCoords = null;
+
+    // --- 3. FONCTION DE RENDU ---
+    function renderAnnotations() {
+        annotationsGroup.selectAll("*").remove();
+        if (!pageData.annotations) pageData.annotations = [];
+
+        pageData.annotations.forEach((anno, index) => {
+            const strokeColor = anno.color || "#000091";
+            const inverseColor = strokeColor === "#FFFFFF" ? "rgba(0,0,145,0.6)" : "rgba(255,255,255,0.8)";
+            let textHalo = `-2px -2px 2px ${inverseColor}, 2px -2px 2px ${inverseColor}, -2px 2px 2px ${inverseColor}, 2px 2px 2px ${inverseColor}, 0 0 5px ${inverseColor}`;
+            let controlX = 0; let controlY = 0; let drawSuccess = false;
+
+            if (anno.type === "shape" || anno.type === "circle") {
+                const coords = projection([anno.x, anno.y]);
+                if (coords) {
+                    drawSuccess = true; controlX = coords[0] + 15; controlY = coords[1] - 15;
+                    const shape = anno.shape || "circle";
+                    const gShape = annotationsGroup.append("g").attr("transform", `translate(${coords[0]}, ${coords[1]})`);
+                    const drawShape = (sel, color, width, isHalo) => {
+                        const dash = isHalo ? "none" : (shape === "circle" || shape === "rect" ? "5,5" : "none");
+                        if (shape === "circle") sel.append("circle").attr("r", 20).attr("fill", "none").attr("stroke", color).attr("stroke-width", width).attr("stroke-dasharray", dash);
+                        else if (shape === "rect") sel.append("rect").attr("x", -18).attr("y", -18).attr("width", 36).attr("height", 36).attr("fill", "none").attr("stroke", color).attr("stroke-width", width).attr("stroke-dasharray", dash);
+                        else if (shape === "star") sel.append("path").attr("d", "M 0 -20 L 5.88 -5.88 L 20 -5.88 L 8.56 2.94 L 12.94 18.04 L 0 9.4 L -12.94 18.04 L -8.56 2.94 L -20 -5.88 L -5.88 -5.88 Z").attr("fill", "none").attr("stroke", color).attr("stroke-width", width).attr("stroke-linejoin", "round");
+                        else if (shape === "check") sel.append("path").attr("d", "M -15 0 L -5 10 L 15 -15").attr("fill", "none").attr("stroke", color).attr("stroke-width", width).attr("stroke-linecap", "round").attr("stroke-linejoin", "round");
+                    };
+                    drawShape(gShape, inverseColor, 6, true); drawShape(gShape, strokeColor, 3, false);
+                }
+            } else if (anno.type === "arrow") {
+                const start = projection([anno.startX, anno.startY]); const end = projection([anno.endX, anno.endY]);
+                if (start && end) {
+                    drawSuccess = true; controlX = start[0]; controlY = start[1] - 15;
+                    const marker = anno.marker || "url(#arrowhead-dark)";
+                    annotationsGroup.append("line").attr("x1", start[0]).attr("y1", start[1]).attr("x2", end[0]).attr("y2", end[1]).attr("stroke", inverseColor).attr("stroke-width", 6);
+                    annotationsGroup.append("line").attr("x1", start[0]).attr("y1", start[1]).attr("x2", end[0]).attr("y2", end[1]).attr("stroke", strokeColor).attr("stroke-width", 3).attr("marker-end", marker);
+                }
+            } else if (anno.type === "text") {
+                const coords = projection([anno.x, anno.y]);
+                if (coords) {
+                    drawSuccess = true; controlX = coords[0] + 90; controlY = coords[1] - 15;
+                    const fSize = anno.fontSize || "1rem"; const bStyle = anno.borderStyle || "none";
+                    let bgCss = "transparent", borderCss = "none", borderRadius = "0px", paddingCss = "0px";
+                    if (bStyle !== "none") { bgCss = "rgba(255, 255, 255, 0.85)"; borderCss = `2px solid ${strokeColor}`; paddingCss = "6px 12px"; textHalo = "none"; borderRadius = bStyle === "round" ? "20px" : "4px"; }
+
+                    const fo = annotationsGroup.append("foreignObject").attr("x", coords[0] - 100).attr("y", coords[1] - 15).attr("width", 200).attr("height", 150).style("overflow", "visible");
+                    fo.append("xhtml:div")
+                        .style("background-color", bgCss).style("color", strokeColor).style("text-shadow", textHalo).style("border", borderCss).style("border-radius", borderRadius).style("padding", paddingCss)
+                        .style("font-weight", "bold").style("text-align", "center").style("font-size", fSize).style("font-family", "Marianne, Arial, sans-serif").style("outline", "none")
+                        .style("cursor", currentDrawMode === 'none' ? "default" : "text").style("min-width", "50px").style("min-height", "30px").style("display", "inline-block")
+                        .attr("contenteditable", currentDrawMode === 'none' ? "false" : "true").html(anno.content || "Texte...")
+                        .on("input", function() { anno.content = this.innerHTML; if (window.markAsDirty) window.markAsDirty(); })
+                        .on("mousedown", function(e) { e.stopPropagation(); });
+                }
+            } else if (anno.type === "icon") {
+                // --- INTÉGRATION INTELLIGENTE DES PICTOGRAMMES ET ICÔNES ---
+                const coords = projection([anno.x, anno.y]);
+                if (coords) {
+                    drawSuccess = true; controlX = coords[0] + 15; controlY = coords[1] - 25; 
+                    const iSize = anno.iconSize || "2.5rem"; 
+                    const iconData = anno.iconData || { type: 'class', value: 'fr-icon-map-pin-2-fill' };
+
+                    const fo = annotationsGroup.append("foreignObject")
+                        .attr("x", coords[0] - 50).attr("y", coords[1] - 50)
+                        .attr("width", 100).attr("height", 100).style("overflow", "visible");
+
+                    const wrapper = fo.append("xhtml:div")
+                        .style("display", "flex").style("justify-content", "center").style("align-items", "center")
+                        .style("width", "100%").style("height", "100%").style("pointer-events", "none");
+
+                    if (iconData.type === 'class') {
+                        // Rendu d'une icône CSS (Police)
+                        wrapper.append("xhtml:span")
+                            .attr("class", iconData.value).style("color", strokeColor).style("text-shadow", textHalo).style("font-size", iSize);
+                    } else if (iconData.type === 'src') {
+                        // Rendu d'un Pictogramme (Image)
+                        const filterDropShadow = strokeColor === "#FFFFFF" ? "drop-shadow(0px 0px 4px rgba(0,0,145,0.6))" : "drop-shadow(0px 0px 4px rgba(255,255,255,0.8))";
+                        wrapper.append("xhtml:img")
+                            .attr("src", iconData.value).style("width", iSize).style("height", iSize).style("object-fit", "contain").style("filter", filterDropShadow);
+                    }
+                }
+            }
+
+            // Poignées de contrôle
+            if (drawSuccess && currentDrawMode === 'none') {
+                const controls = annotationsGroup.append("g").attr("transform", `translate(${controlX}, ${controlY})`);
+                const btnMove = controls.append("g").style("cursor", "move").on("mousedown", (e) => { e.stopPropagation(); isDraggingAnno = true; draggingAnnoIndex = index; dragStartMouse = window.d3.pointer(e, svg.node()); dragStartAnnoCoords = JSON.parse(JSON.stringify(anno)); });
+                btnMove.append("circle").attr("cx", -22).attr("cy", 0).attr("r", 9).attr("fill", "#000091").attr("stroke", "white").attr("stroke-width", 2);
+                btnMove.append("text").text("☩").attr("x", -22).attr("y", 4).attr("fill", "white").attr("text-anchor", "middle").style("font-size", "12px").style("font-weight", "bold").style("pointer-events", "none");
+                const btnDel = controls.append("g").style("cursor", "pointer").on("mousedown", (e) => { e.stopPropagation(); pageData.annotations.splice(index, 1); renderAnnotations(); if (window.markAsDirty) window.markAsDirty(); });
+                btnDel.append("circle").attr("cx", 0).attr("cy", 0).attr("r", 9).attr("fill", "#ce0500").attr("stroke", "white").attr("stroke-width", 2);
+                btnDel.append("text").text("×").attr("x", 0).attr("y", 3).attr("fill", "white").attr("text-anchor", "middle").style("font-size", "14px").style("font-weight", "bold").style("pointer-events", "none");
+            }
+        });
+    }
+
+    // --- 4. INTERACTIONS ---
+    let currentDrawMode = 'none'; let isDrawingArrow = false; let dragStartCoords = null; let tempArrow = null; let tempBgArrow = null;
+    let activeColor = "#000091"; let activeMarker = "url(#arrowhead-dark)"; let activeInverse = "rgba(255,255,255,0.7)";
+
+    const btnPointer = document.querySelector(`.btn-draw-pointer[data-page-id="${pageData.id}"]`);
+    const btnShape = document.querySelector(`.btn-draw-shape[data-page-id="${pageData.id}"]`);
+    const btnArrow = document.querySelector(`.btn-draw-arrow[data-page-id="${pageData.id}"]`);
+    const btnText = document.querySelector(`.btn-draw-text[data-page-id="${pageData.id}"]`);
+    const btnIcon = document.querySelector(`.btn-draw-icon[data-page-id="${pageData.id}"]`);
+    const selShape = document.querySelector(`.shape-type-select[data-page-id="${pageData.id}"]`);
+    const selSize = document.querySelector(`.text-size-select[data-page-id="${pageData.id}"]`);
+    const selBorder = document.querySelector(`.text-border-select[data-page-id="${pageData.id}"]`);
+    const grpIconOpts = document.querySelector(`.icon-options-group[data-page-id="${pageData.id}"]`); 
+    const selIconSize = document.querySelector(`.icon-size-select[data-page-id="${pageData.id}"]`); 
+    const btnClear = document.querySelector(`.btn-clear-draw[data-page-id="${pageData.id}"]`);
+
+    function updateButtonsUI() {
+        if (btnPointer) { btnPointer.classList.toggle("fr-btn--secondary", currentDrawMode === 'none'); btnPointer.classList.toggle("fr-btn--tertiary-no-outline", currentDrawMode !== 'none'); }
+        if (btnShape) { btnShape.classList.toggle("fr-btn--secondary", currentDrawMode === 'shape'); btnShape.classList.toggle("fr-btn--tertiary-no-outline", currentDrawMode !== 'shape'); }
+        if (btnArrow) { btnArrow.classList.toggle("fr-btn--secondary", currentDrawMode === 'arrow'); btnArrow.classList.toggle("fr-btn--tertiary-no-outline", currentDrawMode !== 'arrow'); }
+        if (btnText) { btnText.classList.toggle("fr-btn--secondary", currentDrawMode === 'text'); btnText.classList.toggle("fr-btn--tertiary-no-outline", currentDrawMode !== 'text'); }
+        if (btnIcon) { btnIcon.classList.toggle("fr-btn--secondary", currentDrawMode === 'icon'); btnIcon.classList.toggle("fr-btn--tertiary-no-outline", currentDrawMode !== 'icon'); }
+        if (selShape) selShape.style.display = currentDrawMode === 'shape' ? 'block' : 'none';
+        if (selSize) selSize.style.display = currentDrawMode === 'text' ? 'block' : 'none';
+        if (selBorder) selBorder.style.display = currentDrawMode === 'text' ? 'block' : 'none';
+        if (grpIconOpts) grpIconOpts.style.display = currentDrawMode === 'icon' ? 'flex' : 'none';
+        svg.style("cursor", currentDrawMode !== 'none' ? "crosshair" : "default");
+        renderAnnotations();
+    }
+
+    if (btnPointer && btnShape && btnArrow && btnText && btnIcon && btnClear) {
+        btnPointer.onclick = () => { currentDrawMode = 'none'; updateButtonsUI(); };
+        btnShape.onclick = () => { currentDrawMode = 'shape'; updateButtonsUI(); };
+        btnArrow.onclick = () => { currentDrawMode = 'arrow'; updateButtonsUI(); };
+        btnText.onclick = () => { currentDrawMode = 'text'; updateButtonsUI(); };
+        btnIcon.onclick = () => { currentDrawMode = 'icon'; updateButtonsUI(); };
+        btnClear.onclick = () => { pageData.annotations = []; renderAnnotations(); if (window.markAsDirty) window.markAsDirty(); };
+
+        updateButtonsUI();
+
+        svg.on("mousedown", function(event) {
+            if (currentDrawMode === 'none') return; 
+            const [mouseX, mouseY] = window.d3.pointer(event, this);
+            const geoCoords = projection.invert([mouseX, mouseY]);
+            if (!geoCoords) return;
+
+            activeColor = "#000091"; activeMarker = "url(#arrowhead-dark)"; activeInverse = "rgba(255,255,255,0.7)";
+            const feature = window.d3.select(event.target).datum();
+            if (feature && feature.properties) {
+                const code = getCodeFromFeature(feature, granularity);
+                const dataObj = dataMap.get(code);
+                if (dataObj && dataObj._inSelection && dataObj._computed !== undefined) {
+                    const contrast = getContrastStyle(colorScale(dataObj._computed));
+                    activeColor = contrast.fill;
+                    if (activeColor === "#FFFFFF") { activeMarker = "url(#arrowhead-light)"; activeInverse = "rgba(0,0,145,0.6)"; }
+                }
+            }
+
+            if (currentDrawMode === 'shape') {
+                const activeShape = selShape ? selShape.value : "circle";
+                if (!pageData.annotations) pageData.annotations = [];
+                pageData.annotations.push({ type: "shape", shape: activeShape, x: geoCoords[0], y: geoCoords[1], color: activeColor });
+                renderAnnotations(); if (window.markAsDirty) window.markAsDirty();
+            } else if (currentDrawMode === 'arrow') {
+                isDrawingArrow = true; dragStartCoords = geoCoords;
+                tempBgArrow = annotationsGroup.append("line").attr("x1", mouseX).attr("y1", mouseY).attr("x2", mouseX).attr("y2", mouseY).attr("stroke", activeInverse).attr("stroke-width", 6);
+                tempArrow = annotationsGroup.append("line").attr("x1", mouseX).attr("y1", mouseY).attr("x2", mouseX).attr("y2", mouseY).attr("stroke", activeColor).attr("stroke-width", 3).attr("marker-end", activeMarker);
+            } else if (currentDrawMode === 'text') {
+                const activeFontSize = selSize ? selSize.value : "1rem"; const activeBorderStyle = selBorder ? selBorder.value : "none";
+                if (!pageData.annotations) pageData.annotations = [];
+                pageData.annotations.push({ type: "text", x: geoCoords[0], y: geoCoords[1], content: "", color: activeColor, fontSize: activeFontSize, borderStyle: activeBorderStyle });
+                currentDrawMode = 'text'; renderAnnotations(); if (window.markAsDirty) window.markAsDirty();
+            } else if (currentDrawMode === 'icon') {
+                // On récupère désormais l'objet complet (classe CSS ou lien de l'image)
+                const activeData = window.activeMapIconData || { type: 'class', value: 'fr-icon-map-pin-2-fill' };
+                const activeIconSize = selIconSize ? selIconSize.value : "2.5rem";
+                if (!pageData.annotations) pageData.annotations = [];
+                pageData.annotations.push({ 
+                    type: "icon", 
+                    iconData: activeData, 
+                    iconSize: activeIconSize, 
+                    x: geoCoords[0], y: geoCoords[1], color: activeColor 
+                });
+                renderAnnotations(); if (window.markAsDirty) window.markAsDirty();
+            }
+        });
+
+        svg.on("mousemove", function(event) {
+            if (isDraggingAnno && draggingAnnoIndex !== null) {
+                const [mouseX, mouseY] = window.d3.pointer(event, this);
+                const dx = mouseX - dragStartMouse[0]; const dy = mouseY - dragStartMouse[1];
+                const anno = pageData.annotations[draggingAnnoIndex]; const orig = dragStartAnnoCoords;
+                if (anno.type === 'shape' || anno.type === 'circle' || anno.type === 'text' || anno.type === 'icon') {
+                     const origScreen = projection([orig.x, orig.y]);
+                     const newGeo = projection.invert([origScreen[0] + dx, origScreen[1] + dy]);
+                     anno.x = newGeo[0]; anno.y = newGeo[1];
+                } else if (anno.type === 'arrow') {
+                     const origStartScreen = projection([orig.startX, orig.startY]); const origEndScreen = projection([orig.endX, orig.endY]);
+                     const newStartGeo = projection.invert([origStartScreen[0] + dx, origStartScreen[1] + dy]); const newEndGeo = projection.invert([origEndScreen[0] + dx, origEndScreen[1] + dy]);
+                     anno.startX = newStartGeo[0]; anno.startY = newStartGeo[1]; anno.endX = newEndGeo[0]; anno.endY = newEndGeo[1];
+                }
+                renderAnnotations(); return;
+            }
+            if (isDrawingArrow && tempArrow) {
+                const [mouseX, mouseY] = window.d3.pointer(event, this);
+                if(tempBgArrow) tempBgArrow.attr("x2", mouseX).attr("y2", mouseY); tempArrow.attr("x2", mouseX).attr("y2", mouseY);
+            }
+        });
+
+        svg.on("mouseup", function(event) {
+            if (isDraggingAnno) { isDraggingAnno = false; draggingAnnoIndex = null; if (window.markAsDirty) window.markAsDirty(); return; }
+            if (isDrawingArrow) {
+                isDrawingArrow = false;
+                if (tempArrow) { tempArrow.remove(); tempArrow = null; }
+                if (tempBgArrow) { tempBgArrow.remove(); tempBgArrow = null; }
+                const [mouseX, mouseY] = window.d3.pointer(event, this); const dragEndCoords = projection.invert([mouseX, mouseY]);
+                if (dragStartCoords && dragEndCoords && (dragStartCoords[0] !== dragEndCoords[0] || dragStartCoords[1] !== dragEndCoords[1])) {
+                    if (!pageData.annotations) pageData.annotations = [];
+                    pageData.annotations.push({ type: "arrow", startX: dragStartCoords[0], startY: dragStartCoords[1], endX: dragEndCoords[0], endY: dragEndCoords[1], color: activeColor, marker: activeMarker });
+                    renderAnnotations(); if (window.markAsDirty) window.markAsDirty();
+                }
+            }
+        });
+    }
 }

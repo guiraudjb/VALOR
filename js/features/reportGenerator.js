@@ -11,6 +11,8 @@ import { setupScrollTracking } from "../ui/domEvents.js";
 import { drawD3Map } from "../render/mapRenderer.js";
 import { REGIONS_LIST, DEP_NAMES, REG_NAMES } from "../config/constants.js";
 import { PALETTE_SCALES } from "../config/palettes.js";
+// ---> Ajoutez l'import pour la médiane ici :
+import { getMedian } from "../utils/data-analytics.js";
 
 export function getBrandHtml(config) {
   const b1 = config.brand1 || "";
@@ -237,6 +239,12 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
         val =
           config.selectedMetrics.reduce((s, m) => s + (obj[m] || 0), 0) /
           config.selectedMetrics.length;
+      else if (mode === "median") {
+            // On extrait les valeurs des colonnes sélectionnées dans un tableau
+            const values = config.selectedMetrics.map(m => obj[m] || 0);
+            // On utilise votre fonction !
+            val = getMedian(values);
+        }
       else if (mode === "dev_abs") val = (obj[m1] || 0) - refAvg;
       else if (mode === "dev_pct")
         val = refAvg ? (((obj[m1] || 0) - refAvg) / Math.abs(refAvg)) * 100 : 0;
@@ -491,7 +499,45 @@ export function renderPageItem(page, config, dataMap, container) {
                     <div id="subtotal-${uid}" class="kpi-subtotal" style="display:none"><div class="kpi-label">TOTAL VUE</div><div class="kpi-value">-</div></div>
                     <p style="font-size:0.8rem; margin-top:10px; color:#666;">Niveau : ${getGranularityLabel(granularity)}</p>
                 </div>
-                <div class="main-content"><div class="map-container" id="${uid}"></div></div>
+                
+                <div class="main-content" style="position: relative;">
+                    <div class="annotation-toolbar" style="position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(255,255,255,0.9); padding: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border-radius: 4px; display: flex; align-items: center; gap: 5px;">
+                        
+                        <button class="fr-btn fr-btn--sm fr-btn--secondary fr-icon-cursor-line btn-draw-pointer" data-page-id="${page.id}" title="Sélectionner / Déplacer"></button>
+                        <div style="width: 1px; height: 24px; background-color: #e5e5e5; margin: 0 4px;"></div>
+
+                        <button class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-edit-line btn-draw-shape" data-page-id="${page.id}" title="Ajouter une forme"></button>
+                        <button class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-arrow-right-line btn-draw-arrow" data-page-id="${page.id}" title="Tracer une flèche"></button>
+                        <button class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-file-text-line btn-draw-text" data-page-id="${page.id}" title="Ajouter du texte"></button>
+                        
+                        <button class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-map-pin-2-fill btn-draw-icon" data-page-id="${page.id}" title="Ajouter une icône"></button>
+                        
+                        <select class="fr-select shape-type-select" data-page-id="${page.id}" style="display: none; width: 90px; height: 32px; padding: 0 5px; font-size: 0.8rem; margin: 0; min-height: 32px;" title="Forme">
+                            <option value="circle" selected>Cercle</option><option value="rect">Carré</option><option value="star">Étoile</option><option value="check">Coche</option>
+                        </select>
+                        <select class="fr-select text-size-select" data-page-id="${page.id}" style="display: none; width: 75px; height: 32px; padding: 0 5px; font-size: 0.8rem; margin: 0; min-height: 32px;" title="Taille">
+                            <option value="0.8rem">Petit</option><option value="1rem" selected>Moyen</option><option value="1.5rem">Grand</option>
+                        </select>
+                        <select class="fr-select text-border-select" data-page-id="${page.id}" style="display: none; width: 85px; height: 32px; padding: 0 5px; font-size: 0.8rem; margin: 0; min-height: 32px;" title="Cadre">
+                            <option value="none" selected>Sans</option><option value="rect">Carré</option><option value="round">Rond</option>
+                        </select>
+                        
+                        <div class="icon-options-group" data-page-id="${page.id}" style="display: none; align-items: center; gap: 5px;">
+                            <button class="fr-btn fr-btn--sm fr-btn--secondary fr-icon-map-pin-2-fill btn-choose-map-icon" data-page-id="${page.id}" title="Parcourir la bibliothèque DSFR" onclick="window.openMapIconPicker('${page.id}')">Choisir</button>
+                            <select class="fr-select icon-size-select" data-page-id="${page.id}" style="width: 85px; height: 32px; padding: 0 5px; font-size: 0.8rem; margin: 0; min-height: 32px;" title="Taille de l'icône">
+                                <option value="1.5rem">Petit</option>
+                                <option value="2.5rem" selected>Moyen</option>
+                                <option value="4rem">Grand</option>
+                                <option value="6rem">Géant</option>
+                            </select>
+                        </div>
+
+                        <button class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-delete-line btn-clear-draw" data-page-id="${page.id}" style="color: #ce0500;" title="Effacer tout"></button>
+                    </div>
+                    
+                    <div class="map-container" id="${uid}"></div>
+                </div>
+                
             </div>
         
             <div class="page-footer"><span>${config.footerLeft}</span><span>${config.footerRight}</span></div>`;
