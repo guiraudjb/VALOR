@@ -66,7 +66,7 @@ export function getFeaturesForPage(pageData, granularity, appState) {
             (appState.refData.comToDep
               ? appState.refData.comToDep.get(comCode)
               : null) ||
-            (comCode.startsWith("97")
+            (comCode.startsWith("97") || comCode.startsWith("98")
               ? comCode.substring(0, 3)
               : comCode.substring(0, 2));
         }
@@ -87,7 +87,7 @@ export function getFeaturesForPage(pageData, granularity, appState) {
             (appState.refData.comToDep
               ? appState.refData.comToDep.get(comCode)
               : null) ||
-            (comCode.startsWith("97")
+            (comCode.startsWith("97") || comCode.startsWith("98")
               ? comCode.substring(0, 3)
               : comCode.substring(0, 2));
         }
@@ -119,7 +119,7 @@ export function getDepFromCom(comCode, appState) {
   // Utilise le référentiel en priorité, sinon applique la règle métier INSEE
   return (
     appState.refData.comToDep?.get(strCode) ||
-    (strCode.startsWith("97")
+    (strCode.startsWith("97") || strCode.startsWith("98")
       ? strCode.substring(0, 3)
       : strCode.substring(0, 2))
   );

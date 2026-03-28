@@ -174,7 +174,7 @@ export function getAggregatedDataMap(targetGranularity, page, config) {
       if (appState.sourceGranularity === "com" && targetGranularity === "dep") {
         targetCode =
           appState.refData.comToDep?.get(d.code) ||
-          (d.code.startsWith("97")
+          (d.code.startsWith("97") || d.code.startsWith("98")
             ? d.code.substring(0, 3)
             : d.code.substring(0, 2));
       } else if (
@@ -1096,7 +1096,7 @@ window.populateEpciTargetList = () => {
           const comDep =
             appState.refData.comToDep?.get(comCode) ||
             (comCode
-              ? comCode.startsWith("97")
+              ? (comCode.startsWith("97") || comCode.startsWith("98"))
                 ? comCode.substring(0, 3)
                 : comCode.substring(0, 2)
               : null);

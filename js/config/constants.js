@@ -22,7 +22,13 @@ export const REG_NAMES = {
   "02": "MARTINIQUE",
   "03": "GUYANE",
   "04": "LA REUNION",
+  "05": "SAINT-PIERRE-ET-MIQUELON",
   "06": "MAYOTTE",
+  "07": "SAINT-BARTHELEMY",
+  "08": "SAINT-MARTIN",
+  "09": "WALLIS-ET-FUTUNA",
+  "10": "POLYNESIE FRANCAISE",
+  "12": "NOUVELLE-CALEDONIE" // (Le 11 est déjà pris par l'Île-de-France)
 };
 
 export const DEP_NAMES = {
@@ -126,7 +132,15 @@ export const DEP_NAMES = {
   972: "MARTINIQUE",
   973: "GUYANE",
   974: "LA REUNION",
+  975: "SAINT-PIERRE-ET-MIQUELON",
   976: "MAYOTTE",
+  977: "SAINT-BARTHELEMY",
+  978: "SAINT-MARTIN",
+  984: "TERRES AUSTRALES ET ANTARCTIQUES FRANCAISES",
+  986: "WALLIS-ET-FUTUNA",
+  987: "POLYNESIE FRANCAISE",
+  988: "NOUVELLE-CALEDONIE",
+  989: "ILE DE CLIPPERTON"
 };
 
 export const REGIONS_LIST = [
@@ -147,7 +161,13 @@ export const REGIONS_LIST = [
   { code: "02", label: "Martinique" },
   { code: "03", label: "Guyane" },
   { code: "04", label: "La Réunion" },
+ { code: "05", label: "Saint-Pierre-et-Miquelon" },
   { code: "06", label: "Mayotte" },
+  { code: "07", label: "Saint-Barthélemy" },
+  { code: "08", label: "Saint-Martin" },
+  { code: "09", label: "Wallis-et-Futuna" },
+  { code: "10", label: "Polynésie Française" },
+  { code: "12", label: "Nouvelle-Calédonie" }
 ];
 
 export const DEFAULT_DELEGATIONS = [
