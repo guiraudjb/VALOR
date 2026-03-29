@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Éditeur d'Arbre Décisionnel - VALOR</title>
+    <link rel="stylesheet" href="../libs/dsfr-v1.14.3/dist/scheme/scheme.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #F6F6F6;
+            --panel-bg: #FFFFFF;
+            --bleu-france: #000091;
+            --gris-galet: #AEA397;
+            --font-family: 'Marianne', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font-family);
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: #1E1E1E;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 360px;
+            background: var(--panel-bg);
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        h1, h2, h3 { margin: 0 0 10px 0; font-size: 1.2rem; }
+        
+        .control-group {
+            display: flex; flex-direction: column; gap: 5px;
+            padding: 10px; border: 1px solid #eee; border-radius: 4px;
+        }
+
+        .row-group { display: flex; gap: 10px; align-items: center; }
+
+        label { font-size: 0.9rem; font-weight: bold; }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%; padding: 8px; border: 1px solid #ccc;
+            border-radius: 4px; box-sizing: border-box; font-family: inherit;
+        }
+
+        input[type="range"] { width: 100%; cursor: pointer; }
+
+        button {
+            background-color: var(--bleu-france); color: white; border: none;
+            padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #1212ff; }
+        button.secondary { background-color: var(--gris-galet); }
+        button.action-btn { background-color: #00A95F; margin-top: 5px;}
+        button.action-btn:hover { background-color: #00874c; }
+
+        .style-btn {
+            background-color: #f0f0f0; color: #333; flex: 1;
+            font-size: 1rem; padding: 8px; border: 1px solid #ccc;
+        }
+        .style-btn.active {
+            background-color: var(--bleu-france); color: white; border-color: var(--bleu-france);
+        }
+
+        #icon-preview-container { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+        #icon-preview { width: 32px; height: 32px; border: 1px solid #eee; border-radius: 4px; padding: 4px; }
+
+        #workspace {
+            flex-grow: 1; position: relative; overflow: hidden; 
+        }
+
+        .page-preview {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: white;
+            background-image: 
+                linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+                linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+                linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
+        svg {
+            width: 100%; height: 100%; font-family: var(--font-family);
+            user-select: none; -webkit-user-select: none; cursor: grab;
+        }
+        svg:active { cursor: grabbing; }
+        
+        /* CORRECTION DU BUG : Effet de survol sans mouvement de coordonnées */
+        .node-group { cursor: pointer; }
+        .node-group rect, .node-group circle, .node-group polygon { transition: stroke-width 0.2s, stroke 0.2s; }
+        .node-group:hover rect, .node-group:hover circle, .node-group:hover polygon {
+            stroke: #000091;
+            stroke-width: 4px;
+        }
+        
+        .edge-group path.visible-edge { transition: stroke 0.2s, stroke-width 0.2s; }
+        .edge-group rect.label-bg { transition: stroke 0.2s; }
+        
+        #zoom-controls {
+            position: absolute; bottom: 20px; right: 20px;
+            display: flex; gap: 8px; z-index: 100;
+            background: white; padding: 8px; border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .zoom-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <h2>Arbre Décisionnel</h2>
+        
+        <div class="control-group">
+            <label for="node-select">Élément sélectionné :</label>
+            <select id="node-select" onchange="loadNodeData(); renderSVG();"></select>
+            <small style="color: #666; font-size: 0.8rem; margin-top: 4px;">Le positionnement de l'arbre est calculé automatiquement.</small>
+        </div>
+
+        <div class="control-group">
+            <label for="node-text">Texte du bloc :</label>
+            <textarea id="node-text" rows="3" oninput="updateNode()"></textarea>
+        </div>
+
+        <div class="control-group" id="edge-label-group">
+            <label for="node-edge-label">Texte du lien (venant du parent) :</label>
+            <input type="text" id="node-edge-label" placeholder="Ex: Oui, Non, > 50..." oninput="updateNode()">
+        </div>
+
+        <div class="control-group">
+            <label>Apparence :</label>
+            <select id="node-shape" onchange="updateNode()" style="margin-bottom: 10px;">
+                <option value="rect">Rectangle (Instruction / Résultat)</option>
+                <option value="diamond">Losange (Condition / Décision)</option>
+                <option value="circle">Cercle / Ovale</option>
+            </select>
+
+            <select id="node-font-family" onchange="updateNode()" style="margin-bottom: 5px;">
+                <option value="'Marianne', system-ui, sans-serif">Marianne</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="Georgia, serif">Georgia</option>
+            </select>
+
+            <div class="row-group">
+                <input type="number" id="node-font-size" value="24" min="8" max="72" onchange="updateNode()" title="Taille du texte (px)" style="flex: 1;">
+                <select id="node-text-color" onchange="updateNode()" style="flex: 2;">
+                    <option value="#000000">Noir</option>
+                    <option value="#FFFFFF">Blanc</option>
+                    <option value="#000091">Bleu France</option>
+                </select>
+            </div>
+            <div class="row-group" style="margin-top: 5px;">
+                <button id="btn-bold" class="style-btn" onclick="toggleTextStyle('bold')" style="font-weight: bold;" title="Gras">G</button>
+                <button id="btn-italic" class="style-btn" onclick="toggleTextStyle('italic')" style="font-style: italic;" title="Italique">I</button>
+            </div>
+        </div>
+
+        <div class="control-group" id="icon-group">
+            <label>Icône DSFR :</label>
+            <div class="row-group">
+                <select id="icon-theme-select" onchange="populateIconSelect()"></select>
+                <select id="icon-select" onchange="updateIconPreview()"></select>
+            </div>
+            <div id="icon-preview-container">
+                <img id="icon-preview" src="" alt="" style="display: none;">
+                <button onclick="applyIcon()" class="action-btn" style="flex:1;">Appliquer</button>
+                <button onclick="removeIcon()" class="secondary" style="flex:1;">Supprimer</button>
+            </div>
+        </div>
+
+        <div class="control-group" id="size-control-group">
+            <label for="node-size">Largeur du bloc (<span id="size-val">250</span>px) :</label>
+            <input type="range" id="node-size" min="120" max="600" value="250" oninput="updateNode()">
+        </div>
+
+        <div class="control-group">
+            <label for="node-color">Couleur de fond :</label>
+            <select id="node-color" onchange="updateNode()"></select>
+        </div>
+
+        <div class="control-group">
+            <div class="row-group" style="gap: 5px; margin-bottom: 5px;">
+                <button id="btn-add-condition" onclick="addChildNode('condition')" class="action-btn" style="flex: 1; font-size: 0.85rem;" title="Ajoute un losange">+ Condition</button>
+                <button id="btn-add-instruction" onclick="addChildNode('instruction')" class="action-btn" style="flex: 1; font-size: 0.85rem;" title="Ajoute un rectangle">+ Instruction</button>
+            </div>
+            <button id="btn-remove" onclick="removeSelectedNode()" class="secondary" style="width: 100%;"> - Supprimer ce bloc</button>
+        </div>
+
+        <hr style="width:100%; border:0; border-top:1px solid #ddd; margin: 10px 0;">
+        
+        <button onclick="exportSVG()">Exporter SVG (Transparent)</button>
+        <button onclick="exportPNG()" style="margin-top: 5px;">Exporter PNG (HQ)</button>
+    </div>
+
+    <div id="workspace">
+        <div class="page-preview" id="preview-container">
+            <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+                <defs id="gradient-defs"></defs>
+                <g id="connectors"></g>
+                <g id="nodes"></g>
+            </svg>
+        </div>
+        <div id="zoom-controls">
+            <button class="secondary style-btn zoom-btn" onclick="zoomOut()" title="Zoom Arrière">-</button>
+            <button class="secondary style-btn" onclick="resetZoom()" title="Centrer l'arbre" style="padding: 0 12px; font-size: 0.9rem;">Centrer</button>
+            <button class="secondary style-btn zoom-btn" onclick="zoomIn()" title="Zoom Avant">+</button>
+        </div>
+    </div>
+
+    <script>
+        const PALETTE_GRADIENTS = {
+            categorical: "linear-gradient(to right, #5C68E5, #82B5F2, #29598F, #31A7AE, #81EEF5, #B478F1, #CFB1F5, #CECECE)",
+            emeraudeAscending: "linear-gradient(to right, #00A95F, #e3fdeb)",
+            cumulusAscending: "linear-gradient(to right, #417DC4, #f3f6fe)",
+            tuileAscending: "linear-gradient(to right, #CE614A, #fef4f3)",
+            tournesolAscending: "linear-gradient(to right, #C8AA39, #fef6e3)",
+            grisGaletAscending: "linear-gradient(to right, #AEA397, #f9f8f6)",
+            jauneCitronAscending: "linear-gradient(to right, #FEE902, #fffef0)",
+            vertVifAscending: "linear-gradient(to right, #A2D929, #f6fdf1)",
+            orangeEclatantAscending: "linear-gradient(to right, #FF732C, #fef5f0)",
+            roseFuschiaAscending: "linear-gradient(to right, #FF4B8A, #fef1f6)",
+            turquoiseAscending: "linear-gradient(to right, #00B9B7, #e6fdfd)",
+            brunTerreAscending: "linear-gradient(to right, #A76E4B, #f6f0ec)"
+        };
+
+        const defaultTypography = { fontFamily: "'Marianne', system-ui, sans-serif", fontSize: 24, isBold: false, isItalic: false };
+
+        let nodeCounter = 10;
+        function generateId() { return 'node_' + (nodeCounter++); }
+
+        let treeData = {
+            id: "root",
+            text: "Le projet est-il\nstratégique ?",
+            color: "cumulusAscending",
+            textColor: "#FFFFFF",
+            shape: "diamond",
+            size: 280,
+            edgeLabel: "",
+            icon: "../libs/dsfr-v1.14.3/dist/icons/system/question-fill.svg",
+            ...defaultTypography,
+            isBold: true,
+            children: [
+                {
+                    id: "node_1", text: "Déploiement\nImmédiat", color: "vertVifAscending", textColor: "#000000", shape: "rect", size: 240, edgeLabel: "Oui", icon: "../libs/dsfr-v1.14.3/dist/icons/system/check-line.svg", ...defaultTypography, children: []
+                },
+                {
+                    id: "node_2", text: "Analyse des\nrisques", color: "tournesolAscending", textColor: "#000000", shape: "rect", size: 240, edgeLabel: "Non", icon: "../libs/dsfr-v1.14.3/dist/icons/document/file-text-fill.svg", ...defaultTypography, children: [
+                        { id: "node_3", text: "Projet Rejeté", color: "roseFuschiaAscending", textColor: "#000000", shape: "rect", size: 200, edgeLabel: "Risque Élevé", icon: null, ...defaultTypography, children: [] },
+                        { id: "node_4", text: "Validation\nComité", color: "grisGaletAscending", textColor: "#000000", shape: "rect", size: 200, edgeLabel: "Risque Modéré", icon: null, ...defaultTypography, children: [] }
+                    ]
+                }
+            ]
+        };
+
+        const LIB_PREFIX = "../libs/dsfr-v1.14.3/dist/icons/";
+        const dsfrIconsByCategory = {
+            "buildings": ["building-fill", "hospital-fill", "bank-fill"],
+            "business": ["briefcase-fill", "pie-chart-fill", "bar-chart-fill"],
+            "design": ["hammer-fill", "edit-fill", "tools-fill"],
+            "document": ["article-fill", "file-text-fill", "folder-2-fill"],
+            "system": ["settings-5-fill", "alert-fill", "check-line", "close-circle-fill", "search-fill", "question-fill"],
+            "user": ["user-fill", "team-fill", "admin-fill"]
+        };
+
+        let vbX = 0, vbY = 0, vbWidth = 1600, vbHeight = 1200;
+        let isPanningView = false;
+        let startPanClientX = 0, startPanClientY = 0;
+        let startVbX = 0, startVbY = 0;
+
+        function applyViewBox() { document.getElementById('canvas').setAttribute('viewBox', `${vbX} ${vbY} ${vbWidth} ${vbHeight}`); }
+
+        function initPanZoom() {
+            const workspace = document.getElementById('workspace');
+            workspace.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const factor = e.deltaY > 0 ? 1.08 : 0.92;
+                const svg = document.getElementById('canvas');
+                const pt = svg.createSVGPoint();
+                pt.x = e.clientX; pt.y = e.clientY;
+                const ctm = svg.getScreenCTM();
+                if (!ctm) return;
+                const svgP = pt.matrixTransform(ctm.inverse());
+                const dw = vbWidth * factor - vbWidth;
+                const dh = vbHeight * factor - vbHeight;
+                vbX -= dw * ((svgP.x - vbX) / vbWidth);
+                vbY -= dh * ((svgP.y - vbY) / vbHeight);
+                vbWidth *= factor; vbHeight *= factor;
+                applyViewBox();
+            }, { passive: false });
+
+            workspace.addEventListener('pointerdown', (e) => {
+                // Seulement si on clique sur l'espace vide
+                if (e.target.tagName === 'svg' || e.target.classList.contains('page-preview')) {
+                    isPanningView = true;
+                    startPanClientX = e.clientX; startPanClientY = e.clientY;
+                    startVbX = vbX; startVbY = vbY;
+                }
+            });
+
+            window.addEventListener('pointermove', (e) => {
+                if (isPanningView) {
+                    const svg = document.getElementById('canvas');
+                    const svgRect = svg.getBoundingClientRect();
+                    const ratioX = vbWidth / svgRect.width;
+                    const ratioY = vbHeight / svgRect.height;
+                    vbX = startVbX - ((e.clientX - startPanClientX) * ratioX);
+                    vbY = startVbY - ((e.clientY - startPanClientY) * ratioY);
+                    applyViewBox();
+                }
+            });
+            window.addEventListener('pointerup', () => { isPanningView = false; });
+        }
+
+        function zoomIn() { vbX += (vbWidth * 0.1); vbY += (vbHeight * 0.1); vbWidth *= 0.8; vbHeight *= 0.8; applyViewBox(); }
+        function zoomOut() { vbX -= (vbWidth * 0.1); vbY -= (vbHeight * 0.1); vbWidth *= 1.2; vbHeight *= 1.2; applyViewBox(); }
+        function resetZoom() {
+            calculateTreeLayout(treeData);
+            const bounds = getTreeBounds(treeData);
+            const padding = 100;
+            vbWidth = (bounds.maxX - bounds.minX) + padding * 2;
+            vbHeight = (bounds.maxY - bounds.minY) + padding * 2;
+            vbX = bounds.minX - padding;
+            vbY = bounds.minY - padding;
+            if(vbHeight < 800) vbHeight = 800;
+            if(vbWidth < 1000) { vbX -= (1000 - vbWidth)/2; vbWidth = 1000; }
+            applyViewBox();
+        }
+
+        let flatNodeList = [];
+        
+        function flattenTree(node, prefix = "", list = []) {
+            list.push({ id: node.id, text: prefix + (node.text.split('\n')[0] || "Bloc"), ref: node });
+            if (node.children) {
+                node.children.forEach(c => flattenTree(c, prefix + "— ", list));
+            }
+            return list;
+        }
+
+        function findNodeAndParent(id, currentNode = treeData, parent = null, index = -1) {
+            if (currentNode.id === id) return { node: currentNode, parent, index };
+            if (currentNode.children) {
+                for (let i = 0; i < currentNode.children.length; i++) {
+                    const result = findNodeAndParent(id, currentNode.children[i], currentNode, i);
+                    if (result) return result;
+                }
+            }
+            return null;
+        }
+
+        async function loadIconAsBase64(path) {
+            try {
+                const response = await fetch(path);
+                if (!response.ok) return null;
+                const svgText = await response.text();
+                return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgText)));
+            } catch (e) { return null; }
+        }
+
+        async function preloadIconsRecursive(node) {
+            if (node.icon) node.iconBase64 = await loadIconAsBase64(node.icon);
+            if (node.children) {
+                for (let child of node.children) await preloadIconsRecursive(child);
+            }
+        }
+
+        async function initDefaultIcons() {
+            await preloadIconsRecursive(treeData);
+            renderSVG(); resetZoom();
+        }
+
+        function initGradients() {
+            const defs = document.getElementById('gradient-defs');
+            const colorSelect = document.getElementById('node-color');
+            colorSelect.innerHTML = '<option value="#FFFFFF">Blanc (Uni)</option>';
+            for (const [key, cssGradient] of Object.entries(PALETTE_GRADIENTS)) {
+                const colors = cssGradient.match(/#[a-fA-F0-9]{3,6}/gi);
+                if (colors) {
+                    const linearGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+                    linearGradient.setAttribute('id', 'grad-' + key);
+                    linearGradient.setAttribute('x1', '0%'); linearGradient.setAttribute('y1', '0%');
+                    linearGradient.setAttribute('x2', '100%'); linearGradient.setAttribute('y2', '100%');
+                    colors.forEach((color, index) => {
+                        const stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        stop.setAttribute('offset', (colors.length > 1 ? (index / (colors.length - 1)) * 100 : 0) + '%');
+                        stop.setAttribute('stop-color', color);
+                        linearGradient.appendChild(stop);
+                    });
+                    defs.appendChild(linearGradient);
+                    const opt = document.createElement('option'); opt.value = key; opt.textContent = key;
+                    colorSelect.appendChild(opt);
+                }
+            }
+        }
+
+        function initIconMenu() {
+            const themeSelect = document.getElementById('icon-theme-select');
+            themeSelect.innerHTML = '<option value="">-- Thème --</option>';
+            for (const theme in dsfrIconsByCategory) {
+                const opt = document.createElement('option');
+                opt.value = theme; opt.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+                themeSelect.appendChild(opt);
+            }
+        }
+
+        function populateIconSelect() {
+            const themeVal = document.getElementById('icon-theme-select').value;
+            const iconSelect = document.getElementById('icon-select');
+            iconSelect.innerHTML = '<option value="">-- Icône --</option>';
+            document.getElementById('icon-preview').style.display = 'none';
+            if (themeVal && dsfrIconsByCategory[themeVal]) {
+                dsfrIconsByCategory[themeVal].forEach(iconName => {
+                    const opt = document.createElement('option'); opt.value = iconName; opt.textContent = iconName;
+                    iconSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function updateSelectMenu() {
+            const select = document.getElementById('node-select');
+            const currentVal = select.value;
+            flatNodeList = flattenTree(treeData);
+            select.innerHTML = '';
+            flatNodeList.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id; opt.textContent = item.text;
+                select.appendChild(opt);
+            });
+            if (flatNodeList.find(i => i.id === currentVal)) select.value = currentVal;
+            else select.value = "root";
+            toggleContextButtons();
+        }
+
+        function toggleContextButtons() {
+            const isRoot = document.getElementById('node-select').value === 'root';
+            document.getElementById('btn-remove').disabled = isRoot;
+            document.getElementById('edge-label-group').style.display = isRoot ? 'none' : 'flex';
+        }
+
+        function loadNodeData() {
+            toggleContextButtons();
+            const id = document.getElementById('node-select').value;
+            const { node } = findNodeAndParent(id);
+            if(!node) return;
+
+            document.getElementById('node-text').value = node.text || "";
+            document.getElementById('node-edge-label').value = node.edgeLabel || "";
+            document.getElementById('node-color').value = node.color || "#FFFFFF";
+            document.getElementById('node-text-color').value = node.textColor || "#000000";
+            document.getElementById('node-shape').value = node.shape || "rect";
+            document.getElementById('node-font-size').value = node.fontSize || 24; 
+            document.getElementById('node-font-family').value = node.fontFamily || "'Marianne', system-ui, sans-serif";
+            document.getElementById('node-size').value = node.size || 250;
+            document.getElementById('size-val').textContent = node.size || 250;
+            
+            document.getElementById('btn-bold').classList.toggle('active', node.isBold);
+            document.getElementById('btn-italic').classList.toggle('active', node.isItalic);
+
+            const themeSelect = document.getElementById('icon-theme-select');
+            const iconSelect = document.getElementById('icon-select');
+            themeSelect.value = ""; iconSelect.innerHTML = '<option value="">-- Icône --</option>';
+            document.getElementById('icon-preview').style.display = 'none';
+
+            if (node.icon) {
+                const parts = node.icon.split('/');
+                if (parts.length >= 2) {
+                    const iconName = parts.pop().replace('.svg', ''); 
+                    const themeName = parts.pop();
+                    if (dsfrIconsByCategory[themeName]) {
+                        themeSelect.value = themeName; populateIconSelect(); 
+                        iconSelect.value = iconName; updateIconPreview();
+                    }
+                }
+            }
+        }
+
+        function updateIconPreview() {
+            const theme = document.getElementById('icon-theme-select').value;
+            const icon = document.getElementById('icon-select').value;
+            const preview = document.getElementById('icon-preview');
+            if (theme && icon && !icon.includes('[object')) {
+                preview.src = `${LIB_PREFIX}${theme}/${icon}.svg`;
+                preview.style.display = 'block';
+            } else { preview.style.display = 'none'; }
+        }
+
+        async function applyIcon() {
+            const { node } = findNodeAndParent(document.getElementById('node-select').value);
+            const theme = document.getElementById('icon-theme-select').value;
+            const icon = document.getElementById('icon-select').value;
+            if (theme && icon && !icon.includes('[object')) {
+                const path = `${LIB_PREFIX}${theme}/${icon}.svg`;
+                node.icon = path; 
+                node.iconBase64 = await loadIconAsBase64(path);
+                renderSVG(); 
+            }
+        }
+
+        function removeIcon() { 
+            const { node } = findNodeAndParent(document.getElementById('node-select').value);
+            node.icon = null; node.iconBase64 = null;
+            renderSVG(); 
+        }
+
+        function toggleTextStyle(style) {
+            const { node } = findNodeAndParent(document.getElementById('node-select').value);
+            if(style === 'bold') node.isBold = !node.isBold;
+            if(style === 'italic') node.isItalic = !node.isItalic;
+            loadNodeData(); renderSVG();
+        }
+
+        function updateNode() {
+            const { node } = findNodeAndParent(document.getElementById('node-select').value);
+            node.text = document.getElementById('node-text').value;
+            node.edgeLabel = document.getElementById('node-edge-label').value;
+            node.color = document.getElementById('node-color').value;
+            node.textColor = document.getElementById('node-text-color').value;
+            node.shape = document.getElementById('node-shape').value;
+            node.fontSize = Number(document.getElementById('node-font-size').value) || 24;
+            node.fontFamily = document.getElementById('node-font-family').value;
+            node.size = Number(document.getElementById('node-size').value) || 250;
+            document.getElementById('size-val').textContent = node.size;
+            
+            updateSelectMenu(); renderSVG();
+        }
+
+        function selectNodeFromCanvas(id) {
+            document.getElementById('node-select').value = id;
+            loadNodeData(); renderSVG(); 
+        }
+
+        function addChildNode(type) {
+            const id = document.getElementById('node-select').value;
+            const { node } = findNodeAndParent(id);
+            if(!node.children) node.children = [];
+            
+            let newNode;
+            if (type === 'condition') {
+                newNode = {
+                    id: generateId(), 
+                    text: "Nouvelle\nCondition", 
+                    color: "tournesolAscending", 
+                    textColor: "#000000", 
+                    shape: "diamond", 
+                    size: 240, 
+                    edgeLabel: "Lien", 
+                    icon: null, 
+                    ...defaultTypography, 
+                    children: []
+                };
+            } else {
+                newNode = {
+                    id: generateId(), 
+                    text: "Nouvelle\nInstruction", 
+                    color: "grisGaletAscending", 
+                    textColor: "#000000", 
+                    shape: "rect", 
+                    size: 240, 
+                    edgeLabel: "Lien", 
+                    icon: null, 
+                    ...defaultTypography, 
+                    children: []
+                };
+            }
+            
+            node.children.push(newNode);
+            updateSelectMenu(); 
+            document.getElementById('node-select').value = newNode.id;
+            loadNodeData(); 
+            renderSVG();
+            resetZoom();
+        }
+
+        function removeSelectedNode() {
+            const id = document.getElementById('node-select').value;
+            if (id === 'root') return;
+            const { parent, index } = findNodeAndParent(id);
+            if(parent && index > -1) {
+                parent.children.splice(index, 1);
+                updateSelectMenu(); loadNodeData(); renderSVG();
+            }
+        }
+
+        const HORIZONTAL_GAP = 60;
+        const VERTICAL_GAP = 140; 
+
+        function calculateTreeLayout(node) {
+            const nodeWidth = Number(node.size) || 200;
+            if (!node.children || node.children.length === 0) {
+                node.treeWidth = nodeWidth + HORIZONTAL_GAP;
+                return;
+            }
+            let childrenWidth = 0;
+            node.children.forEach(child => {
+                calculateTreeLayout(child);
+                childrenWidth += child.treeWidth;
+            });
+            node.treeWidth = Math.max(nodeWidth + HORIZONTAL_GAP, childrenWidth);
+        }
+
+        function positionTree(node, x, y) {
+            node.x = x;
+            node.y = y;
+            if (!node.children || node.children.length === 0) return;
+            let startX = x - (node.treeWidth / 2);
+            const parentHeight = node.shape === 'rect' ? (node.size / 1.5) : node.size;
+            node.children.forEach(child => {
+                let childX = startX + (child.treeWidth / 2);
+                let childY = y + parentHeight/2 + VERTICAL_GAP + (child.shape === 'rect' ? child.size/3 : child.size/2);
+                positionTree(child, childX, childY);
+                startX += child.treeWidth;
+            });
+        }
+
+        function getTreeBounds(node, bounds = {minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity}) {
+            const size = Number(node.size) || 200;
+            const safeRadius = size * 0.8;
+            if(node.x - safeRadius < bounds.minX) bounds.minX = node.x - safeRadius;
+            if(node.x + safeRadius > bounds.maxX) bounds.maxX = node.x + safeRadius;
+            if(node.y - safeRadius < bounds.minY) bounds.minY = node.y - safeRadius;
+            if(node.y + safeRadius > bounds.maxY) bounds.maxY = node.y + safeRadius;
+            
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(c => getTreeBounds(c, bounds));
+            }
+            return bounds;
+        }
+
+        function drawEdge(parentGrp, parentNode, childNode) {
+            const pW = parentNode.size/2;
+            const pH = parentNode.shape === 'rect' ? pW/1.5 : pW;
+            const cW = childNode.size/2;
+            const cH = childNode.shape === 'rect' ? cW/1.5 : cW;
+
+            const startX = parentNode.x;
+            const startY = parentNode.y + pH;
+            const endX = childNode.x;
+            const endY = childNode.y - cH;
+            const midY = startY + (endY - startY) / 2;
+
+            const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            edgeGroup.setAttribute('class', 'edge-group');
+            edgeGroup.style.cursor = 'pointer';
+            
+            // PRISE EN CHARGE DU CLIC SUR LE LIEN
+            edgeGroup.onpointerdown = (e) => {
+                e.stopPropagation();
+                if (!isPanningView) selectNodeFromCanvas(childNode.id);
+            };
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${startX} ${startY} V ${midY} H ${endX} V ${endY}`);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', '#666666');
+            path.setAttribute('stroke-width', '3');
+            path.setAttribute('class', 'visible-edge');
+            
+            const hitBoxPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            hitBoxPath.setAttribute('d', `M ${startX} ${startY} V ${midY} H ${endX} V ${endY}`);
+            hitBoxPath.setAttribute('fill', 'none');
+            hitBoxPath.setAttribute('stroke', 'transparent');
+            hitBoxPath.setAttribute('stroke-width', '20');
+
+            const arrowId = `arrow-${childNode.id}`;
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', arrowId);
+            marker.setAttribute('markerWidth', '10'); marker.setAttribute('markerHeight', '10');
+            marker.setAttribute('refX', '9'); marker.setAttribute('refY', '3');
+            marker.setAttribute('orient', 'auto');
+            const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            arrowPath.setAttribute('d', 'M0,0 L0,6 L9,3 z');
+            arrowPath.setAttribute('fill', '#666666');
+            marker.appendChild(arrowPath);
+            document.getElementById('gradient-defs').appendChild(marker);
+            path.setAttribute('marker-end', `url(#${arrowId})`);
+            
+            edgeGroup.appendChild(path);
+            edgeGroup.appendChild(hitBoxPath);
+
+            let bgRect = null;
+
+            if(childNode.edgeLabel && childNode.edgeLabel.trim() !== "") {
+                const labelG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                let lx = startX + (endX - startX)*0.2;
+                let ly = midY;
+                
+                const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                textEl.setAttribute('x', lx); textEl.setAttribute('y', ly);
+                textEl.setAttribute('text-anchor', 'middle');
+                textEl.setAttribute('dominant-baseline', 'central');
+                textEl.setAttribute('font-size', '16px');
+                textEl.setAttribute('font-weight', 'bold');
+                textEl.setAttribute('fill', '#000091');
+                textEl.textContent = childNode.edgeLabel;
+                
+                bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                const bgW = childNode.edgeLabel.length * 10 + 14; 
+                bgRect.setAttribute('class', 'label-bg');
+                bgRect.setAttribute('x', lx - bgW/2);
+                bgRect.setAttribute('y', ly - 12);
+                bgRect.setAttribute('width', bgW);
+                bgRect.setAttribute('height', '24');
+                bgRect.setAttribute('fill', '#FFFFFF');
+                bgRect.setAttribute('rx', '4'); 
+                
+                labelG.appendChild(bgRect);
+                labelG.appendChild(textEl);
+                edgeGroup.appendChild(labelG);
+            }
+
+            edgeGroup.onmouseenter = () => {
+                path.setAttribute('stroke', '#000091');
+                path.setAttribute('stroke-width', '5');
+                if (bgRect) bgRect.setAttribute('stroke', '#000091');
+            };
+            edgeGroup.onmouseleave = () => {
+                path.setAttribute('stroke', '#666666');
+                path.setAttribute('stroke-width', '3');
+                if (bgRect) bgRect.removeAttribute('stroke');
+            };
+
+            parentGrp.appendChild(edgeGroup);
+        }
+
+        function drawShape(group, node, isSelected) {
+            const size = Number(node.size) || 200;
+            const w = size;
+            const fillValue = node.color === '#FFFFFF' ? '#FFFFFF' : `url(#grad-${node.color})`;
+            const strokeColor = isSelected ? '#000091' : '#1E1E1E';
+            const strokeWidth = isSelected ? '5' : '1.5';
+
+            if (node.shape === 'diamond') {
+                const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                const half = w/2;
+                polygon.setAttribute('points', `0,-${half} ${half},0 0,${half} -${half},0`);
+                polygon.setAttribute('fill', fillValue);
+                polygon.setAttribute('stroke', strokeColor);
+                polygon.setAttribute('stroke-width', strokeWidth);
+                group.appendChild(polygon);
+            } 
+            else if (node.shape === 'circle') {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('r', w/2);
+                circle.setAttribute('fill', fillValue);
+                circle.setAttribute('stroke', strokeColor);
+                circle.setAttribute('stroke-width', strokeWidth);
+                group.appendChild(circle);
+            }
+            else { 
+                const h = w / 1.5;
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', -w/2); rect.setAttribute('y', -h/2);
+                rect.setAttribute('width', w); rect.setAttribute('height', h);
+                rect.setAttribute('rx', '8');
+                rect.setAttribute('fill', fillValue);
+                rect.setAttribute('stroke', strokeColor);
+                rect.setAttribute('stroke-width', strokeWidth);
+                group.appendChild(rect);
+            }
+        }
+
+        function drawNodeContent(group, node) {
+            const size = Number(node.size) || 200;
+            const hasIcon = node.iconBase64 && node.iconBase64 !== "";
+            const fSize = Number(node.fontSize) || 24;
+            const lineHeight = fSize * 1.25;
+
+            if (hasIcon) {
+                const iconSize = size * 0.30;
+                const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+                img.setAttribute('x', -iconSize / 2);
+                let imgY = (node.shape === 'rect') ? -(size/1.5)/2 + 15 : -(size)/2 + size*0.15;
+                img.setAttribute('y', imgY);
+                img.setAttribute('width', iconSize);
+                img.setAttribute('height', iconSize);
+                img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', node.iconBase64);
+                img.setAttribute('style', `filter: ${node.textColor === '#FFFFFF' ? 'invert(1) brightness(2)' : (node.textColor === '#000091' ? 'invert(0)' : 'none')}; pointer-events: none;`);
+                group.appendChild(img);
+            }
+
+            const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            textEl.setAttribute('text-anchor', 'middle');
+            textEl.setAttribute('fill', node.textColor);
+            textEl.setAttribute('font-family', node.fontFamily || "'Marianne', system-ui, sans-serif"); 
+            textEl.setAttribute('font-size', fSize + 'px');
+            textEl.setAttribute('style', 'pointer-events: none;');
+            if (node.isBold) textEl.setAttribute('font-weight', 'bold');
+            if (node.isItalic) textEl.setAttribute('font-style', 'italic');
+
+            const textContent = node.text || "";
+            const lines = textContent.split('\n');
+
+            let startY = 0;
+            if (hasIcon) {
+                const iconBaseY = (node.shape === 'rect') ? -(size/1.5)/2 + 15 + (size*0.30) : -(size)/2 + size*0.15 + (size*0.30);
+                startY = iconBaseY + (fSize * 0.8) + (lineHeight / 2);
+            } else {
+                startY = -((lines.length - 1) * lineHeight) / 2;
+            }
+
+            lines.forEach((lineText, index) => {
+                const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                tspan.setAttribute('x', 0); 
+                tspan.setAttribute('y', startY + (index * lineHeight));
+                tspan.setAttribute('dominant-baseline', 'central');
+                tspan.textContent = lineText; 
+                textEl.appendChild(tspan);
+            });
+            group.appendChild(textEl);
+        }
+
+        function renderTreeRecursive(node, nodesGroup, connectorsGroup) {
+            if (node.children) {
+                node.children.forEach(child => {
+                    drawEdge(connectorsGroup, node, child);
+                    renderTreeRecursive(child, nodesGroup, connectorsGroup);
+                });
+            }
+
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('class', 'node-group');
+            g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+            
+            // PRISE EN CHARGE DU CLIC SUR LE BLOC
+            g.onpointerdown = (e) => {
+                e.stopPropagation();
+                if (!isPanningView) selectNodeFromCanvas(node.id);
+            };
+
+            const isSelected = (node.id === document.getElementById('node-select').value);
+            drawShape(g, node, isSelected);
+            drawNodeContent(g, node);
+
+            nodesGroup.appendChild(g);
+        }
+
+        function renderSVG() {
+            const connectorsGroup = document.getElementById('connectors');
+            const nodesGroup = document.getElementById('nodes');
+            connectorsGroup.innerHTML = ''; nodesGroup.innerHTML = '';
+            document.querySelectorAll('marker[id^="arrow-"]').forEach(m => m.remove());
+
+            calculateTreeLayout(treeData);
+            positionTree(treeData, 0, 0);
+
+            renderTreeRecursive(treeData, nodesGroup, connectorsGroup);
+        }
+
+        function getCleanSVGSource() {
+            const selectEl = document.getElementById('node-select');
+            const currentSelection = selectEl.value;
+            selectEl.value = "none_for_export"; 
+            renderSVG();
+            
+            const svg = document.getElementById('canvas');
+            
+            const bounds = getTreeBounds(treeData);
+            const padding = 60;
+            const w = (bounds.maxX - bounds.minX) + padding * 2;
+            const h = (bounds.maxY - bounds.minY) + padding * 2;
+            const x = bounds.minX - padding;
+            const y = bounds.minY - padding;
+            
+            const oldViewBox = svg.getAttribute('viewBox');
+            svg.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
+            
+            let source = new XMLSerializer().serializeToString(svg);
+            if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            
+            svg.setAttribute('viewBox', oldViewBox);
+            selectEl.value = currentSelection;
+            renderSVG();
+            return { source, w, h };
+        }
+
+        function exportSVG() {
+            const { source } = getCleanSVGSource();
+            const blob = new Blob([source], {type: 'image/svg+xml;charset=utf-8'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'arbre_decision.svg';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function exportPNG() {
+            const { source, w, h } = getCleanSVGSource();
+            const exportScale = 2; 
+            const img = new Image();
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(source)));
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = w * exportScale; 
+                canvas.height = h * exportScale; 
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const a = document.createElement('a'); a.download = 'arbre_decision.png';
+                a.href = canvas.toDataURL('image/png'); document.body.appendChild(a);
+                a.click(); document.body.removeChild(a);
+            };
+        }
+
+        initGradients(); 
+        initIconMenu(); 
+        updateSelectMenu(); 
+        initPanZoom(); 
+        initDefaultIcons(); 
+    </script>
+</body>
+</html>
