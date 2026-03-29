@@ -229,9 +229,14 @@
 
         let diagramData = {
             direction: 'clockwise',
-            center: { text: "BUREAU\nGF-3A", color: "blancPremium", shape: "rect", size: 300, manualSize: true, textColor: "#000091", ...defaultTypography, isBold: true, fontSize: 36, icon: null, isCustomImage: false, iconSizeScale: 0.35 },
+            center: { text: "OUTIL\nVALOR", color: "blancPremium", shape: "rect", size: 300, manualSize: true, textColor: "#000091", ...defaultTypography, isBold: true, fontSize: 36, icon: null, isCustomImage: false, iconSizeScale: 0.35 },
             bubbles: [
-                { text: "MISSIONS", color: "cumulusAscending", shape: "circle", size: 280, manualSize: false, textColor: "#000000", icon: null, isCustomImage: false, iconSizeScale: 0.35, children: [], ...defaultTypography }
+                { text: "RAPPORTS\nTERRITORIAUX", color: "cumulusAscending", shape: "circle", size: 280, manualSize: false, textColor: "#000000", icon: null, isCustomImage: false, iconSizeScale: 0.35, children: [
+                    { text: "Analyses", color: "grisGaletAscending", shape: "circle", size: 160, manualSize: false, textColor: "#000000", icon: null, isCustomImage: false, iconSizeScale: 0.35, children: [], ...defaultTypography, fontSize: 20 },
+                    { text: "Données", color: "grisGaletAscending", shape: "circle", size: 160, manualSize: false, textColor: "#000000", icon: null, isCustomImage: false, iconSizeScale: 0.35, children: [], ...defaultTypography, fontSize: 20 }
+                ], ...defaultTypography },
+                { text: "CARTES\nGRAPHIQUES", color: "emeraudeAscending", shape: "circle", size: 280, manualSize: false, textColor: "#000000", icon: null, isCustomImage: false, iconSizeScale: 0.35, children: [], ...defaultTypography },
+                { text: "PRÉSENTATIONS", color: "tournesolAscending", shape: "circle", size: 280, manualSize: false, textColor: "#000000", icon: null, isCustomImage: false, iconSizeScale: 0.35, children: [], ...defaultTypography }
             ]
         };
 
