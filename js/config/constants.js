@@ -199,6 +199,13 @@ export const DEFAULT_DELEGATIONS = [
       "973",
       "974",
       "976",
+      "975", 
+      "977",
+      "978",
+      "984",
+      "986",
+      "987",
+      "988" // Ajout des COM manquantes
     ],
   },
   {

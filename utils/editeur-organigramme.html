@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Éditeur d'Organigramme - VALOR</title>
+    <link rel="stylesheet" href="../libs/dsfr-v1.14.3/dist/scheme/scheme.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #F6F6F6;
+            --panel-bg: #FFFFFF;
+            --bleu-france: #000091;
+            --gris-galet: #AEA397;
+            --font-family: 'Marianne', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font-family);
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: #1E1E1E;
+            overflow: hidden; /* Empêche le défilement de la page entière */
+        }
+
+        #sidebar {
+            width: 350px;
+            background: var(--panel-bg);
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        h1, h2, h3 { margin: 0 0 10px 0; font-size: 1.2rem; }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 5px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        .row-group { display: flex; gap: 10px; align-items: center; }
+
+        label { font-size: 0.9rem; font-weight: bold; }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%; padding: 8px; border: 1px solid #ccc;
+            border-radius: 4px; box-sizing: border-box; font-family: inherit;
+        }
+
+        input[type="range"] { width: 100%; cursor: pointer; }
+
+        button {
+            background-color: var(--bleu-france); color: white; border: none;
+            padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #1212ff; }
+        button.secondary { background-color: var(--gris-galet); }
+        button.action-btn { background-color: #00A95F; margin-top: 5px;}
+        button.action-btn:hover { background-color: #00874c; }
+
+        .style-btn {
+            background-color: #f0f0f0; color: #333; flex: 1;
+            font-size: 1rem; padding: 8px; border: 1px solid #ccc;
+        }
+        .style-btn.active {
+            background-color: var(--bleu-france); color: white; border-color: var(--bleu-france);
+        }
+
+        #icon-preview-container {
+            display: flex; align-items: center; gap: 10px; margin-top: 5px;
+        }
+        #icon-preview {
+            width: 32px; height: 32px;
+            border: 1px solid #eee; border-radius: 4px; padding: 4px;
+        }
+
+        #workspace {
+            flex-grow: 1; 
+            position: relative;
+            overflow: hidden; 
+        }
+
+        /* La zone de dessin occupe maintenant 100% de l'espace disponible */
+        .page-preview {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: white;
+            background-image: 
+                linear-gradient(45deg, #e0e0e0 25%, transparent 25%), 
+                linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #e0e0e0 75%), 
+                linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
+        svg {
+            width: 100%; height: 100%;
+            font-family: var(--font-family);
+            user-select: none; -webkit-user-select: none;
+            /* Indication visuelle que le fond peut être déplacé */
+            cursor: grab;
+        }
+        svg:active { cursor: grabbing; }
+        
+        .node-group { transition: transform 0.1s ease; transform-origin: center; cursor: pointer; }
+        .node-group:hover { transform: scale(1.02); }
+        
+        /* Outils de zoom flottants */
+        #zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .zoom-btn {
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <h2>Éditeur d'Organigramme</h2>
+
+        <div class="control-group">
+            <label for="diagram-direction">Sens de rotation général :</label>
+            <select id="diagram-direction" onchange="updateGlobalSettings()">
+                <option value="clockwise">Sens Horaire</option>
+                <option value="counterclockwise">Sens Anti-horaire</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="node-select">Élément sélectionné :</label>
+            <select id="node-select" onchange="loadNodeData(); renderSVG();">
+                <option value="center">Bloc Central</option>
+            </select>
+            <small style="color: #666; font-size: 0.8rem; margin-top: 4px;">Astuce : Vous pouvez faire glisser les bulles sur la zone de dessin pour modifier leur ordre.</small>
+        </div>
+
+        <div class="control-group">
+            <label for="node-text">Texte :</label>
+            <textarea id="node-text" rows="3" oninput="updateNode(false)"></textarea>
+        </div>
+
+        <div class="control-group">
+            <label>Typographie :</label>
+            <select id="node-font-family" onchange="updateNode(false)" style="margin-bottom: 5px;">
+                <option value="'Marianne', system-ui, sans-serif">Marianne</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="'Courier New', monospace">Courier</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+            </select>
+
+            <div class="row-group">
+                <input type="number" id="node-font-size" value="30" min="8" max="72" onchange="updateNode(false)" title="Taille du texte (px)" style="flex: 1;">
+                <select id="node-text-color" onchange="updateNode(false)" style="flex: 2;">
+                    <option value="#000000">Noir</option>
+                    <option value="#FFFFFF">Blanc</option>
+                    <option value="#000091">Bleu France</option>
+                </select>
+            </div>
+            <div class="row-group" style="margin-top: 5px;">
+                <button id="btn-bold" class="style-btn" onclick="toggleTextStyle('bold')" style="font-weight: bold;" title="Gras">G</button>
+                <button id="btn-italic" class="style-btn" onclick="toggleTextStyle('italic')" style="font-style: italic;" title="Italique">I</button>
+                <button id="btn-strike" class="style-btn" onclick="toggleTextStyle('strike')" style="text-decoration: line-through;" title="Barré">S</button>
+            </div>
+        </div>
+
+        <div class="control-group" id="icon-group">
+            <label>Icône DSFR :</label>
+            <div class="row-group">
+                <select id="icon-theme-select" onchange="populateIconSelect()" title="Choisir un thème d'icônes"></select>
+                <select id="icon-select" onchange="updateIconPreview()" title="Choisir l'icône"></select>
+            </div>
+            <div id="icon-preview-container">
+                <img id="icon-preview" src="" alt="" style="display: none;">
+                <button onclick="applyIcon()" class="action-btn" style="flex:1;">Appliquer</button>
+                <button onclick="removeIcon()" class="secondary" style="flex:1;">Supprimer</button>
+            </div>
+        </div>
+
+        <div class="control-group" id="size-control-group">
+            <div class="row-group" style="justify-content: space-between; margin-bottom: 5px;">
+                <label for="node-size">Taille (<span id="size-val">250</span>px) :</label>
+                <button class="secondary style-btn" style="font-size: 0.75rem; padding: 4px 8px; flex: unset;" onclick="autoFitCurrentNode()" title="Ajuster la taille au contenu">Auto</button>
+            </div>
+            <input type="range" id="node-size" min="120" max="600" value="250" oninput="updateNode(true)">
+        </div>
+
+        <div class="control-group">
+            <label for="node-color">Couleur de fond :</label>
+            <select id="node-color" onchange="updateNode(false)"></select>
+        </div>
+
+        <div class="control-group">
+            <button onclick="addMainBubble()" class="action-btn">+ Ajouter bulle principale</button>
+            <button id="btn-add-sub" onclick="addSubBubble()" class="action-btn">+ Ajouter sous-bulle</button>
+            <button onclick="removeSelectedNode()" class="secondary" style="margin-top: 5px;">- Supprimer sélection</button>
+        </div>
+
+        <hr style="width:100%; border:0; border-top:1px solid #ddd; margin: 10px 0;">
+        
+        <button onclick="exportSVG()">Exporter SVG (Transparent)</button>
+        <button onclick="exportPNG()" style="margin-top: 5px;">Exporter PNG (HQ Transparent)</button>
+    </div>
+
+    <div id="workspace">
+        <div class="page-preview" id="preview-container">
+            <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+                <defs id="gradient-defs"></defs>
+                <g id="connectors"></g>
+                <g id="nodes"></g>
+            </svg>
+        </div>
+        
+        <div id="zoom-controls">
+            <button class="secondary style-btn zoom-btn" onclick="zoomOut()" title="Zoom Arrière">-</button>
+            <button class="secondary style-btn" onclick="resetZoom()" title="Centrer le diagramme" style="padding: 0 12px; font-size: 0.9rem;">Centrer</button>
+            <button class="secondary style-btn zoom-btn" onclick="zoomIn()" title="Zoom Avant">+</button>
+        </div>
+    </div>
+
+    <script>
+        const PALETTE_GRADIENTS = {
+            categorical: "linear-gradient(to right, #5C68E5, #82B5F2, #29598F, #31A7AE, #81EEF5, #B478F1, #CFB1F5, #CECECE)",
+            emeraudeAscending: "linear-gradient(to right, #00A95F, #e3fdeb)",
+            cumulusAscending: "linear-gradient(to right, #417DC4, #f3f6fe)",
+            tuileAscending: "linear-gradient(to right, #CE614A, #fef4f3)",
+            tournesolAscending: "linear-gradient(to right, #C8AA39, #fef6e3)",
+            grisGaletAscending: "linear-gradient(to right, #AEA397, #f9f8f6)",
+            jauneCitronAscending: "linear-gradient(to right, #FEE902, #fffef0)",
+            vertVifAscending: "linear-gradient(to right, #A2D929, #f6fdf1)",
+            orangeEclatantAscending: "linear-gradient(to right, #FF732C, #fef5f0)",
+            roseFuschiaAscending: "linear-gradient(to right, #FF4B8A, #fef1f6)",
+            turquoiseAscending: "linear-gradient(to right, #00B9B7, #e6fdfd)",
+            brunTerreAscending: "linear-gradient(to right, #A76E4B, #f6f0ec)"
+        };
+
+        const defaultTypography = { fontFamily: "'Marianne', system-ui, sans-serif", fontSize: 30, isBold: false, isItalic: false, isStrike: false };
+
+        let diagramData = {
+            direction: 'clockwise',
+            center: { text: "VALOR\nL'outil d'aide à la décision", color: "#FFFFFF", opacity: 1, textColor: "#000000", shape: "circle", size: 320, manualSize: false, ...defaultTypography, isBold: true, fontSize: 32, icon: "../libs/dsfr-v1.14.3/dist/icons/map/france-fill.svg" },
+            bubbles: [
+                { text: "CARTOGRAPHIE", color: "vertVifAscending", textColor: "#000000", shape: "circle", size: 250, manualSize: false, icon: "../libs/dsfr-v1.14.3/dist/icons/map/map-pin-2-fill.svg", children: [], ...defaultTypography },
+                { text: "GRAPHIQUES", color: "orangeEclatantAscending", textColor: "#000000", shape: "circle", size: 250, manualSize: false, icon: "../libs/dsfr-v1.14.3/dist/icons/business/bar-chart-fill.svg", children: [], ...defaultTypography },
+                { text: "RAPPORTS", color: "roseFuschiaAscending", textColor: "#000000", shape: "circle", size: 250, manualSize: false, icon: "../libs/dsfr-v1.14.3/dist/icons/document/file-text-fill.svg", children: [], ...defaultTypography },
+                { text: "ADMINISTRATION", color: "grisGaletAscending", textColor: "#000000", shape: "circle", size: 250, manualSize: false, icon: "../libs/dsfr-v1.14.3/dist/icons/system/settings-5-fill.svg", children: [], ...defaultTypography },
+                { text: "AIDE", color: "turquoiseAscending", textColor: "#000000", shape: "circle", size: 250, manualSize: false, icon: "../libs/dsfr-v1.14.3/dist/icons/system/question-fill.svg", children: [], ...defaultTypography }
+            ]
+        };
+
+        const LIB_PREFIX = "../libs/dsfr-v1.14.3/dist/icons/";
+        
+        const dsfrIconsByCategory = {
+            "buildings": ["building-fill", "building-line", "hospital-fill", "school-fill", "bank-fill", "store-fill"],
+            "business": ["briefcase-fill", "calculator-fill", "pie-chart-fill", "bar-chart-fill", "calendar-fill", "mail-fill"],
+            "communication": ["chat-3-fill", "chat-check-fill", "discuss-fill", "feedback-fill", "questionnaire-fill"],
+            "design": ["hammer-fill", "edit-fill", "brush-fill", "palette-fill", "pencil-fill", "tools-fill"],
+            "development": ["code-box-fill", "terminal-box-fill", "bug-fill", "git-branch-fill"],
+            "device": ["computer-fill", "macbook-fill", "smartphone-fill", "tablet-fill", "tv-fill", "database-fill"],
+            "document": ["article-fill", "book-2-fill", "file-fill", "file-text-fill", "folder-2-fill"],
+            "editor": ["fr--bold", "italic", "link", "list-unordered", "h-1", "code-view"],
+            "finance": ["money-euro-box-fill", "shopping-cart-2-fill", "bank-card-fill", "gift-fill", "trophy-fill"],
+            "health": ["heart-fill", "virus-fill", "microscope-fill", "capsule-fill", "syringe-fill"],
+            "map": ["map-pin-2-fill", "earth-fill", "france-fill", "car-fill", "bus-fill", "train-fill"],
+            "media": ["camera-fill", "clapperboard-fill", "film-fill", "image-fill", "mic-fill", "play-circle-fill"],
+            "others": ["lightbulb-fill", "leaf-fill", "recycle-fill", "wheelchair-fill", "plant-fill"],
+            "system": ["settings-5-fill", "alert-fill", "check-line", "close-circle-fill", "download-fill", "search-fill", "question-fill"],
+            "user": ["user-fill", "team-fill", "account-circle-fill", "admin-fill", "parent-fill"],
+            "weather": ["sun-fill", "moon-fill", "cloudy-2-fill", "windy-fill", "thunderstorms-fill"]
+        };
+
+        // --- GESTION DU ZOOM ET PANORAMIQUE (VIEWBOX) ---
+        let vbX = 0, vbY = 0, vbWidth = 1600, vbHeight = 1200;
+        let isPanningView = false;
+        let startPanClientX = 0, startPanClientY = 0;
+        let startVbX = 0, startVbY = 0;
+
+        function applyViewBox() {
+            document.getElementById('canvas').setAttribute('viewBox', `${vbX} ${vbY} ${vbWidth} ${vbHeight}`);
+        }
+
+        function initPanZoom() {
+            const workspace = document.getElementById('workspace');
+            
+            // Molette = Zoom
+            workspace.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomSpeed = 0.08;
+                // e.deltaY > 0 -> défilement vers le bas -> recul (zoom out) -> ViewBox plus grande
+                const factor = e.deltaY > 0 ? (1 + zoomSpeed) : (1 - zoomSpeed);
+                
+                const svg = document.getElementById('canvas');
+                const pt = svg.createSVGPoint();
+                pt.x = e.clientX; pt.y = e.clientY;
+                
+                const ctm = svg.getScreenCTM();
+                if (!ctm) return;
+                
+                // Trouve le point SVG exact sous le curseur de la souris
+                const svgP = pt.matrixTransform(ctm.inverse());
+
+                const dw = vbWidth * factor - vbWidth;
+                const dh = vbHeight * factor - vbHeight;
+
+                // Garde le point sous la souris immobile pendant le zoom
+                vbX -= dw * ((svgP.x - vbX) / vbWidth);
+                vbY -= dh * ((svgP.y - vbY) / vbHeight);
+                vbWidth *= factor;
+                vbHeight *= factor;
+
+                applyViewBox();
+            }, { passive: false });
+
+            // Clic + Glisser = Panoramique
+            workspace.addEventListener('pointerdown', (e) => {
+                // On active le pan uniquement si on clique sur le fond (pas sur une bulle)
+                if (e.target.id === 'preview-container' || e.target.id === 'canvas' || e.target.tagName === 'svg') {
+                    isPanningView = true;
+                    startPanClientX = e.clientX;
+                    startPanClientY = e.clientY;
+                    startVbX = vbX;
+                    startVbY = vbY;
+                }
+            });
+
+            window.addEventListener('pointermove', (e) => {
+                if (isPanningView) {
+                    const svg = document.getElementById('canvas');
+                    const svgRect = svg.getBoundingClientRect();
+                    // Ratio de conversion pixel écran -> unité SVG
+                    const ratioX = vbWidth / svgRect.width;
+                    const ratioY = vbHeight / svgRect.height;
+                    
+                    const dx = (e.clientX - startPanClientX) * ratioX;
+                    const dy = (e.clientY - startPanClientY) * ratioY;
+
+                    vbX = startVbX - dx;
+                    vbY = startVbY - dy;
+                    
+                    applyViewBox();
+                }
+            });
+
+            window.addEventListener('pointerup', () => {
+                isPanningView = false;
+            });
+        }
+
+        // Boutons de la barre d'outils
+        function zoomIn() {
+            const factor = 0.8;
+            const dw = vbWidth * factor - vbWidth;
+            const dh = vbHeight * factor - vbHeight;
+            vbX -= dw / 2; vbY -= dh / 2;
+            vbWidth *= factor; vbHeight *= factor;
+            applyViewBox();
+        }
+        function zoomOut() {
+            const factor = 1.2;
+            const dw = vbWidth * factor - vbWidth;
+            const dh = vbHeight * factor - vbHeight;
+            vbX -= dw / 2; vbY -= dh / 2;
+            vbWidth *= factor; vbHeight *= factor;
+            applyViewBox();
+        }
+        function resetZoom() {
+            const { maxExtent } = calculateMaxExtent();
+            const padding = 50;
+            vbWidth = (maxExtent * 2) + (padding * 2);
+            vbHeight = (maxExtent * 2) + (padding * 2);
+            // Le centre du diagramme est en 0,0, donc on recule de la moitié de la taille globale
+            vbX = -maxExtent - padding;
+            vbY = -maxExtent - padding;
+            applyViewBox();
+        }
+
+        // --- GESTION ASYNCHRONE DES ICONES ---
+        async function loadIconAsBase64(path) {
+            try {
+                const response = await fetch(path);
+                if (!response.ok) return null;
+                const svgText = await response.text();
+                return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgText)));
+            } catch (e) {
+                console.error("Erreur icône :", e);
+                return null;
+            }
+        }
+
+        async function initDefaultIcons() {
+            if (diagramData.center.icon) diagramData.center.iconBase64 = await loadIconAsBase64(diagramData.center.icon);
+            for (let b of diagramData.bubbles) {
+                if (b.icon) b.iconBase64 = await loadIconAsBase64(b.icon);
+                if (b.children) {
+                    for (let sub of b.children) {
+                        if (sub.icon) sub.iconBase64 = await loadIconAsBase64(sub.icon);
+                    }
+                }
+            }
+            autoFitAllNodes();
+            renderSVG(); 
+            resetZoom(); // Centre et ajuste la vue au démarrage
+        }
+
+        // --- UTILITAIRES DE CALCUL ---
+        function calculateMaxExtent() {
+            let totalMainCircumferenceRequired = 0;
+            let maxMainBubbleSize = 0;
+            
+            diagramData.bubbles.forEach(b => {
+                const bSize = Number(b.size) || 250;
+                totalMainCircumferenceRequired += bSize + 80;
+                if(bSize > maxMainBubbleSize) maxMainBubbleSize = bSize;
+            });
+            
+            const centerSize = Number(diagramData.center.size) || 300;
+            let minRadiusByCenter = (centerSize / 2) + (maxMainBubbleSize / 2) + 50;
+            let radiusByCircumference = totalMainCircumferenceRequired / (2 * Math.PI);
+            const orbitRadius = Math.max(minRadiusByCenter || 250, radiusByCircumference || 250, 250);
+
+            let maxExtent = orbitRadius + (maxMainBubbleSize / 2);
+            diagramData.bubbles.forEach(bubble => {
+                let bSize = Number(bubble.size) || 250;
+                let bubbleExtent = orbitRadius + (bSize / 2);
+                if (bubbleExtent > maxExtent) maxExtent = bubbleExtent;
+                if (bubble.children.length > 0) {
+                    let maxSubSize = Math.max(...bubble.children.map(s => Number(s.size) || 160));
+                    let subOrbit = (bSize / 2) + (maxSubSize / 2) + 40;
+                    let subExtent = orbitRadius + subOrbit + (maxSubSize / 2);
+                    if (subExtent > maxExtent) maxExtent = subExtent;
+                }
+            });
+            
+            return { orbitRadius, maxExtent };
+        }
+
+        function calculateOptimalSize(node) {
+            const fSize = node.fontSize || 30;
+            const text = node.text || "";
+            const lines = text.split('\n');
+            let maxChars = 0; let numLines = 0;
+            
+            lines.forEach(line => {
+                if (line.length > 20) {
+                    maxChars = Math.max(maxChars, 20);
+                    numLines += Math.ceil(line.length / 20);
+                } else {
+                    maxChars = Math.max(maxChars, line.length);
+                    numLines += 1;
+                }
+            });
+            
+            if (maxChars < 5) maxChars = 5; 
+            const approxCharW = fSize * 0.55;
+            const W = maxChars * approxCharW;
+            let H = numLines * (fSize * 1.25);
+            
+            if (node.iconBase64 || node.icon) H += (fSize * 3.5) + (fSize * 0.5); 
+            
+            const diagonal = Math.sqrt(W * W + H * H);
+            let optimalSize = Math.ceil(diagonal / 0.75);
+            if(optimalSize < 120) optimalSize = 120;
+            if(optimalSize > 600) optimalSize = 600;
+            return optimalSize;
+        }
+
+        function autoFitAllNodes() {
+            if (!diagramData.center.manualSize) diagramData.center.size = calculateOptimalSize(diagramData.center);
+            diagramData.bubbles.forEach(b => {
+                if (!b.manualSize) b.size = calculateOptimalSize(b);
+                b.children.forEach(sub => {
+                    if (!sub.manualSize) sub.size = calculateOptimalSize(sub);
+                });
+            });
+        }
+
+        function autoFitCurrentNode() {
+            const node = getSelectedNode();
+            node.manualSize = false; 
+            node.size = calculateOptimalSize(node);
+            document.getElementById('node-size').value = node.size;
+            document.getElementById('size-val').textContent = node.size;
+            renderSVG();
+        }
+
+        // --- UI ---
+        function initIconMenu() {
+            const themeSelect = document.getElementById('icon-theme-select');
+            themeSelect.innerHTML = '<option value="">-- Thème --</option>';
+            for (const theme in dsfrIconsByCategory) {
+                const opt = document.createElement('option');
+                opt.value = theme;
+                opt.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+                themeSelect.appendChild(opt);
+            }
+        }
+
+        function populateIconSelect() {
+            const themeSelect = document.getElementById('icon-theme-select');
+            const iconSelect = document.getElementById('icon-select');
+            const preview = document.getElementById('icon-preview');
+            
+            const themeVal = themeSelect.value;
+            iconSelect.innerHTML = '<option value="">-- Icône --</option>';
+            preview.style.display = 'none';
+
+            if (themeVal && dsfrIconsByCategory[themeVal]) {
+                dsfrIconsByCategory[themeVal].forEach(iconName => {
+                    const opt = document.createElement('option');
+                    opt.value = iconName;
+                    opt.textContent = iconName;
+                    iconSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function getSelectedIconPath() {
+            const themeSelect = document.getElementById('icon-theme-select');
+            const iconSelect = document.getElementById('icon-select');
+            if (!themeSelect || !iconSelect) return null;
+            const themeVal = themeSelect.value;
+            const iconVal = iconSelect.value;
+            if (themeVal && iconVal && typeof iconVal === 'string' && !iconVal.includes('[object')) {
+                return `${LIB_PREFIX}${themeVal}/${iconVal}.svg`;
+            }
+            return null;
+        }
+
+        function updateIconPreview() {
+            const preview = document.getElementById('icon-preview');
+            const path = getSelectedIconPath();
+            if (path) {
+                preview.src = path;
+                preview.style.display = 'block';
+            } else { preview.style.display = 'none'; }
+        }
+
+        async function applyIcon() {
+            const node = getSelectedNode();
+            const path = getSelectedIconPath();
+            if (path) { 
+                node.icon = path; 
+                node.iconBase64 = await loadIconAsBase64(path);
+                if (!node.manualSize) node.size = calculateOptimalSize(node);
+                loadNodeData(); renderSVG(); 
+            }
+        }
+
+        function removeIcon() { 
+            const node = getSelectedNode();
+            node.icon = null; node.iconBase64 = null;
+            if (!node.manualSize) node.size = calculateOptimalSize(node);
+            loadNodeData(); renderSVG(); 
+        }
+
+        function initGradientsAndSelect() {
+            const defs = document.getElementById('gradient-defs');
+            const colorSelect = document.getElementById('node-color');
+            colorSelect.innerHTML = '<option value="#FFFFFF">Blanc (Uni)</option>';
+
+            for (const [key, cssGradient] of Object.entries(PALETTE_GRADIENTS)) {
+                const colors = cssGradient.match(/#[a-fA-F0-9]{3,6}/gi);
+                if (colors) {
+                    const linearGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+                    linearGradient.setAttribute('id', 'grad-' + key);
+                    linearGradient.setAttribute('x1', '0%'); linearGradient.setAttribute('y1', '0%');
+                    linearGradient.setAttribute('x2', '100%'); linearGradient.setAttribute('y2', '100%');
+                    colors.forEach((color, index) => {
+                        const stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        stop.setAttribute('offset', (colors.length > 1 ? (index / (colors.length - 1)) * 100 : 0) + '%');
+                        stop.setAttribute('stop-color', color);
+                        linearGradient.appendChild(stop);
+                    });
+                    defs.appendChild(linearGradient);
+                    const opt = document.createElement('option'); opt.value = key; opt.textContent = key;
+                    colorSelect.appendChild(opt);
+                }
+            }
+        }
+
+        function updateSelectMenu() {
+            const select = document.getElementById('node-select');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="center">Bloc Central</option>';
+            diagramData.bubbles.forEach((b, i) => {
+                let opt = document.createElement('option');
+                opt.value = i.toString();
+                opt.textContent = `Bulle ${i + 1} : ${b.text.replace(/\n/g, ' ').substring(0, 15)}`;
+                select.appendChild(opt);
+                b.children.forEach((sub, j) => {
+                    let optSub = document.createElement('option');
+                    optSub.value = `${i}-${j}`;
+                    optSub.textContent = `   ↳ Sous-bulle : ${sub.text.replace(/\n/g, ' ').substring(0, 10)}`;
+                    select.appendChild(optSub);
+                });
+            });
+            const optionExists = Array.from(select.options).some(opt => opt.value === currentValue);
+            select.value = optionExists ? currentValue : 'center';
+            toggleContextButtons();
+        }
+
+        function getSelectedNode() {
+            const val = document.getElementById('node-select').value;
+            if (val === 'center') return diagramData.center;
+            const parts = val.split('-');
+            if (parts.length === 1) return diagramData.bubbles[parseInt(parts[0])];
+            return diagramData.bubbles[parseInt(parts[0])].children[parseInt(parts[1])];
+        }
+
+        function toggleContextButtons() {
+            const val = document.getElementById('node-select').value;
+            document.getElementById('btn-add-sub').disabled = (val === 'center' || val.includes('-'));
+        }
+
+        function loadNodeData() {
+            toggleContextButtons();
+            const node = getSelectedNode();
+            
+            document.getElementById('node-text').value = node.text || "";
+            document.getElementById('node-color').value = node.color || "#FFFFFF";
+            document.getElementById('node-text-color').value = node.textColor || "#000000";
+            document.getElementById('node-font-size').value = node.fontSize || 30; 
+            document.getElementById('node-font-family').value = node.fontFamily || "'Marianne', system-ui, sans-serif";
+            
+            if(node.size) {
+                document.getElementById('node-size').value = node.size;
+                document.getElementById('size-val').textContent = node.size;
+            }
+            document.getElementById('btn-bold').classList.toggle('active', node.isBold);
+            document.getElementById('btn-italic').classList.toggle('active', node.isItalic);
+            document.getElementById('btn-strike').classList.toggle('active', node.isStrike);
+
+            const themeSelect = document.getElementById('icon-theme-select');
+            const iconSelect = document.getElementById('icon-select');
+            const preview = document.getElementById('icon-preview');
+            
+            themeSelect.value = "";
+            iconSelect.innerHTML = '<option value="">-- Icône --</option>';
+            preview.style.display = 'none';
+
+            if (node.icon) {
+                const parts = node.icon.split('/');
+                if (parts.length >= 2) {
+                    const iconFileName = parts.pop(); 
+                    const themeName = parts.pop();
+                    const iconName = iconFileName.replace('.svg', ''); 
+                    if (dsfrIconsByCategory[themeName]) {
+                        themeSelect.value = themeName;
+                        populateIconSelect(); 
+                        iconSelect.value = iconName;
+                        updateIconPreview();
+                    }
+                }
+            }
+        }
+
+        function toggleTextStyle(styleType) {
+            const node = getSelectedNode();
+            if (styleType === 'bold') node.isBold = !node.isBold;
+            if (styleType === 'italic') node.isItalic = !node.isItalic;
+            if (styleType === 'strike') node.isStrike = !node.isStrike;
+            if (!node.manualSize) node.size = calculateOptimalSize(node);
+            loadNodeData(); renderSVG();
+        }
+
+        function updateNode(fromSlider = false) {
+            const node = getSelectedNode();
+            node.text = document.getElementById('node-text').value;
+            node.color = document.getElementById('node-color').value;
+            node.textColor = document.getElementById('node-text-color').value;
+            node.fontSize = Number(document.getElementById('node-font-size').value) || 30;
+            node.fontFamily = document.getElementById('node-font-family').value;
+            
+            if (fromSlider) {
+                node.size = Number(document.getElementById('node-size').value);
+                node.manualSize = true;
+            } else {
+                if (!node.manualSize) {
+                    node.size = calculateOptimalSize(node);
+                    document.getElementById('node-size').value = node.size;
+                }
+            }
+            document.getElementById('size-val').textContent = node.size;
+            updateSelectMenu(); renderSVG();
+        }
+
+        function updateGlobalSettings() {
+            diagramData.direction = document.getElementById('diagram-direction').value;
+            renderSVG();
+        }
+
+        function selectNodeFromCanvas(nodeId) {
+            document.getElementById('node-select').value = nodeId;
+            loadNodeData(); renderSVG(); 
+        }
+
+        function addMainBubble() {
+            diagramData.bubbles.push({ 
+                text: "NOUVELLE BULLE", color: "tournesolAscending", textColor: "#000000", shape: "circle", size: 250, manualSize: false, icon: null, children: [], ...defaultTypography
+            });
+            updateSelectMenu(); document.getElementById('node-select').value = (diagramData.bubbles.length - 1).toString();
+            const node = diagramData.bubbles[diagramData.bubbles.length - 1];
+            node.size = calculateOptimalSize(node);
+            loadNodeData(); renderSVG(); resetZoom();
+        }
+
+        function addSubBubble() {
+            const val = document.getElementById('node-select').value;
+            if (val === 'center' || val.includes('-')) return;
+            const mIndex = parseInt(val);
+            diagramData.bubbles[mIndex].children.push({
+                text: "Détail", color: "grisGaletAscending", textColor: "#000000", shape: "circle", size: 160, manualSize: false, icon: null, ...defaultTypography, fontSize: 20
+            });
+            updateSelectMenu(); document.getElementById('node-select').value = `${mIndex}-${diagramData.bubbles[mIndex].children.length - 1}`;
+            const node = diagramData.bubbles[mIndex].children[diagramData.bubbles[mIndex].children.length - 1];
+            node.size = calculateOptimalSize(node);
+            loadNodeData(); renderSVG(); resetZoom();
+        }
+
+        function removeSelectedNode() {
+            const val = document.getElementById('node-select').value;
+            if (val === 'center') { alert("Impossible de supprimer le centre."); return; }
+            const parts = val.split('-');
+            if (parts.length === 1) diagramData.bubbles.splice(parseInt(parts[0]), 1);
+            else diagramData.bubbles[parseInt(parts[0])].children.splice(parseInt(parts[1]), 1);
+            updateSelectMenu(); loadNodeData(); renderSVG(); resetZoom();
+        }
+
+        // --- MOTEUR DRAG & DROP DES BULLES ---
+        let isDraggingNode = false;
+        let dragItemIndex = null;
+        let dragGhost = null;
+        let hoverItemIndex = null;
+        let dragOriginX = 0;
+        let dragOriginY = 0;
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isDraggingNode || dragItemIndex === null || !dragGhost) return;
+            const svg = document.getElementById('canvas');
+            const pt = svg.createSVGPoint();
+            pt.x = e.clientX; pt.y = e.clientY;
+            const ctm = svg.getScreenCTM();
+            if(!ctm) return;
+            const svgP = pt.matrixTransform(ctm.inverse());
+            const dx = svgP.x - dragOriginX;
+            const dy = svgP.y - dragOriginY;
+            dragGhost.setAttribute('transform', `translate(${dx}, ${dy})`);
+        });
+
+        window.addEventListener('pointerup', (e) => {
+            if (!isDraggingNode) return;
+            isDraggingNode = false;
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            if (hoverItemIndex !== null && dragItemIndex !== null && hoverItemIndex !== dragItemIndex) {
+                const b = diagramData.bubbles.splice(dragItemIndex, 1)[0];
+                diagramData.bubbles.splice(hoverItemIndex, 0, b);
+                const currentSelect = document.getElementById('node-select').value;
+                if (currentSelect === dragItemIndex.toString()) document.getElementById('node-select').value = hoverItemIndex.toString();
+                else if (currentSelect === hoverItemIndex.toString()) document.getElementById('node-select').value = dragItemIndex.toString();
+                updateSelectMenu(); renderSVG();
+            } else {
+                renderSVG(); 
+            }
+            dragItemIndex = null; hoverItemIndex = null;
+        });
+
+        // --- EXPORT PROPRE ET CADRÉ ---
+        function getCleanSVGSource() {
+            const selectEl = document.getElementById('node-select');
+            const currentSelection = selectEl.value;
+            selectEl.value = "none_for_export"; 
+            renderSVG();
+            
+            const svg = document.getElementById('canvas');
+            
+            // On calcule la taille exacte requise par le diagramme sans marges abusives (Auto-Crop)
+            const { maxExtent } = calculateMaxExtent();
+            const padding = 40;
+            const exportSize = (maxExtent * 2) + (padding * 2);
+            const exportX = -maxExtent - padding;
+            const exportY = -maxExtent - padding;
+            
+            // On sauvegarde l'état actuel de la vue de l'utilisateur
+            const oldViewBox = svg.getAttribute('viewBox');
+            
+            // On applique temporairement le recadrage exact
+            svg.setAttribute('viewBox', `${exportX} ${exportY} ${exportSize} ${exportSize}`);
+            
+            let source = new XMLSerializer().serializeToString(svg);
+            if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            
+            // On restaure l'interface comme elle était
+            svg.setAttribute('viewBox', oldViewBox);
+            selectEl.value = currentSelection;
+            renderSVG();
+            
+            return { source, exportSize };
+        }
+
+        function exportSVG() {
+            const { source } = getCleanSVGSource();
+            const blob = new Blob([source], {type: 'image/svg+xml;charset=utf-8'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'organigramme_valor.svg';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function exportPNG() {
+            const { source, exportSize } = getCleanSVGSource();
+            
+            // Multiplicateur pour garantir une haute définition
+            const exportScale = 3;
+            const finalWidth = exportSize * exportScale; 
+            const finalHeight = exportSize * exportScale; 
+            
+            const img = new Image();
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(source)));
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = finalWidth; 
+                canvas.height = finalHeight; 
+                const ctx = canvas.getContext('2d');
+                
+                // On dessine directement (le fond restera transparent)
+                ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+                
+                const a = document.createElement('a'); a.download = 'organigramme_valor.png';
+                a.href = canvas.toDataURL('image/png'); document.body.appendChild(a);
+                a.click(); document.body.removeChild(a);
+            };
+        }
+
+        // --- MOTEUR DE RENDU PRINCIPAL ---
+        function renderSVG() {
+            const connectorsGroup = document.getElementById('connectors');
+            const nodesGroup = document.getElementById('nodes');
+            connectorsGroup.innerHTML = ''; nodesGroup.innerHTML = '';
+
+            const { orbitRadius } = calculateMaxExtent();
+
+            const bubblesCount = diagramData.bubbles.length || 1;
+            const directionMultiplier = diagramData.direction === 'clockwise' ? 1 : -1;
+            const mainAngleStep = directionMultiplier * (2 * Math.PI) / bubblesCount;
+            const startAngle = -Math.PI / 2; 
+
+            // Le centre physique du dessin est toujours 0, 0 !
+            drawNode(nodesGroup, diagramData.center, 0, 0, 'center');
+
+            diagramData.bubbles.forEach((bubble, i) => {
+                const mainAngle = startAngle + i * mainAngleStep;
+                const bx = orbitRadius * Math.cos(mainAngle);
+                const by = orbitRadius * Math.sin(mainAngle);
+
+                drawLine(connectorsGroup, 0, 0, bx, by);
+
+                const nodeG = drawNode(nodesGroup, bubble, bx, by, i.toString());
+                nodeG.setAttribute('class', 'node-group draggable');
+
+                nodeG.onpointerdown = (e) => {
+                    e.stopPropagation();
+                    if(e.button !== 0) return; 
+                    
+                    isDraggingNode = true;
+                    dragItemIndex = i;
+                    dragOriginX = bx; dragOriginY = by;
+                    hoverItemIndex = null;
+
+                    nodeG.style.opacity = '0.3';
+                    dragGhost = nodeG.cloneNode(true);
+                    dragGhost.style.opacity = '0.8';
+                    dragGhost.style.pointerEvents = 'none';
+                    document.getElementById('canvas').appendChild(dragGhost); 
+
+                    selectNodeFromCanvas(i.toString());
+                };
+
+                nodeG.onpointerenter = () => {
+                    if (isDraggingNode && dragItemIndex !== null && dragItemIndex !== i) {
+                        hoverItemIndex = i;
+                        nodeG.querySelector('circle').setAttribute('stroke', '#000091');
+                        nodeG.querySelector('circle').setAttribute('stroke-dasharray', '5,5');
+                        nodeG.querySelector('circle').setAttribute('stroke-width', '4');
+                    }
+                };
+
+                nodeG.onpointerleave = () => {
+                    if (isDraggingNode && dragItemIndex !== null && dragItemIndex !== i) {
+                        if (hoverItemIndex === i) hoverItemIndex = null;
+                        const isSelected = (i.toString() === document.getElementById('node-select').value);
+                        nodeG.querySelector('circle').setAttribute('stroke', isSelected ? '#000091' : '#1E1E1E');
+                        nodeG.querySelector('circle').setAttribute('stroke-dasharray', 'none');
+                        nodeG.querySelector('circle').setAttribute('stroke-width', isSelected ? '5' : '1');
+                    }
+                };
+
+                const subCount = bubble.children.length;
+                if (subCount > 0) {
+                    let maxSubSize = Math.max(...bubble.children.map(s => Number(s.size) || 160));
+                    let subOrbit = ((Number(bubble.size) || 250) / 2) + (maxSubSize / 2) + 40;
+                    
+                    let spreadAngle = Math.PI / 1.5; 
+                    if (subCount === 1) spreadAngle = 0;
+
+                    let startSubAngle = mainAngle - (directionMultiplier * spreadAngle / 2);
+                    let subAngleStep = subCount > 1 ? (directionMultiplier * spreadAngle) / (subCount - 1) : 0;
+
+                    bubble.children.forEach((sub, j) => {
+                        let subAngle = startSubAngle + (j * subAngleStep);
+                        let sx = bx + subOrbit * Math.cos(subAngle);
+                        let sy = by + subOrbit * Math.sin(subAngle);
+                        drawLine(connectorsGroup, bx, by, sx, sy);
+                        drawNode(nodesGroup, sub, sx, sy, `${i}-${j}`);
+                    });
+                }
+            });
+        }
+
+        function drawLine(parent, x1, y1, x2, y2) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', Number(x1) || 0); line.setAttribute('y1', Number(y1) || 0);
+            line.setAttribute('x2', Number(x2) || 0); line.setAttribute('y2', Number(y2) || 0);
+            line.setAttribute('stroke', '#777777'); line.setAttribute('stroke-width', '2');
+            parent.appendChild(line);
+        }
+
+        function drawNode(parent, nodeData, x, y, nodeId) {
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            group.setAttribute('class', 'node-group');
+            
+            group.onclick = function() {
+                if(!isDraggingNode && !isPanningView) selectNodeFromCanvas(nodeId);
+            };
+            
+            const cx = Number(x) || 0;
+            const cy = Number(y) || 0;
+            const bSize = Number(nodeData.size) || 200;
+            const bRadius = bSize / 2;
+            const fSize = Number(nodeData.fontSize) || 30; 
+            const lineHeight = fSize * 1.25;
+            
+            const fillValue = nodeData.color === '#FFFFFF' ? '#FFFFFF' : `url(#grad-${nodeData.color})`;
+            const isSelected = (nodeId === document.getElementById('node-select').value);
+
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', cx); circle.setAttribute('cy', cy);
+            circle.setAttribute('r', bRadius);
+            circle.setAttribute('fill', fillValue);
+            
+            if (isSelected) {
+                circle.setAttribute('stroke', '#000091'); 
+                circle.setAttribute('stroke-width', '5');
+            } else {
+                circle.setAttribute('stroke', '#1E1E1E');
+                circle.setAttribute('stroke-width', '1');
+            }
+            
+            group.appendChild(circle);
+
+            const hasIcon = nodeData.iconBase64 && nodeData.iconBase64 !== "";
+
+            if (hasIcon) {
+                const iconSize = bSize * 0.40; 
+                const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+                img.setAttribute('x', cx - iconSize / 2);
+                img.setAttribute('y', cy - bRadius * 0.6); 
+                img.setAttribute('width', iconSize);
+                img.setAttribute('height', iconSize);
+                img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', nodeData.iconBase64);
+
+                if (nodeData.textColor === '#FFFFFF') {
+                    img.setAttribute('style', 'filter: invert(1) brightness(2); pointer-events: none;');
+                } else if (nodeData.textColor === '#000091') {
+                    img.setAttribute('style', 'filter: invert(0); pointer-events: none;');
+                } else {
+                    img.setAttribute('style', 'pointer-events: none;');
+                }
+                group.appendChild(img);
+            }
+
+            const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            textEl.setAttribute('text-anchor', 'middle');
+            textEl.setAttribute('fill', nodeData.textColor);
+            textEl.setAttribute('font-family', nodeData.fontFamily || "'Marianne', system-ui, sans-serif"); 
+            textEl.setAttribute('font-size', fSize + 'px');
+            textEl.setAttribute('style', 'pointer-events: none;');
+            
+            if (nodeData.isBold) textEl.setAttribute('font-weight', 'bold');
+            if (nodeData.isItalic) textEl.setAttribute('font-style', 'italic');
+            if (nodeData.isStrike) textEl.setAttribute('text-decoration', 'line-through');
+
+            const textContent = nodeData.text || "";
+            let rawLines = textContent.split('\n');
+            let finalLines = [];
+            
+            const safeWidth = bSize * 0.8; 
+            const approxCharWidth = fSize * 0.55;
+            const maxCharsPerLine = Math.max(5, Math.floor(safeWidth / approxCharWidth) || 10);
+
+            rawLines.forEach(line => {
+                let words = line.split(' '); let currentLine = '';
+                words.forEach(word => {
+                    if ((currentLine + word).length > maxCharsPerLine && currentLine !== '') {
+                        finalLines.push(currentLine.trim()); currentLine = word + ' ';
+                    } else { currentLine += word + ' '; }
+                });
+                finalLines.push(currentLine.trim());
+            });
+
+            let startY = cy;
+            if (hasIcon) {
+                const gap = fSize * 0.5; 
+                startY = cy + (bSize * 0.1) + gap + (lineHeight / 2); 
+            } else {
+                const lineOffset = ((finalLines.length - 1) * lineHeight) / 2;
+                startY = cy - lineOffset;
+            }
+
+            finalLines.forEach((lineText, index) => {
+                const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                tspan.setAttribute('x', cx); 
+                tspan.setAttribute('y', startY + (index * lineHeight));
+                tspan.setAttribute('dominant-baseline', 'central');
+                tspan.textContent = lineText; 
+                textEl.appendChild(tspan);
+            });
+
+            group.appendChild(textEl); 
+            parent.appendChild(group);
+            return group;
+        }
+
+        // --- LANCEMENT ---
+        document.getElementById('diagram-direction').value = diagramData.direction;
+        initGradientsAndSelect(); 
+        initIconMenu(); 
+        updateSelectMenu(); 
+        loadNodeData(); 
+        initPanZoom(); 
+        initDefaultIcons(); 
+    </script>
+</body>
+</html>
