@@ -719,6 +719,11 @@
         function cmDelete() { document.getElementById('context-menu').style.display = 'none'; removeSelectedNode(); }
 
         function drawCurve(parent, x1, y1, x2, y2, strokeColor) {
+            // FIX : Contournement du bug SVG des navigateurs sur les dégradés à dimension nulle.
+            // On force la "Bounding Box" à avoir au moins 0.1px de dimension.
+            if (Math.abs(x1 - x2) < 0.1) x2 += 0.1;
+            if (Math.abs(y1 - y2) < 0.1) y2 += 0.1;
+
             const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             const c1x=x1+(x2-x1)*0.4, c1y=y1+(y2-y1)*0.1, c2x=x2-(x2-x1)*0.1, c2y=y2-(y2-y1)*0.4;
             p.setAttribute('d', `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`);
