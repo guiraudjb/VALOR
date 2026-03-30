@@ -718,12 +718,24 @@
         function cmAddSub() { document.getElementById('context-menu').style.display = 'none'; addSubBubble(); }
         function cmDelete() { document.getElementById('context-menu').style.display = 'none'; removeSelectedNode(); }
 
-        function drawCurve(parent, x1, y1, x2, y2) {
+        function drawCurve(parent, x1, y1, x2, y2, strokeColor) {
             const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             const c1x=x1+(x2-x1)*0.4, c1y=y1+(y2-y1)*0.1, c2x=x2-(x2-x1)*0.1, c2y=y2-(y2-y1)*0.4;
             p.setAttribute('d', `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`);
-            p.setAttribute('stroke', '#A0A0A0'); p.setAttribute('stroke-width', '3');
-            p.setAttribute('fill', 'none'); p.setAttribute('stroke-linecap', 'round');
+            
+            // Logique de coloration intelligente
+            let finalColor = '#A0A0A0'; // Gris par défaut
+            if (strokeColor) {
+                if (strokeColor === '#FFFFFF') finalColor = '#A0A0A0'; // Le blanc serait invisible
+                else if (strokeColor.startsWith('#')) finalColor = strokeColor;
+                else finalColor = `url(#grad-${strokeColor})`;
+            }
+
+            p.setAttribute('stroke', finalColor); 
+            p.setAttribute('stroke-width', '4'); // Un peu plus épais pour mieux voir la couleur
+            p.setAttribute('fill', 'none'); 
+            p.setAttribute('stroke-linecap', 'round');
+            p.setAttribute('opacity', '0.7'); // Légèrement transparent pour ne pas écraser le texte
             parent.appendChild(p);
         }
 
@@ -732,27 +744,72 @@
             cG.innerHTML = ''; nG.innerHTML = '';
             const { orbitRadius } = calculateMaxExtent(), bCount = diagramData.bubbles.length || 1;
             const dir = diagramData.direction === 'clockwise' ? 1 : -1, mStep = dir * (2 * Math.PI) / bCount, start = -Math.PI / 2; 
+            
+            // Dessin du centre
             drawNode(nG, diagramData.center, 0, 0, 'center');
+            
+            // Dessin des bulles principales
             diagramData.bubbles.forEach((b, i) => {
                 const a = start + i * mStep, bx = orbitRadius * Math.cos(a), by = orbitRadius * Math.sin(a);
-                drawCurve(cG, 0, 0, bx, by);
+                
+                // Appel à drawCurve AVEC la couleur de la bulle cible (b.color)
+                drawCurve(cG, 0, 0, bx, by, b.color);
+                
                 const g = drawNode(nG, b, bx, by, i.toString()); g.setAttribute('class', 'node-group draggable');
-                g.onpointerdown = e => { if(e.target.classList.contains('resize-handle')) return; e.stopPropagation(); if(e.button!==0)return; isDraggingNode=true; dragItemIndex=i; dragOriginX=bx; dragOriginY=by; hoverItemIndex=null; g.style.opacity='0.4'; dragGhost=g.cloneNode(true); dragGhost.style.opacity='0.7'; dragGhost.style.pointerEvents='none'; document.getElementById('canvas').appendChild(dragGhost); selectNodeFromCanvas(i.toString()); };
-                g.onpointerenter = () => { if(isDraggingNode&&dragItemIndex!==null&&dragItemIndex!==i){ hoverItemIndex=i; const s=g.querySelector('.node-shape'); if(s) s.setAttribute('stroke-dasharray','6,6'); } };
-                g.onpointerleave = () => { if(isDraggingNode&&dragItemIndex!==null&&dragItemIndex!==i){ if(hoverItemIndex===i)hoverItemIndex=null; const s=g.querySelector('.node-shape'); if(s) s.setAttribute('stroke-dasharray','none'); } };
+                const isSelected = (i.toString() === document.getElementById('node-select').value);
+
+                // Événements de souris pour le Drag & Drop
+                g.onpointerdown = e => { 
+                    if(e.target.classList.contains('resize-handle')) return; 
+                    e.stopPropagation(); if(e.button!==0)return; 
+                    isDraggingNode=true; dragItemIndex=i; dragOriginX=bx; dragOriginY=by; hoverItemIndex=null; 
+                    g.style.opacity='0.4'; dragGhost=g.cloneNode(true); dragGhost.style.opacity='0.7'; dragGhost.style.pointerEvents='none'; 
+                    document.getElementById('canvas').appendChild(dragGhost); selectNodeFromCanvas(i.toString()); 
+                };
+                
+                // EFFET VISUEL : Entrée sur une cible de drop
+                g.onpointerenter = () => { 
+                    if(isDraggingNode && dragItemIndex !== null && dragItemIndex !== i){ 
+                        hoverItemIndex = i; 
+                        const s = g.querySelector('.node-shape'); 
+                        if(s) {
+                            s.setAttribute('stroke', '#00A95F'); // Vert validation
+                            s.setAttribute('stroke-width', '6');
+                            g.style.transform = 'scale(1.05)'; // Agrandissement
+                        } 
+                    } 
+                };
+                
+                // EFFET VISUEL : Sortie de la cible
+                g.onpointerleave = () => { 
+                    if(isDraggingNode && dragItemIndex !== null && dragItemIndex !== i){ 
+                        if(hoverItemIndex === i) hoverItemIndex = null; 
+                        const s = g.querySelector('.node-shape'); 
+                        if(s) {
+                            s.setAttribute('stroke', isSelected ? '#000091' : 'rgba(0,0,0,0.1)');
+                            s.setAttribute('stroke-width', isSelected ? '4' : '1');
+                            g.style.transform = ''; // Retour à la normale
+                        } 
+                    } 
+                };
+
+                // Dessin des sous-bulles
                 if (b.children.length > 0) {
                     let mSS = Math.max(...b.children.map(s => Number(s.size) || 160));
                     let sO = ((Number(b.size) || 250) / 2) + (mSS / 2) + 100, sA = Math.PI * 0.45;
                     if (b.children.length === 1) sA = 0;
                     let sS = a - (dir * sA / 2), st = b.children.length > 1 ? (dir * sA) / (b.children.length - 1) : 0;
+                    
                     b.children.forEach((sub, j) => {
                         let sa = sS + (j * st), sx = bx + sO * Math.cos(sa), sy = by + sO * Math.sin(sa);
-                        drawCurve(cG, bx, by, sx, sy); drawNode(nG, sub, sx, sy, `${i}-${j}`);
+                        // Appel à drawCurve AVEC la couleur de la sous-bulle (sub.color)
+                        drawCurve(cG, bx, by, sx, sy, sub.color); 
+                        drawNode(nG, sub, sx, sy, `${i}-${j}`);
                     });
                 }
             });
         }
-
+        
         // CORRECTION MAJEURE DE L'AFFICHAGE DU CONTENU
         function drawNode(parent, nodeData, x, y, nodeId) {
             const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
