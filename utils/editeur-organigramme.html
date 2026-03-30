@@ -83,6 +83,72 @@
         .project-toolbar { display: flex; gap: 5px; margin-bottom: 10px; }
         .project-toolbar button { padding: 8px; font-size: 0.85rem; flex: 1; }
         .resize-handle { cursor: nwse-resize; fill: var(--bleu-france); stroke: white; stroke-width: 1; }
+        
+        /* Styles pour les accordéons natifs de la barre latérale */
+        details {
+            background: var(--panel-bg);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            transition: all 0.2s ease;
+        }
+        summary {
+            font-weight: bold;
+            font-size: 0.95rem;
+            padding: 10px 12px;
+            cursor: pointer;
+            background: #f8f8f8;
+            border-radius: 4px;
+            list-style: none; /* Masque la flèche par défaut */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--bleu-france);
+        }
+        summary::-webkit-details-marker { display: none; } /* Pour Safari */
+        summary::after { 
+            content: '▼'; 
+            font-size: 0.75em; 
+            transition: transform 0.3s ease; 
+        }
+        details[open] summary::after { transform: rotate(-180deg); }
+        details[open] summary { 
+            border-bottom-left-radius: 0; 
+            border-bottom-right-radius: 0; 
+            border-bottom: 1px solid #ddd; 
+            background: #f0f0f0;
+        }
+        .details-content {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        /* Ajustement des anciens control-group dans les accordéons */
+        details .control-group { border: none; padding: 0; margin: 0; }
+        
+        
+        /* Styles pour l'éditeur de texte au double-clic */
+        #in-place-editor {
+            position: fixed; background: rgba(255, 255, 255, 0.95);
+            border: 2px solid var(--bleu-france); border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); outline: none;
+            resize: both; text-align: center; z-index: 2000;
+            color: #1E1E1E !important; /* Force un texte foncé pour la lisibilité en édition */
+        }
+
+        /* Styles pour le menu contextuel (clic droit) */
+        #context-menu {
+            display: none; position: fixed; background: white; border: 1px solid #ccc;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 4px; padding: 5px; 
+            z-index: 2000; flex-direction: column; gap: 2px; min-width: 170px;
+        }
+        #context-menu button {
+            background: none; color: #333; text-align: left; padding: 8px 10px; 
+            font-weight: normal; border-radius: 2px;
+        }
+        #context-menu button:hover { background: #f0f0f0; }
+        #context-menu button:disabled { color: #aaa; background: none; }
     </style>
 </head>
 <body>
@@ -100,99 +166,112 @@
             <input type="file" id="file-import" accept=".valor,.json" style="display: none;" onchange="importProject(event)">
         </div>
 
-        <div class="control-group">
-            <label for="diagram-direction">Sens de rotation général :</label>
-            <select id="diagram-direction" onchange="saveState(); updateGlobalSettings()">
-                <option value="clockwise">Sens Horaire</option>
-                <option value="counterclockwise">Sens Anti-horaire</option>
-            </select>
-        </div>
-        
-        <div class="control-group">
+        <details>
+            <summary>Paramètres du Schéma</summary>
+            <div class="details-content">
+                <div class="control-group">
+                    <label for="diagram-direction">Sens de rotation général :</label>
+                    <select id="diagram-direction" onchange="saveState(); updateGlobalSettings()">
+                        <option value="clockwise">Sens Horaire</option>
+                        <option value="counterclockwise">Sens Anti-horaire</option>
+                    </select>
+                </div>
+            </div>
+        </details>
+
+        <div class="control-group" style="margin-top: 10px;">
             <label for="node-select">Élément sélectionné :</label>
             <select id="node-select" onchange="loadNodeData(); renderSVG();">
                 <option value="center">Bloc Central</option>
             </select>
         </div>
 
-        <div class="control-group">
-            <label for="node-shape">Forme de la bulle :</label>
-            <select id="node-shape" onchange="saveState(); updateNode(false)">
-                <option value="circle">Cercle classique</option>
-                <option value="rect">Rectangle</option>
-                <option value="rhombus">Losange</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label for="node-text">Texte :</label>
-            <textarea id="node-text" rows="3" onchange="saveState(); updateNode(false)"></textarea>
-        </div>
-
-        <div class="control-group">
-            <label>Typographie :</label>
-            <select id="node-font-family" onchange="saveState(); updateNode(false)" style="margin-bottom: 5px;">
-                <option value="'Marianne', system-ui, sans-serif">Marianne</option>
-                <option value="Arial, sans-serif">Arial</option>
-                <option value="'Times New Roman', serif">Times New Roman</option>
-            </select>
-
-            <div class="row-group">
-                <input type="number" id="node-font-size" value="30" min="8" max="72" onchange="saveState(); updateNode(false)" style="flex: 1;">
-                <select id="node-text-color" onchange="saveState(); updateNode(false)" style="flex: 2;">
-                    <option value="#000000">Noir</option>
-                    <option value="#FFFFFF">Blanc</option>
-                    <option value="#000091">Bleu France</option>
-                </select>
+        <details open>
+            <summary>Texte & Typographie</summary>
+            <div class="details-content">
+                <div class="control-group">
+                    <textarea id="node-text" rows="3" placeholder="Saisissez votre texte ici..." onchange="saveState(); updateNode(false)"></textarea>
+                </div>
+                <div class="control-group">
+                    <select id="node-font-family" onchange="saveState(); updateNode(false)" style="margin-bottom: 5px;">
+                        <option value="'Marianne', system-ui, sans-serif">Marianne</option>
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="'Times New Roman', serif">Times New Roman</option>
+                    </select>
+                    <div class="row-group">
+                        <input type="number" id="node-font-size" value="30" min="8" max="72" onchange="saveState(); updateNode(false)" style="flex: 1;">
+                        <select id="node-text-color" onchange="saveState(); updateNode(false)" style="flex: 2;">
+                            <option value="#000000">Noir</option>
+                            <option value="#FFFFFF">Blanc</option>
+                            <option value="#000091">Bleu France</option>
+                        </select>
+                    </div>
+                    <div class="row-group" style="margin-top: 5px;">
+                        <button id="btn-bold" class="style-btn" onclick="saveState(); toggleTextStyle('bold')" style="font-weight: bold;">G</button>
+                        <button id="btn-italic" class="style-btn" onclick="saveState(); toggleTextStyle('italic')" style="font-style: italic;">I</button>
+                        <button id="btn-strike" class="style-btn" onclick="saveState(); toggleTextStyle('strike')" style="text-decoration: line-through;">S</button>
+                    </div>
+                </div>
             </div>
-            <div class="row-group" style="margin-top: 5px;">
-                <button id="btn-bold" class="style-btn" onclick="saveState(); toggleTextStyle('bold')" style="font-weight: bold;">G</button>
-                <button id="btn-italic" class="style-btn" onclick="saveState(); toggleTextStyle('italic')" style="font-style: italic;">I</button>
-                <button id="btn-strike" class="style-btn" onclick="saveState(); toggleTextStyle('strike')" style="text-decoration: line-through;">S</button>
-            </div>
-        </div>
+        </details>
 
-        <div class="control-group" id="icon-group">
-            <label>Icône ou Image :</label>
-            <div class="row-group">
-                <select id="icon-theme-select" onchange="populateIconSelect()"></select>
-                <select id="icon-select" onchange="updateIconPreview()"></select>
+        <details>
+            <summary>Forme & Apparence</summary>
+            <div class="details-content">
+                <div class="control-group">
+                    <label for="node-shape">Forme de la bulle :</label>
+                    <select id="node-shape" onchange="saveState(); updateNode(false)">
+                        <option value="circle">Cercle classique</option>
+                        <option value="rect">Rectangle</option>
+                        <option value="rhombus">Losange</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="node-color">Couleur de fond :</label>
+                    <select id="node-color" onchange="saveState(); updateNode(false)"></select>
+                </div>
+                <div class="control-group" id="size-control-group">
+                    <div class="row-group" style="justify-content: space-between; margin-bottom: 5px;">
+                        <label for="node-size">Taille (<span id="size-val">250</span>px) :</label>
+                        <button class="secondary style-btn" style="font-size: 0.75rem; padding: 4px 8px; flex: unset;" onclick="saveState(); autoFitCurrentNode()">Ajuster</button>
+                    </div>
+                    <input type="range" id="node-size" min="120" max="800" value="250" onchange="saveState();" oninput="updateNode(true)">
+                </div>
             </div>
-            <div class="row-group" style="margin-top: 5px;">
-                <button class="secondary" onclick="document.getElementById('custom-image-upload').click()" style="flex: 1; font-size: 0.85rem; padding: 6px;">📁 Image perso...</button>
-                <input type="file" id="custom-image-upload" accept="image/png, image/jpeg, image/svg+xml, image/webp" style="display: none;" onchange="uploadCustomImage(event)">
-            </div>
-            <div id="icon-preview-container">
-                <img id="icon-preview" src="" alt="" style="display: none;">
-                <button onclick="saveState(); applyIcon()" class="action-btn" style="flex:1;">Appliquer</button>
-                <button onclick="saveState(); removeIcon()" class="secondary" style="flex:1;">Supprimer</button>
-            </div>
-        </div>
+        </details>
 
-        <div class="control-group" id="size-control-group">
-            <div class="row-group" style="justify-content: space-between; margin-bottom: 5px;">
-                <label for="node-size">Taille de la bulle (<span id="size-val">250</span>px) :</label>
-                <button class="secondary style-btn" style="font-size: 0.75rem; padding: 4px 8px; flex: unset;" onclick="saveState(); autoFitCurrentNode()">Ajuster</button>
+        <details>
+            <summary>Icône & Image</summary>
+            <div class="details-content">
+                <div class="control-group" id="icon-group">
+                    <div class="row-group">
+                        <select id="icon-theme-select" onchange="populateIconSelect()"></select>
+                        <select id="icon-select" onchange="updateIconPreview()"></select>
+                    </div>
+                    <div class="row-group" style="margin-top: 5px;">
+                        <button class="secondary" onclick="document.getElementById('custom-image-upload').click()" style="flex: 1; font-size: 0.85rem; padding: 6px;">📁 Image perso...</button>
+                        <input type="file" id="custom-image-upload" accept="image/png, image/jpeg, image/svg+xml, image/webp" style="display: none;" onchange="uploadCustomImage(event)">
+                    </div>
+                    <div id="icon-preview-container">
+                        <img id="icon-preview" src="" alt="" style="display: none;">
+                        <button onclick="saveState(); applyIcon()" class="action-btn" style="flex:1;">Appliquer</button>
+                        <button onclick="saveState(); removeIcon()" class="secondary" style="flex:1;">Retirer</button>
+                    </div>
+                </div>
             </div>
-            <input type="range" id="node-size" min="120" max="800" value="250" onchange="saveState();" oninput="updateNode(true)">
-        </div>
+        </details>
 
-        <div class="control-group">
-            <label for="node-color">Couleur de fond :</label>
-            <select id="node-color" onchange="saveState(); updateNode(false)"></select>
-        </div>
-
-        <div class="control-group">
+        <div class="control-group" style="margin-top: 10px;">
             <button onclick="saveState(); addMainBubble()" class="action-btn">+ Ajouter bulle principale</button>
             <button id="btn-add-sub" onclick="saveState(); addSubBubble()" class="action-btn">+ Ajouter sous-bulle</button>
-            <button onclick="saveState(); removeSelectedNode()" class="secondary" style="margin-top: 5px;">- Supprimer sélection</button>
+            <button id="btn-delete" onclick="saveState(); removeSelectedNode()" class="secondary" style="margin-top: 5px; color: #E91719; background-color: #fef4f3; border: 1px solid #CE614A;">- Supprimer sélection</button>
         </div>
 
-        <hr style="width:100%; border:0; border-top:1px solid #ddd; margin: 10px 0;">
+        <hr style="width:100%; border:0; border-top:1px solid #ddd; margin: auto 0 10px 0;">
         <button onclick="exportSVG()">Exporter SVG</button>
         <button onclick="exportPNG()" style="margin-top: 5px;">Exporter PNG HQ</button>
     </div>
-
+    
     <div id="workspace">
         <div class="page-preview" id="preview-container">
             <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
@@ -206,6 +285,13 @@
             <button class="secondary style-btn" onclick="resetZoom()" style="padding: 0 12px;">Centrer</button>
             <button class="secondary style-btn zoom-btn" onclick="zoomIn()">+</button>
         </div>
+    </div>
+    <div id="context-menu">
+        <button onclick="cmEdit()">✏️ Modifier le texte</button>
+        <button onclick="cmAutoFit()">📏 Ajuster la taille</button>
+        <button id="cm-add-sub" onclick="cmAddSub()">➕ Ajouter sous-bulle</button>
+        <hr style="margin:5px 0; border:0; border-top:1px solid #ddd;">
+        <button onclick="cmDelete()" style="color: #E91719;">🗑️ Supprimer</button>
     </div>
 
     <script>
@@ -445,12 +531,69 @@
         function getSelectedNode() { const v=document.getElementById('node-select').value; return getNodeById(v); }
         
         function loadNodeData() { 
-            document.getElementById('btn-add-sub').disabled=(document.getElementById('node-select').value==='center'||document.getElementById('node-select').value.includes('-')); 
-            const n=getSelectedNode(); 
-            document.getElementById('node-text').value=n.text||""; document.getElementById('node-color').value=n.color||"#FFFFFF"; document.getElementById('node-text-color').value=n.textColor||"#000000"; document.getElementById('node-shape').value=n.shape||"circle"; document.getElementById('node-font-size').value=n.fontSize||30; document.getElementById('node-font-family').value=n.fontFamily||"'Marianne', system-ui, sans-serif"; if(n.size){document.getElementById('node-size').value=n.size; document.getElementById('size-val').textContent=n.size;} document.getElementById('btn-bold').classList.toggle('active',n.isBold); document.getElementById('btn-italic').classList.toggle('active',n.isItalic); document.getElementById('btn-strike').classList.toggle('active',n.isStrike); 
-            const t=document.getElementById('icon-theme-select'), i=document.getElementById('icon-select'), p=document.getElementById('icon-preview'); 
-            t.value=""; i.innerHTML='<option value="">-- Icône --</option>'; p.style.display='none'; 
-            if (n.icon === "custom" && n.iconBase64) { p.src = n.iconBase64; p.style.display = 'block'; } else if(n.icon) { const pt=n.icon.split('/'); if(pt.length>=2){ const iname=pt.pop().replace('.svg',''), tname=pt.pop(); if(dsfrIconsByCategory[tname]){ t.value=tname; populateIconSelect(); i.value=iname; updateIconPreview(); } } } 
+            // 1. Récupération de l'état de la sélection
+            const selectValue = document.getElementById('node-select').value;
+            const isCenter = selectValue === 'center';
+            const isSubBubble = selectValue.includes('-');
+            
+            // 2. Gestion dynamique des boutons d'action (Désactivation contextuelle)
+            document.getElementById('btn-add-sub').disabled = (isCenter || isSubBubble);
+            const deleteBtn = document.getElementById('btn-delete');
+            if (deleteBtn) deleteBtn.disabled = isCenter; // Impossible de supprimer le centre
+
+            // 3. Récupération des données du nœud ciblé
+            const n = getSelectedNode(); 
+            if (!n) return; // Sécurité au cas où la référence n'existe pas
+
+            // 4. Mise à jour des champs de texte et de forme
+            document.getElementById('node-text').value = n.text || ""; 
+            document.getElementById('node-color').value = n.color || "#FFFFFF"; 
+            document.getElementById('node-text-color').value = n.textColor || "#000000"; 
+            document.getElementById('node-shape').value = n.shape || "circle"; 
+            
+            // 5. Mise à jour de la typographie
+            document.getElementById('node-font-size').value = n.fontSize || 30; 
+            document.getElementById('node-font-family').value = n.fontFamily || "'Marianne', system-ui, sans-serif"; 
+            document.getElementById('btn-bold').classList.toggle('active', !!n.isBold); 
+            document.getElementById('btn-italic').classList.toggle('active', !!n.isItalic); 
+            document.getElementById('btn-strike').classList.toggle('active', !!n.isStrike); 
+            
+            // 6. Mise à jour du curseur de taille
+            if (n.size) {
+                document.getElementById('node-size').value = n.size; 
+                document.getElementById('size-val').textContent = n.size;
+            } 
+            
+            // 7. Mise à jour de la section "Icône & Image"
+            const themeSelect = document.getElementById('icon-theme-select');
+            const iconSelect = document.getElementById('icon-select');
+            const previewImg = document.getElementById('icon-preview'); 
+            
+            // 7.1 Réinitialisation de l'affichage par défaut
+            themeSelect.value = ""; 
+            iconSelect.innerHTML = '<option value="">-- Icône --</option>'; 
+            previewImg.style.display = 'none'; 
+            
+            // 7.2 Remplissage selon le contenu du nœud
+            if (n.icon === "custom" && n.iconBase64) { 
+                // Cas d'une image importée depuis l'ordinateur
+                previewImg.src = n.iconBase64; 
+                previewImg.style.display = 'block'; 
+            } else if (n.icon) { 
+                // Cas d'une icône DSFR de la bibliothèque
+                const parts = n.icon.split('/'); 
+                if (parts.length >= 2) { 
+                    const iconName = parts.pop().replace('.svg', ''); 
+                    const themeName = parts.pop(); 
+                    
+                    if (dsfrIconsByCategory[themeName]) { 
+                        themeSelect.value = themeName; 
+                        populateIconSelect(); // Regénère les options du menu déroulant
+                        iconSelect.value = iconName; 
+                        updateIconPreview(); // Affiche la miniature de l'icône
+                    } 
+                } 
+            } 
         }
 
         function toggleTextStyle(t) { const n=getSelectedNode(); if(t==='bold')n.isBold=!n.isBold; if(t==='italic')n.isItalic=!n.isItalic; if(t==='strike')n.isStrike=!n.isStrike; renderSVG(); }
@@ -496,6 +639,84 @@
                 saveState(); isResizingIcon = false; resizeNodeId = null;
             }
         });
+        
+        // --- INTERACTIONS DIRECTES SUR LE CANEVAS ---
+        let contextMenuNodeId = null;
+
+        function startInPlaceEditing(nodeId, textEl) {
+            if (document.getElementById('in-place-editor')) return;
+            selectNodeFromCanvas(nodeId); // Sélectionner la bulle
+            const nodeData = getSelectedNode();
+            const rect = textEl.getBoundingClientRect(); // Récupère la position exacte à l'écran
+            
+            const editor = document.createElement('textarea');
+            editor.id = 'in-place-editor';
+            editor.value = nodeData.text || "";
+            
+            // Positionnement dynamique
+            editor.style.left = `${rect.left - 15}px`;
+            editor.style.top = `${rect.top - 15}px`;
+            editor.style.width = `${rect.width + 30}px`;
+            editor.style.height = `${rect.height + 30}px`;
+            editor.style.minWidth = '120px'; editor.style.minHeight = '60px';
+            
+            // Calculer la taille de la police en fonction du niveau de zoom
+            const ctm = document.getElementById('canvas').getScreenCTM();
+            const zoomScale = ctm ? ctm.a : 1;
+            editor.style.fontFamily = nodeData.fontFamily;
+            editor.style.fontSize = `${(nodeData.fontSize || 30) * zoomScale}px`;
+            editor.style.fontWeight = nodeData.isBold ? 'bold' : 'normal';
+            editor.style.fontStyle = nodeData.isItalic ? 'italic' : 'normal';
+            
+            document.body.appendChild(editor);
+            editor.focus();
+            editor.setSelectionRange(0, editor.value.length); // Sélectionner tout le texte
+            
+            // Fonction de sauvegarde à la fermeture
+            const saveAndClose = () => {
+                if (!document.getElementById('in-place-editor')) return;
+                if (editor.value !== nodeData.text) {
+                    saveState();
+                    nodeData.text = editor.value;
+                    document.getElementById('node-text').value = nodeData.text; // MAJ Barre latérale
+                    if(!nodeData.manualSize) nodeData.size = calculateOptimalSize(nodeData);
+                }
+                editor.remove(); renderSVG();
+            };
+            
+            editor.addEventListener('blur', saveAndClose); // Sauvegarde quand on clique ailleurs
+        }
+
+        function showContextMenu(e, nodeId) {
+            e.preventDefault(); e.stopPropagation();
+            selectNodeFromCanvas(nodeId);
+            contextMenuNodeId = nodeId;
+            
+            const menu = document.getElementById('context-menu');
+            menu.style.display = 'flex';
+            menu.style.left = `${e.clientX}px`;
+            menu.style.top = `${e.clientY}px`;
+            
+            // Désactiver l'ajout de sous-bulle si c'est déjà une sous-bulle
+            document.getElementById('cm-add-sub').disabled = (nodeId === 'center' || nodeId.includes('-'));
+        }
+
+        // Fermer le menu si on clique ailleurs sur l'écran
+        window.addEventListener('pointerdown', e => {
+            if (!e.target.closest('#context-menu')) {
+                document.getElementById('context-menu').style.display = 'none';
+            }
+        });
+
+        // Actions du menu contextuel
+        function cmEdit() { 
+            document.getElementById('context-menu').style.display = 'none';
+            // On déclenche le focus sur le textarea de la barre latérale
+            document.getElementById('node-text').focus();
+        }
+        function cmAutoFit() { document.getElementById('context-menu').style.display = 'none'; autoFitCurrentNode(); }
+        function cmAddSub() { document.getElementById('context-menu').style.display = 'none'; addSubBubble(); }
+        function cmDelete() { document.getElementById('context-menu').style.display = 'none'; removeSelectedNode(); }
 
         function drawCurve(parent, x1, y1, x2, y2) {
             const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -537,6 +758,8 @@
             const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             group.setAttribute('class', 'node-group');
             group.onclick = function(e) { if(!isDraggingNode && !isPanningView && !e.target.classList.contains('resize-handle')) selectNodeFromCanvas(nodeId); };
+            group.ondblclick = function(e) { e.stopPropagation(); startInPlaceEditing(nodeId, textEl); };
+            group.oncontextmenu = function(e) { showContextMenu(e, nodeId); };
             
             const cx = Number(x) || 0, cy = Number(y) || 0, bSize = Number(nodeData.size) || 200, bRadius = bSize / 2;
             const fSize = Number(nodeData.fontSize) || 30, lineHeight = fSize * 1.25, shapeType = nodeData.shape || "circle";
