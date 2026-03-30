@@ -209,27 +209,77 @@
     </div>
 
     <script>
+        const PALETTE_SOLID = {
+            "Blanc Premium": "#FFFFFF",
+            "Bleu France": "#000091",
+            "Rouge Divergent": "#E91719",
+            "Vert Émeraude": "#00A95F",
+            "Vert Tilleul-Verveine": "#B7A73F",
+            "Vert Bourgeon": "#68A532",
+            "Vert Menthe": "#009081",
+            "Vert Archipel": "#009099",
+            "Bleu Écume": "#465F9D",
+            "Bleu Cumulus": "#417DC4",
+            "Violet Glycine": "#A558A0",
+            "Rose Macaron": "#E18B76",
+            "Rose Tuile": "#CE614A",
+            "Orange Terre Battue": "#E4794A",
+            "Jaune Tournesol": "#C8AA39",
+            "Jaune Moutarde": "#C3992A",
+            "Marron Café Crème": "#D1B781",
+            "Marron Caramel": "#C08C65",
+            "Marron Opéra": "#BD987A",
+            "Beige Gris Galet": "#AEA397",
+            "Noir": "#000000"
+        };
+
         const PALETTE_GRADIENTS = {
+            sequentialDescending: "linear-gradient(to right, #e3e3fd, #000091)",
+            sequentialAscending: "linear-gradient(to right, #000091, #e3e3fd)",
+            divergentDescending: "linear-gradient(to right, #298641, #EFB900, #E91719)",
+            divergentAscending: "linear-gradient(to right, #E91719, #EFB900, #298641)",
             categorical: "linear-gradient(to right, #5C68E5, #82B5F2, #29598F, #31A7AE, #81EEF5, #B478F1, #CFB1F5, #CECECE)",
-            emeraudeAscending: "linear-gradient(135deg, #00A95F, #e3fdeb)",
-            cumulusAscending: "linear-gradient(135deg, #417DC4, #f3f6fe)",
-            tuileAscending: "linear-gradient(135deg, #CE614A, #fef4f3)",
-            tournesolAscending: "linear-gradient(135deg, #C8AA39, #fef6e3)",
-            grisGaletAscending: "linear-gradient(135deg, #AEA397, #f9f8f6)",
-            jauneCitronAscending: "linear-gradient(135deg, #FEE902, #fffef0)",
-            vertVifAscending: "linear-gradient(135deg, #A2D929, #f6fdf1)",
-            orangeEclatantAscending: "linear-gradient(135deg, #FF732C, #fef5f0)",
-            roseFuschiaAscending: "linear-gradient(135deg, #FF4B8A, #fef1f6)",
-            turquoiseAscending: "linear-gradient(135deg, #00B9B7, #e6fdfd)",
-            bleuMarine: "linear-gradient(135deg, #000091, #417DC4)",
-            blancPremium: "linear-gradient(135deg, #FFFFFF, #F6F6F6)"
+            tilleulVerveineDescending: "linear-gradient(to right, #fef7da, #B7A73F)",
+            tilleulVerveineAscending: "linear-gradient(to right, #B7A73F, #fef7da)",
+            bourgeonDescending: "linear-gradient(to right, #e6feda, #68A532)",
+            bourgeonAscending: "linear-gradient(to right, #68A532, #e6feda)",
+            emeraudeDescending: "linear-gradient(to right, #e3fdeb, #00A95F)",
+            emeraudeAscending: "linear-gradient(to right, #00A95F, #e3fdeb)",
+            mentheDescending: "linear-gradient(to right, #dffdf7, #009081)",
+            mentheAscending: "linear-gradient(to right, #009081, #dffdf7)",
+            archipelDescending: "linear-gradient(to right, #e5fbfd, #009099)",
+            archipelAscending: "linear-gradient(to right, #009099, #e5fbfd)",
+            ecumeDescending: "linear-gradient(to right, #f4f6fe, #465F9D)",
+            ecumeAscending: "linear-gradient(to right, #465F9D, #f4f6fe)",
+            cumulusDescending: "linear-gradient(to right, #f3f6fe, #417DC4)",
+            cumulusAscending: "linear-gradient(to right, #417DC4, #f3f6fe)",
+            glycineDescending: "linear-gradient(to right, #fef3fd, #A558A0)",
+            glycineAscending: "linear-gradient(to right, #A558A0, #fef3fd)",
+            macaronDescending: "linear-gradient(to right, #fef4f2, #E18B76)",
+            macaronAscending: "linear-gradient(to right, #E18B76, #fef4f2)",
+            tuileDescending: "linear-gradient(to right, #fef4f3, #CE614A)",
+            tuileAscending: "linear-gradient(to right, #CE614A, #fef4f3)",
+            terreBattueDescending: "linear-gradient(to right, #fef4f2, #E4794A)",
+            terreBattueAscending: "linear-gradient(to right, #E4794A, #fef4f2)",
+            tournesolDescending: "linear-gradient(to right, #fef6e3, #C8AA39)",
+            tournesolAscending: "linear-gradient(to right, #C8AA39, #fef6e3)",
+            moutardeDescending: "linear-gradient(to right, #fef5e8, #C3992A)",
+            moutardeAscending: "linear-gradient(to right, #C3992A, #fef5e8)",
+            cafeCremeDescending: "linear-gradient(to right, #fbf6ed, #D1B781)",
+            cafeCremeAscending: "linear-gradient(to right, #D1B781, #fbf6ed)",
+            caramelDescending: "linear-gradient(to right, #fbf5f2, #C08C65)",
+            caramelAscending: "linear-gradient(to right, #C08C65, #fbf5f2)",
+            operaDescending: "linear-gradient(to right, #fbf5f2, #BD987A)",
+            operaAscending: "linear-gradient(to right, #BD987A, #fbf5f2)",
+            grisGaletDescending: "linear-gradient(to right, #f9f8f6, #AEA397)",
+            grisGaletAscending: "linear-gradient(to right, #AEA397, #f9f8f6)"
         };
 
         const defaultTypography = { fontFamily: "'Marianne', system-ui, sans-serif", fontSize: 26, isBold: false, isItalic: false, isStrike: false };
 
         let diagramData = {
             direction: 'clockwise',
-            center: { text: "OUTIL\nVALOR", color: "blancPremium", shape: "rect", size: 300, manualSize: true, textColor: "#000091", ...defaultTypography, isBold: true, fontSize: 36, icon: null, isCustomImage: false, iconSizeScale: 0.35 },
+            center: { text: "OUTIL\nVALOR", color: "#FFFFFF", shape: "rect", size: 300, manualSize: true, textColor: "#000091", ...defaultTypography, isBold: true, fontSize: 36, icon: null, isCustomImage: false, iconSizeScale: 0.35 },
             bubbles: [
                 { text: "RAPPORTS\nTERRITORIAUX", color: "cumulusAscending", shape: "circle", size: 280, manualSize: false, textColor: "#000000", icon: null, isCustomImage: false, iconSizeScale: 0.35, children: [
                     { text: "Analyses", color: "grisGaletAscending", shape: "circle", size: 160, manualSize: false, textColor: "#000000", icon: null, isCustomImage: false, iconSizeScale: 0.35, children: [], ...defaultTypography, fontSize: 20 },
@@ -324,23 +374,42 @@
         function autoFitCurrentNode() { const n=getSelectedNode(); n.manualSize=false; n.size=calculateOptimalSize(n); document.getElementById('node-size').value=n.size; document.getElementById('size-val').textContent=n.size; renderSVG(); }
 
         function initGradientsAndSelect() { 
-            const d=document.getElementById('gradient-defs'), s=document.getElementById('node-color'); 
+            const d = document.getElementById('gradient-defs'), s = document.getElementById('node-color'); 
             const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
             filter.setAttribute('id', 'shadow'); filter.setAttribute('x', '-20%'); filter.setAttribute('y', '-20%'); filter.setAttribute('width', '140%'); filter.setAttribute('height', '140%');
             filter.innerHTML = '<feDropShadow dx="0" dy="6" stdDeviation="6" flood-opacity="0.1" flood-color="#000000"/>';
             d.appendChild(filter);
-            s.innerHTML='<option value="#FFFFFF">Blanc (Uni)</option>'; 
-            for(const[k,g]of Object.entries(PALETTE_GRADIENTS)){ 
-                const c=g.match(/#[a-fA-F0-9]{3,6}/gi); 
-                if(c){ 
-                    const lg=document.createElementNS('http://www.w3.org/2000/svg','linearGradient'); 
-                    lg.setAttribute('id','grad-'+k); lg.setAttribute('x1','0%'); lg.setAttribute('y1','0%'); lg.setAttribute('x2','100%'); lg.setAttribute('y2','100%'); 
-                    c.forEach((col,i)=>{ const st=document.createElementNS('http://www.w3.org/2000/svg','stop'); st.setAttribute('offset',(i/(c.length-1))*100+'%'); st.setAttribute('stop-color',col); lg.appendChild(st); }); 
-                    d.appendChild(lg); const o=document.createElement('option'); o.value=k; o.textContent=k; s.appendChild(o); 
-                } 
-            } 
-        }
+            
+            s.innerHTML = ''; 
 
+            // Groupe des Couleurs Unies
+            const optGroupSolid = document.createElement('optgroup');
+            optGroupSolid.label = "Couleurs Unies";
+            for(const [name, hex] of Object.entries(PALETTE_SOLID)){
+                const o = document.createElement('option'); o.value = hex; o.textContent = name; optGroupSolid.appendChild(o);
+            }
+            s.appendChild(optGroupSolid);
+
+            // Groupe des Dégradés
+            const optGroupGrad = document.createElement('optgroup');
+            optGroupGrad.label = "Dégradés DSFR";
+            for(const [k, g] of Object.entries(PALETTE_GRADIENTS)){ 
+                const c = g.match(/#[a-fA-F0-9]{3,6}/gi); 
+                if(c){ 
+                    const lg = document.createElementNS('http://www.w3.org/2000/svg','linearGradient'); 
+                    // Pour garder l'effet d'origine de VALOR, on l'oriente en diagonale
+                    lg.setAttribute('id', 'grad-' + k); lg.setAttribute('x1', '0%'); lg.setAttribute('y1', '0%'); lg.setAttribute('x2', '100%'); lg.setAttribute('y2', '100%'); 
+                    c.forEach((col, i) => { 
+                        const st = document.createElementNS('http://www.w3.org/2000/svg','stop'); 
+                        st.setAttribute('offset', (i / (c.length - 1)) * 100 + '%'); st.setAttribute('stop-color', col); lg.appendChild(st); 
+                    }); 
+                    d.appendChild(lg); 
+                    const o = document.createElement('option'); o.value = k; o.textContent = k; optGroupGrad.appendChild(o); 
+                } 
+            }
+            s.appendChild(optGroupGrad);
+        }
+        
         function initIconMenu() { const t=document.getElementById('icon-theme-select'); t.innerHTML='<option value="">-- Thème --</option>'; for(const k in dsfrIconsByCategory){ const o=document.createElement('option'); o.value=k; o.textContent=k.charAt(0).toUpperCase()+k.slice(1); t.appendChild(o); } }
         function populateIconSelect() { const t=document.getElementById('icon-theme-select').value, s=document.getElementById('icon-select'); s.innerHTML='<option value="">-- Icône --</option>'; document.getElementById('icon-preview').style.display='none'; if(t&&dsfrIconsByCategory[t]){ dsfrIconsByCategory[t].forEach(i=>{ const o=document.createElement('option'); o.value=i; o.textContent=i; s.appendChild(o); }); } }
         function getSelectedIconPath() { const t=document.getElementById('icon-theme-select').value, i=document.getElementById('icon-select').value; return (t&&i)?`${LIB_PREFIX}${t}/${i}.svg`:null; }
@@ -508,7 +577,7 @@
             }
             
             shapeEl.setAttribute('class', 'node-shape'); 
-            shapeEl.setAttribute('fill', nodeData.color === '#FFFFFF' ? '#FFFFFF' : `url(#grad-${nodeData.color})`);
+            shapeEl.setAttribute('fill', (nodeData.color && nodeData.color.startsWith('#')) ? nodeData.color : `url(#grad-${nodeData.color})`);
             shapeEl.setAttribute('stroke', isSelected ? '#000091' : 'rgba(0,0,0,0.1)');
             shapeEl.setAttribute('stroke-width', isSelected ? '4' : '1');
             shapeEl.setAttribute('filter', 'url(#shadow)');
