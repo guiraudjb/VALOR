@@ -522,28 +522,54 @@
         // CORRECTION: Fonction utilitaire pour récupérer un noeud directement par son ID (utile pour le redimensionnement fluide)
         function getNodeById(id) {
             if (id === 'center') return diagramData.center;
-            const p = id.split('-');
-            if (p.length === 1) return diagramData.bubbles[parseInt(p[0])];
-            return diagramData.bubbles[parseInt(p[0])].children[parseInt(p[1])];
+            const path = id.split('-');
+            let current = diagramData.bubbles[parseInt(path[0])];
+            for (let i = 1; i < path.length; i++) {
+                current = current.children[parseInt(path[i])];
+            }
+            return current;
         }
-
-        function updateSelectMenu() { const s=document.getElementById('node-select'), c=s.value; s.innerHTML='<option value="center">Bloc Central</option>'; diagramData.bubbles.forEach((b,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`Bulle ${i+1}: ${b.text.substring(0,15)}`; s.appendChild(o); b.children.forEach((sub,j)=>{ const os=document.createElement('option'); os.value=`${i}-${j}`; os.textContent=` ↳ Sous-bulle: ${sub.text.substring(0,10)}`; s.appendChild(os); }); }); s.value=Array.from(s.options).some(o=>o.value===c)?c:'center'; document.getElementById('btn-add-sub').disabled=(s.value==='center'||s.value.includes('-')); }
+        
+        function updateSelectMenu() { 
+            const s = document.getElementById('node-select'), c = s.value; 
+            s.innerHTML = '<option value="center">Bloc Central</option>'; 
+            
+            function buildOptions(nodes, parentId, depth) {
+                nodes.forEach((b, i) => { 
+                    const currentId = parentId ? `${parentId}-${i}` : `${i}`;
+                    const prefix = " ↳ ".repeat(depth);
+                    const o = document.createElement('option'); 
+                    o.value = currentId; 
+                    o.textContent = `${prefix}${depth === 0 ? 'Bulle '+(i+1) : 'Sous-bulle'}: ${b.text.substring(0,15).replace(/\n/g,' ')}`; 
+                    s.appendChild(o); 
+                    if (b.children && b.children.length > 0) buildOptions(b.children, currentId, depth + 1);
+                });
+            }
+            buildOptions(diagramData.bubbles, "", 0);
+            
+            s.value = Array.from(s.options).some(o => o.value === c) ? c : 'center'; 
+            
+            // On autorise l'ajout de sous-bulles PARTOUT sauf sur le centre
+            document.getElementById('btn-add-sub').disabled = (s.value === 'center');
+        }
+        
         function getSelectedNode() { const v=document.getElementById('node-select').value; return getNodeById(v); }
         
         function loadNodeData() { 
             // 1. Récupération de l'état de la sélection
             const selectValue = document.getElementById('node-select').value;
             const isCenter = selectValue === 'center';
-            const isSubBubble = selectValue.includes('-');
             
-            // 2. Gestion dynamique des boutons d'action (Désactivation contextuelle)
-            document.getElementById('btn-add-sub').disabled = (isCenter || isSubBubble);
+            // 2. Gestion dynamique des boutons d'action
+            // CORRECTION : On ne bloque plus la création si c'est une sous-bulle
+            document.getElementById('btn-add-sub').disabled = isCenter;
+            
             const deleteBtn = document.getElementById('btn-delete');
             if (deleteBtn) deleteBtn.disabled = isCenter; // Impossible de supprimer le centre
 
             // 3. Récupération des données du nœud ciblé
             const n = getSelectedNode(); 
-            if (!n) return; // Sécurité au cas où la référence n'existe pas
+            if (!n) return;
 
             // 4. Mise à jour des champs de texte et de forme
             document.getElementById('node-text').value = n.text || ""; 
@@ -602,11 +628,45 @@
         function selectNodeFromCanvas(id) { document.getElementById('node-select').value=id; loadNodeData(); renderSVG(); }
         
         function addMainBubble() { diagramData.bubbles.push({text:"NOUVELLE BULLE",color:"tournesolAscending",textColor:"#000000",shape:"circle",size:250,manualSize:false,icon:null, isCustomImage:false, iconSizeScale:0.35, children:[],...defaultTypography}); updateSelectMenu(); document.getElementById('node-select').value=(diagramData.bubbles.length-1).toString(); const n=diagramData.bubbles[diagramData.bubbles.length-1]; n.size=calculateOptimalSize(n); loadNodeData(); renderSVG(); resetZoom(); }
-        function addSubBubble() { const v=document.getElementById('node-select').value; if(v==='center'||v.includes('-'))return; const i=parseInt(v); diagramData.bubbles[i].children.push({text:"Détail",color:"grisGaletAscending",textColor:"#000000",shape:"circle",size:160,manualSize:false,icon:null, isCustomImage:false, iconSizeScale:0.35, ...defaultTypography, fontSize:20}); updateSelectMenu(); document.getElementById('node-select').value=`${i}-${diagramData.bubbles[i].children.length-1}`; const n=diagramData.bubbles[i].children[diagramData.bubbles[i].children.length-1]; n.size=calculateOptimalSize(n); loadNodeData(); renderSVG(); resetZoom(); }
-        function removeSelectedNode() { const v=document.getElementById('node-select').value; if(v==='center')return; const p=v.split('-'); if(p.length===1)diagramData.bubbles.splice(parseInt(p[0]),1); else diagramData.bubbles[parseInt(p[0])].children.splice(parseInt(p[1]),1); updateSelectMenu(); loadNodeData(); renderSVG(); resetZoom(); }
+        function addSubBubble() { 
+            const v = document.getElementById('node-select').value; 
+            if (v === 'center') return; 
+            
+            const parentNode = getNodeById(v);
+            if (!parentNode.children) parentNode.children = []; // Sécurité
+            
+            parentNode.children.push({
+                text: "Détail", color: "grisGaletAscending", textColor: "#000000", 
+                shape: "circle", size: 160, manualSize: false, icon: null, 
+                isCustomImage: false, iconSizeScale: 0.35, children: [], 
+                ...defaultTypography, fontSize: 20
+            }); 
+            
+            updateSelectMenu(); 
+            document.getElementById('node-select').value = `${v}-${parentNode.children.length - 1}`; 
+            const newNode = parentNode.children[parentNode.children.length - 1]; 
+            newNode.size = calculateOptimalSize(newNode); 
+            loadNodeData(); renderSVG(); resetZoom(); 
+        }
+        
+        function removeSelectedNode() { 
+            const v = document.getElementById('node-select').value; 
+            if (v === 'center') return; 
+            
+            const p = v.split('-'); 
+            if (p.length === 1) {
+                diagramData.bubbles.splice(parseInt(p[0]), 1); 
+            } else {
+                const indexToRemove = parseInt(p.pop()); // On retire le dernier index
+                const parentId = p.join('-'); // On reconstitue l'ID du parent
+                const parentNode = getNodeById(parentId);
+                parentNode.children.splice(indexToRemove, 1);
+            }
+            updateSelectMenu(); loadNodeData(); renderSVG(); resetZoom(); 
+        }
 
         // --- MOTEUR DE RENDU ET GESTION DES EVENEMENTS ---
-        let isDraggingNode=false, dragItemIndex=null, dragGhost=null, hoverItemIndex=null, dragOriginX=0, dragOriginY=0;
+        let isDraggingNode=false, dragItemId=null, dragGhost=null, hoverItemId=null, dragOriginX=0, dragOriginY=0;
         let isResizingIcon=false, resizeNodeId=null, initialIconScale=0, initialResizeY=0;
 
         window.addEventListener('pointermove', e => {
@@ -627,13 +687,34 @@
 
         window.addEventListener('pointerup', () => {
             if (isDraggingNode) {
-                isDraggingNode=false; if(dragGhost){dragGhost.remove();dragGhost=null;}
-                if(hoverItemIndex !== null && dragItemIndex !== null && hoverItemIndex !== dragItemIndex){ 
-                    saveState(); const b=diagramData.bubbles.splice(dragItemIndex,1)[0]; diagramData.bubbles.splice(hoverItemIndex,0,b);
+                isDraggingNode = false; 
+                if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+                
+                // Nouvelle logique de Drop : On déplace la bulle DANS la cible survolée (création de branches)
+                // Condition : on ne peut pas dropper une bulle dans elle-même ou dans l'un de ses propres enfants (!hoverItemId.startsWith)
+                if (hoverItemId !== null && dragItemId !== null && hoverItemId !== dragItemId && !hoverItemId.startsWith(dragItemId)) { 
+                    saveState();
+                    
+                    let draggedNode;
+                    const dragPath = dragItemId.split('-');
+                    
+                    // 1. On extrait la bulle de son ancien parent
+                    if (dragPath.length === 1) {
+                        draggedNode = diagramData.bubbles.splice(parseInt(dragPath[0]), 1)[0];
+                    } else {
+                        const dragIdx = dragPath.pop();
+                        const dragParent = getNodeById(dragPath.join('-'));
+                        draggedNode = dragParent.children.splice(parseInt(dragIdx), 1)[0];
+                    }
+                    
+                    // 2. On l'injecte dans son nouveau parent
+                    const hoverNode = getNodeById(hoverItemId);
+                    if (!hoverNode.children) hoverNode.children = [];
+                    hoverNode.children.push(draggedNode);
+                    
                     updateSelectMenu(); 
                 } 
-                // Nettoyage immédiat pour éviter le clignotement des bordures
-                dragItemIndex=null; hoverItemIndex=null;
+                dragItemId = null; hoverItemId = null;
                 renderSVG();
             } else if (isResizingIcon) {
                 saveState(); isResizingIcon = false; resizeNodeId = null;
@@ -697,8 +778,8 @@
             menu.style.left = `${e.clientX}px`;
             menu.style.top = `${e.clientY}px`;
             
-            // Désactiver l'ajout de sous-bulle si c'est déjà une sous-bulle
-            document.getElementById('cm-add-sub').disabled = (nodeId === 'center' || nodeId.includes('-'));
+            // CORRECTION : On autorise l'ajout de sous-bulle sur TOUS les éléments, sauf le centre
+            document.getElementById('cm-add-sub').disabled = (nodeId === 'center');
         }
 
         // Fermer le menu si on clique ailleurs sur l'écran
@@ -747,72 +828,79 @@
         function renderSVG() {
             const cG = document.getElementById('connectors'), nG = document.getElementById('nodes');
             cG.innerHTML = ''; nG.innerHTML = '';
-            const { orbitRadius } = calculateMaxExtent(), bCount = diagramData.bubbles.length || 1;
-            const dir = diagramData.direction === 'clockwise' ? 1 : -1, mStep = dir * (2 * Math.PI) / bCount, start = -Math.PI / 2; 
             
-            // Dessin du centre
             drawNode(nG, diagramData.center, 0, 0, 'center');
-            
-            // Dessin des bulles principales
-            diagramData.bubbles.forEach((b, i) => {
-                const a = start + i * mStep, bx = orbitRadius * Math.cos(a), by = orbitRadius * Math.sin(a);
-                
-                // Appel à drawCurve AVEC la couleur de la bulle cible (b.color)
-                drawCurve(cG, 0, 0, bx, by, b.color);
-                
-                const g = drawNode(nG, b, bx, by, i.toString()); g.setAttribute('class', 'node-group draggable');
-                const isSelected = (i.toString() === document.getElementById('node-select').value);
+            const dir = diagramData.direction === 'clockwise' ? 1 : -1;
 
-                // Événements de souris pour le Drag & Drop
+            // Fonction de dessin récursive (L'usine à fractales)
+            function drawBranch(node, idPath, cx, cy, startAngle, angleSpread, level) {
+                const isSelected = (idPath === document.getElementById('node-select').value);
+                const g = drawNode(nG, node, cx, cy, idPath);
+                g.setAttribute('class', 'node-group draggable');
+                
+                // Événements Drag & Drop adaptés aux ID complexes
                 g.onpointerdown = e => { 
                     if(e.target.classList.contains('resize-handle')) return; 
                     e.stopPropagation(); if(e.button!==0)return; 
-                    isDraggingNode=true; dragItemIndex=i; dragOriginX=bx; dragOriginY=by; hoverItemIndex=null; 
+                    isDraggingNode=true; dragItemId=idPath; dragOriginX=cx; dragOriginY=cy; hoverItemId=null; 
                     g.style.opacity='0.4'; dragGhost=g.cloneNode(true); dragGhost.style.opacity='0.7'; dragGhost.style.pointerEvents='none'; 
-                    document.getElementById('canvas').appendChild(dragGhost); selectNodeFromCanvas(i.toString()); 
+                    document.getElementById('canvas').appendChild(dragGhost); selectNodeFromCanvas(idPath); 
                 };
-                
-                // EFFET VISUEL : Entrée sur une cible de drop
                 g.onpointerenter = () => { 
-                    if(isDraggingNode && dragItemIndex !== null && dragItemIndex !== i){ 
-                        hoverItemIndex = i; 
+                    // Sécurité : Impossible de dropper sur soi-même ou sur ses enfants
+                    if(isDraggingNode && dragItemId && dragItemId !== idPath && !idPath.startsWith(dragItemId)){ 
+                        hoverItemId = idPath; 
                         const s = g.querySelector('.node-shape'); 
-                        if(s) {
-                            s.setAttribute('stroke', '#00A95F'); // Vert validation
-                            s.setAttribute('stroke-width', '6');
-                            g.style.transform = 'scale(1.05)'; // Agrandissement
-                        } 
+                        if(s) { s.setAttribute('stroke', '#00A95F'); s.setAttribute('stroke-width', '6'); g.style.transform = 'scale(1.05)'; } 
                     } 
                 };
-                
-                // EFFET VISUEL : Sortie de la cible
                 g.onpointerleave = () => { 
-                    if(isDraggingNode && dragItemIndex !== null && dragItemIndex !== i){ 
-                        if(hoverItemIndex === i) hoverItemIndex = null; 
+                    if(isDraggingNode && dragItemId && dragItemId !== idPath){ 
+                        if(hoverItemId === idPath) hoverItemId = null; 
                         const s = g.querySelector('.node-shape'); 
-                        if(s) {
-                            s.setAttribute('stroke', isSelected ? '#000091' : 'rgba(0,0,0,0.1)');
-                            s.setAttribute('stroke-width', isSelected ? '4' : '1');
-                            g.style.transform = ''; // Retour à la normale
-                        } 
+                        if(s) { s.setAttribute('stroke', isSelected ? '#000091' : 'rgba(0,0,0,0.1)'); s.setAttribute('stroke-width', isSelected ? '4' : '1'); g.style.transform = ''; } 
                     } 
                 };
 
-                // Dessin des sous-bulles
-                if (b.children.length > 0) {
-                    let mSS = Math.max(...b.children.map(s => Number(s.size) || 160));
-                    let sO = ((Number(b.size) || 250) / 2) + (mSS / 2) + 100, sA = Math.PI * 0.45;
-                    if (b.children.length === 1) sA = 0;
-                    let sS = a - (dir * sA / 2), st = b.children.length > 1 ? (dir * sA) / (b.children.length - 1) : 0;
+                // Descente dans les sous-niveaux
+                if (node.children && node.children.length > 0) {
+                    const count = node.children.length;
                     
-                    b.children.forEach((sub, j) => {
-                        let sa = sS + (j * st), sx = bx + sO * Math.cos(sa), sy = by + sO * Math.sin(sa);
-                        // Appel à drawCurve AVEC la couleur de la sous-bulle (sub.color)
-                        drawCurve(cG, bx, by, sx, sy, sub.color); 
-                        drawNode(nG, sub, sx, sy, `${i}-${j}`);
+                    // Calcul mathématique : plus on va profond, plus on s'éloigne, et plus l'angle de propagation se resserre
+                    const nextRadius = (Number(node.size)||250)/2 + 150 + (level * 30); 
+                    const nextSpread = angleSpread * 0.7; // On réduit l'éventail de 30% à chaque niveau
+                    
+                    let sAngle = startAngle - (dir * nextSpread / 2);
+                    let step = count > 1 ? (dir * nextSpread) / (count - 1) : 0;
+                    if (count === 1) sAngle = startAngle; // Si enfant unique, on tire tout droit
+
+                    node.children.forEach((sub, j) => {
+                        let a = sAngle + (j * step);
+                        let subX = cx + nextRadius * Math.cos(a);
+                        let subY = cy + nextRadius * Math.sin(a);
+                        
+                        drawCurve(cG, cx, cy, subX, subY, sub.color); // Ligne
+                        drawBranch(sub, `${idPath}-${j}`, subX, subY, a, nextSpread, level + 1); // Rendu du noeud (Récursion)
                     });
                 }
-            });
+            }
+
+            // Amorçage du niveau 1 (Les bulles principales attachées au centre)
+            if (diagramData.bubbles.length > 0) {
+                const count = diagramData.bubbles.length;
+                const { orbitRadius } = calculateMaxExtent();
+                const mStep = dir * (2 * Math.PI) / count;
+                const start = -Math.PI / 2; 
+                
+                diagramData.bubbles.forEach((b, i) => {
+                    const a = start + i * mStep;
+                    const bx = orbitRadius * Math.cos(a);
+                    const by = orbitRadius * Math.sin(a);
+                    drawCurve(cG, 0, 0, bx, by, b.color);
+                    // On lance la récursion avec un angle d'ouverture de 90° (Math.PI * 0.5)
+                    drawBranch(b, i.toString(), bx, by, a, Math.PI * 0.5, 1); 
+                });
+            }
         }
         
         // CORRECTION MAJEURE DE L'AFFICHAGE DU CONTENU
