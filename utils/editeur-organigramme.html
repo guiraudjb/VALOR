@@ -295,13 +295,19 @@
     </div>
 
     <script>
-        const PALETTE_SOLID = {
-            "Blanc Premium": "#FFFFFF",
+const PALETTE_SOLID = {
+            "Blanc": "#ffffff",
+            "Noir": "#161616",
+            "Gris": "#7b7b7b",
             "Bleu France": "#000091",
-            "Rouge Divergent": "#E91719",
-            "Vert Émeraude": "#00A95F",
+            "Rouge Marianne": "#e1000f",
+            "Info (Bleu)": "#0078f3",
+            "Succès (Vert)": "#1f8d49",
+            "Avertissement (Orange)": "#d64d00",
+            "Erreur (Rouge)": "#f60700",
             "Vert Tilleul-Verveine": "#B7A73F",
             "Vert Bourgeon": "#68A532",
+            "Vert Émeraude": "#00A95F",
             "Vert Menthe": "#009081",
             "Vert Archipel": "#009099",
             "Bleu Écume": "#465F9D",
@@ -309,58 +315,97 @@
             "Violet Glycine": "#A558A0",
             "Rose Macaron": "#E18B76",
             "Rose Tuile": "#CE614A",
-            "Orange Terre Battue": "#E4794A",
             "Jaune Tournesol": "#C8AA39",
             "Jaune Moutarde": "#C3992A",
+            "Orange Terre Battue": "#E4794A",
             "Marron Café Crème": "#D1B781",
             "Marron Caramel": "#C08C65",
             "Marron Opéra": "#BD987A",
-            "Beige Gris Galet": "#AEA397",
-            "Noir": "#000000"
+            "Beige Gris Galet": "#AEA397"
         };
 
         const PALETTE_GRADIENTS = {
+            // Dégradés spécifiques "Data VALOR" (conservés)
             sequentialDescending: "linear-gradient(to right, #e3e3fd, #000091)",
             sequentialAscending: "linear-gradient(to right, #000091, #e3e3fd)",
             divergentDescending: "linear-gradient(to right, #298641, #EFB900, #E91719)",
             divergentAscending: "linear-gradient(to right, #E91719, #EFB900, #298641)",
             categorical: "linear-gradient(to right, #5C68E5, #82B5F2, #29598F, #31A7AE, #81EEF5, #B478F1, #CFB1F5, #CECECE)",
+            
+            // --- Dégradés exhaustifs DSFR (Du ton 975 vers le ton Main/Sun) ---
+            
+            bleuFranceDescending: "linear-gradient(to right, #f5f5fe, #000091)",
+            bleuFranceAscending: "linear-gradient(to right, #000091, #f5f5fe)",
+            
+            rougeMarianneDescending: "linear-gradient(to right, #fef4f4, #e1000f)",
+            rougeMarianneAscending: "linear-gradient(to right, #e1000f, #fef4f4)",
+            
+            grisDescending: "linear-gradient(to right, #f6f6f6, #7b7b7b)",
+            grisAscending: "linear-gradient(to right, #7b7b7b, #f6f6f6)",
+            
+            infoDescending: "linear-gradient(to right, #f4f6ff, #0078f3)",
+            infoAscending: "linear-gradient(to right, #0078f3, #f4f6ff)",
+            
+            succesDescending: "linear-gradient(to right, #dffee6, #1f8d49)",
+            succesAscending: "linear-gradient(to right, #1f8d49, #dffee6)",
+            
+            avertissementDescending: "linear-gradient(to right, #fff4f3, #d64d00)",
+            avertissementAscending: "linear-gradient(to right, #d64d00, #fff4f3)",
+            
+            erreurDescending: "linear-gradient(to right, #fff4f4, #f60700)",
+            erreurAscending: "linear-gradient(to right, #f60700, #fff4f4)",
+
             tilleulVerveineDescending: "linear-gradient(to right, #fef7da, #B7A73F)",
             tilleulVerveineAscending: "linear-gradient(to right, #B7A73F, #fef7da)",
+            
             bourgeonDescending: "linear-gradient(to right, #e6feda, #68A532)",
             bourgeonAscending: "linear-gradient(to right, #68A532, #e6feda)",
+            
             emeraudeDescending: "linear-gradient(to right, #e3fdeb, #00A95F)",
             emeraudeAscending: "linear-gradient(to right, #00A95F, #e3fdeb)",
+            
             mentheDescending: "linear-gradient(to right, #dffdf7, #009081)",
             mentheAscending: "linear-gradient(to right, #009081, #dffdf7)",
+            
             archipelDescending: "linear-gradient(to right, #e5fbfd, #009099)",
             archipelAscending: "linear-gradient(to right, #009099, #e5fbfd)",
+            
             ecumeDescending: "linear-gradient(to right, #f4f6fe, #465F9D)",
             ecumeAscending: "linear-gradient(to right, #465F9D, #f4f6fe)",
+            
             cumulusDescending: "linear-gradient(to right, #f3f6fe, #417DC4)",
             cumulusAscending: "linear-gradient(to right, #417DC4, #f3f6fe)",
+            
             glycineDescending: "linear-gradient(to right, #fef3fd, #A558A0)",
             glycineAscending: "linear-gradient(to right, #A558A0, #fef3fd)",
+            
             macaronDescending: "linear-gradient(to right, #fef4f2, #E18B76)",
             macaronAscending: "linear-gradient(to right, #E18B76, #fef4f2)",
+            
             tuileDescending: "linear-gradient(to right, #fef4f3, #CE614A)",
             tuileAscending: "linear-gradient(to right, #CE614A, #fef4f3)",
+            
             terreBattueDescending: "linear-gradient(to right, #fef4f2, #E4794A)",
             terreBattueAscending: "linear-gradient(to right, #E4794A, #fef4f2)",
+            
             tournesolDescending: "linear-gradient(to right, #fef6e3, #C8AA39)",
             tournesolAscending: "linear-gradient(to right, #C8AA39, #fef6e3)",
+            
             moutardeDescending: "linear-gradient(to right, #fef5e8, #C3992A)",
             moutardeAscending: "linear-gradient(to right, #C3992A, #fef5e8)",
+            
             cafeCremeDescending: "linear-gradient(to right, #fbf6ed, #D1B781)",
             cafeCremeAscending: "linear-gradient(to right, #D1B781, #fbf6ed)",
+            
             caramelDescending: "linear-gradient(to right, #fbf5f2, #C08C65)",
             caramelAscending: "linear-gradient(to right, #C08C65, #fbf5f2)",
+            
             operaDescending: "linear-gradient(to right, #fbf5f2, #BD987A)",
             operaAscending: "linear-gradient(to right, #BD987A, #fbf5f2)",
-            grisGaletDescending: "linear-gradient(to right, #f9f8f6, #AEA397)",
-            grisGaletAscending: "linear-gradient(to right, #AEA397, #f9f8f6)"
+            
+            grisGaletDescending: "linear-gradient(to right, #f9f6f2, #AEA397)",
+            grisGaletAscending: "linear-gradient(to right, #AEA397, #f9f6f2)"
         };
-
         const defaultTypography = { fontFamily: "'Marianne', system-ui, sans-serif", fontSize: 26, isBold: false, isItalic: false, isStrike: false };
 
         let diagramData = {
@@ -378,20 +423,130 @@
 
         const LIB_PREFIX = "../libs/dsfr-v1.14.3/dist/icons/";
         const dsfrIconsByCategory = {
-            "business": ["briefcase-fill", "calculator-fill", "pie-chart-fill", "bar-chart-fill"],
-            "map": ["map-pin-2-fill", "earth-fill", "france-fill"],
-            "system": ["settings-5-fill", "question-fill"],
-            "document": ["file-text-fill", "folder-2-fill"]
-        };
+    // ------------------------------------
+    // 1. ICÔNES CLASSIQUES (18 catégories)
+    // ------------------------------------
+    "arrows": [
+        "corner-down-right-fill", "arrow-left-s-line", "arrow-left-circle-fill", "fr--arrow-right-s-line-double", "expand-left-right-line", "arrow-down-circle-line", "skip-up-fill", "corner-down-right-line", "corner-left-down-line", "arrow-up-s-line", "arrow-turn-forward-line", "arrow-up-down-fill", "expand-left-fill", "arrow-go-forward-line", "expand-up-down-line", "arrow-right-s-line", "contract-right-line", "corner-up-left-fill", "contract-left-right-fill", "skip-down-fill", "corner-right-up-line", "expand-right-line", "arrow-turn-forward-fill", "arrow-down-line", "corner-up-right-line", "skip-up-line", "arrow-up-s-fill", "corner-up-left-line", "arrow-left-up-line", "corner-right-down-fill", "skip-down-line", "arrow-left-circle-line", "expand-up-down-fill", "expand-right-fill", "arrow-turn-back-line", "arrow-down-s-fill", "arrow-turn-back-fill", "arrow-right-up-fill", "arrow-left-right-line", "arrow-right-circle-line", "arrow-right-circle-fill", "contract-up-down-line", "arrow-right-up-line", "corner-down-left-fill", "arrow-go-forward-fill", "corner-left-up-fill", "contract-right-fill", "fr--arrow-left-s-line-double", "expand-left-right-fill", "contract-up-down-fill", "arrow-down-circle-fill", "corner-left-down-fill", "arrow-down-s-line", "arrow-left-down-fill", "arrow-down-fill", "arrow-right-fill", "arrow-up-down-line", "corner-right-up-fill", "arrow-up-fill", "arrow-left-right-fill", "contract-left-fill", "contract-left-line", "arrow-left-line", "arrow-left-up-fill", "arrow-right-down-fill", "contract-left-right-line", "corner-down-left-line", "arrow-go-back-fill", "arrow-up-circle-line", "corner-up-right-fill", "arrow-right-s-fill", "arrow-left-fill", "expand-left-line", "arrow-up-circle-fill", "fr--arrow-left-s-first-line", "corner-right-down-line", "arrow-left-down-line", "arrow-right-down-line", "arrow-up-line", "arrow-left-s-fill", "arrow-right-line", "corner-left-up-line", "arrow-go-back-line", "fr--arrow-right-s-last-line"
+    ],
+    "buildings": [
+        "hospital-line", "ancient-gate-line", "community-line", "hospital-fill", "school-fill", "building-line", "building-fill", "home-office-fill", "tent-line", "store-line", "building-4-fill", "school-line", "home-4-line", "government-fill", "tent-fill", "government-line", "hotel-fill", "store-fill", "hotel-line", "home-office-line", "community-fill", "bank-fill", "ancient-pavilion-line", "building-4-line", "ancient-gate-fill", "ancient-pavilion-fill", "bank-line", "home-4-fill"
+    ],
+    "business": [
+        "profil-fill", "mail-close-line", "bar-chart-2-fill", "printer-fill", "bubble-chart-fill", "mail-check-fill", "calculator-fill", "pass-expired-fill", "copyright-line", "donut-chart-fill", "send-plane-line", "cloud-fill", "stack-line", "slideshow-fill", "award-fill", "calendar-close-line", "mail-open-line", "mail-volume-line", "megaphone-line", "pie-chart-2-line", "copyright-fill", "links-fill", "bar-chart-fill", "calendar-2-fill", "calendar-todo-fill", "megaphone-fill", "at-line", "bar-chart-line", "calendar-todo-line", "archive-line", "bar-chart-2-line", "mail-settings-line", "calendar-close-fill", "global-line", "mail-settings-fill", "mail-unread-line", "mail-fill", "inbox-2-line", "bar-chart-box-line", "briefcase-fill", "reply-fill", "links-line", "bar-chart-horizontal-line", "donut-chart-line", "calendar-event-line", "pass-valid-fill", "mail-star-fill", "global-fill", "window-2-line", "pie-chart-box-line", "shake-hands-line", "mail-forbid-line", "line-chart-line", "inbox-unarchive-line", "inbox-line", "reply-line", "mail-download-line", "bookmark-fill", "archive-drawer-line", "service-line", "cloud-off-fill", "flag-fill", "mail-unread-fill", "inbox-fill", "printer-cloud-line", "medal-line", "mail-open-fill", "service-fill", "bookmark-line", "cloud-off-line", "cloud-line", "bubble-chart-line", "presentation-fill", "archive-drawer-fill", "bar-chart-horizontal-fill", "customer-service-fill", "profil-line", "reply-all-fill", "mail-lock-line", "mail-volume-fill", "bar-chart-box-fill", "award-line", "record-mail-fill", "pie-chart-fill", "calculator-line", "pass-pending-fill", "mail-send-line", "calendar-fill", "calendar-check-line", "calendar-2-line", "mail-add-fill", "attachment-fill", "mail-download-fill", "printer-line", "pass-expired-line", "reply-all-line", "pass-pending-line", "record-mail-line", "honour-fill", "inbox-archive-fill", "stack-fill", "medal-fill", "inbox-2-fill", "shake-hands-fill", "mail-star-line", "mail-send-fill", "customer-service-line", "presentation-line", "pie-chart-line", "archive-fill", "at-fill", "calendar-check-fill", "window-line", "seo-line", "inbox-archive-line", "seo-fill", "pie-chart-2-fill", "projector-2-fill", "pass-valid-line", "mail-line", "briefcase-line", "window-fill", "slideshow-line", "pie-chart-box-fill", "mail-add-line", "projector-2-line", "flag-line", "send-plane-fill", "calendar-line", "window-2-fill", "mail-lock-fill", "attachment-line", "mail-forbid-fill", "mail-check-line", "inbox-unarchive-fill", "honour-line", "calendar-event-fill", "mail-close-fill", "printer-cloud-fill", "line-chart-fill"
+    ],
+    "communication": [
+        "chat-history-fill", "chat-check-fill", "chat-3-fill", "chat-3-line", "questionnaire-line", "chat-upload-fill", "discuss-line", "chat-follow-up-line", "chat-off-line", "chat-new-fill", "speak-fill", "chat-voice-line", "chat-follow-up-fill", "chat-voice-fill", "video-chat-line", "feedback-fill", "message-3-fill", "chat-off-fill", "chat-check-line", "chat-delete-fill", "chat-delete-line", "chat-2-line", "chat-new-line", "message-2-fill", "speak-line", "chat-download-fill", "chat-download-line", "discuss-fill", "chat-2-fill", "chat-quote-fill", "video-chat-fill", "message-3-line", "chat-private-fill", "chat-history-line", "chat-settings-line", "feedback-line", "emoji-sticker-fill", "chat-forward-line", "emoji-sticker-line", "chat-poll-fill", "chat-poll-line", "chat-forward-fill", "question-answer-fill", "chat-upload-line", "question-answer-line", "questionnaire-fill", "message-2-line", "chat-private-line", "chat-settings-fill", "chat-quote-line"
+    ],
+    "design": [
+        "square-line", "contrast-fill", "pentagon-line", "brush-fill", "layout-column-line", "table-alt-line", "focus-3-fill", "hexagon-line", "ink-bottle-line", "pencil-ruler-line", "anticlockwise-fill", "pencil-line", "anticlockwise-line", "layout-top-fill", "markup-fill", "markup-line", "layout-left-fill", "collage-fill", "slice-fill", "pen-nib-line", "table-line", "drag-move-2-line", "clockwise-line", "ball-pen-line", "hammer-fill", "layout-column-fill", "contrast-drop-2-line", "triangle-line", "compasses-2-fill", "palette-fill", "brush-line", "square-fill", "eraser-fill-1", "triangle-fill", "quill-pen-line", "edit-box-line", "focus-3-line", "pentagon-fill", "circle-fill", "eraser-fill", "crop-line", "palette-line", "rectangle-fill", "mark-pen-fill", "shapes-line", "hexagon-fill", "rectangle-line", "ink-bottle-fill", "magic-line", "layout-fill", "edit-line", "tools-fill", "layout-top-line", "layout-bottom-fill", "mark-pen-line", "layout-right-line", "drop-line", "pantone-line", "eraser-line", "artboard-line", "eraser-line-1", "ruler-fill", "edit-box-fill", "brush-3-line", "screenshot-2-fill", "layout-masonry-line", "crosshair-2-fill", "slice-line", "sip-fill", "drag-move-2-fill", "paint-brush-fill", "contrast-drop-2-fill", "grid-fill", "edit-circle-line", "layout-grid-line", "paint-brush-line", "edit-fill", "pantone-fill", "magic-fill", "drag-drop-line", "screenshot-2-line", "paint-line", "quill-pen-fill", "drop-fill", "pencil-ruler-fill", "scissors-cut-fill", "pencil-fill", "ruler-line", "scissors-cut-line", "crop-fill", "artboard-fill", "layout-line", "layout-grid-fill", "drag-drop-fill", "layout-row-fill", "shapes-fill", "blur-off-line", "octagon-fill", "clockwise-fill", "compasses-2-line", "scissors-fill", "layout-masonry-fill", "scissors-line", "layout-left-line", "sip-line", "hammer-line", "layout-right-fill", "tools-line", "contrast-line", "brush-3-fill", "paint-fill", "layout-bottom-line", "collage-line", "ball-pen-fill", "blur-off-fill", "shape-line", "octagon-line", "crosshair-2-line", "layout-row-line", "table-alt-fill", "circle-line", "edit-circle-fill", "grid-line", "shape-fill", "table-fill", "pen-nib-fill"
+    ],
+    "development": [
+        "git-repository-commits-line", "html5-fill", "css3-fill", "code-box-fill", "command-line", "code-line", "git-repository-commits-fill", "parentheses-fill", "javascript-line", "git-branch-line", "html5-line", "code-s-slash-line", "git-branch-fill", "git-repository-line", "git-commit-line", "code-box-line", "git-merge-line", "git-close-pull-request-line", "terminal-box-fill", "brackets-fill", "parentheses-line", "javascript-fill", "cursor-line", "git-pull-request-fill", "terminal-window-fill", "git-pull-request-line", "bug-line", "brackets-line", "cursor-fill", "bug-fill", "code-fill", "git-merge-fill", "braces-fill", "terminal-fill", "code-s-slash-fill", "git-repository-private-fill", "braces-line", "git-repository-private-line", "git-commit-fill", "css3-line", "terminal-window-line", "git-repository-fill", "terminal-line", "command-fill", "git-close-pull-request-fill", "terminal-box-line"
+    ],
+    "device": [
+        "rfid-line", "signal-wifi-error-line", "u-disk-fill", "bluetooth-connect-fill", "phone-lock-line", "router-line", "remote-control-2-line", "macbook-fill", "battery-charge-line", "base-station-fill", "wifi-line", "sd-card-fill", "device-recover-line", "uninstall-line", "install-line", "battery-fill", "uninstall-fill", "cast-line", "shut-down-line", "airplay-line", "router-fill", "usb-fill", "restart-fill", "scan-fill", "remote-control-2-fill", "barcode-fill", "computer-line", "radar-line", "airplay-fill", "cast-fill", "phone-line", "cpu-line", "save-3-line", "phone-fill", "mac-line", "qr-scan-fill", "sim-card-2-fill", "sd-card-mini-line", "gradienter-fill", "cpu-fill", "computer-fill", "gps-fill", "server-fill", "smartphone-line", "dashboard-3-line", "qr-code-fill", "wifi-fill", "signal-wifi-off-line", "rotate-lock-fill", "install-fill", "hard-drive-2-line", "usb-line", "u-disk-line", "tablet-line", "sim-card-2-line", "gradienter-line", "barcode-box-line", "signal-wifi-off-fill", "phone-find-fill", "sensor-line", "remote-control-line", "battery-low-line", "phone-find-line", "rfid-fill", "instance-line", "save-line", "device-line", "sd-card-mini-fill", "fingerprint-fill", "wireless-charging-line", "fingerprint-line", "cellphone-line", "hotspot-line", "tablet-fill", "device-recover-fill", "dashboard-3-fill", "database-line", "wifi-off-line", "rss-line", "bluetooth-connect-line", "battery-line", "shut-down-fill", "save-fill", "tv-line", "signal-wifi-fill", "signal-wifi-line", "battery-charge-fill", "qr-scan-line", "hard-drive-2-fill", "tv-fill", "database-fill", "radar-fill", "hotspot-fill", "bluetooth-fill", "cellphone-fill", "bluetooth-line", "mouse-line", "sd-card-line", "scan-line", "base-station-line", "barcode-box-fill", "macbook-line", "save-3-fill", "gamepad-line", "qr-code-line", "signal-wifi-error-fill", "barcode-line", "remote-control-fill", "sensor-fill", "battery-low-fill", "phone-lock-fill", "rotate-lock-line", "mouse-fill", "wireless-charging-fill", "restart-line", "server-line", "keyboard-line", "instance-fill", "wifi-off-fill", "smartphone-fill", "rss-fill", "gps-line", "gamepad-fill", "device-fill", "mac-fill", "keyboard-fill"
+    ],
+    "document": [
+        "book-2-fill", "file-fill", "article-line", "clipboard-line", "newspaper-fill", "file-download-line", "book-2-line", "draft-line", "file-text-line", "survey-fill", "clipboard-fill", "todo-fill", "booklet-line", "draft-fill", "file-add-line", "file-pdf-fill", "file-add-fill", "newspaper-line", "file-pdf-line", "file-line", "file-text-fill", "todo-line", "article-fill", "folder-2-fill", "survey-line", "file-download-fill", "folder-2-line", "booklet-fill"
+    ],
+    "editor": [
+        "fr--highlight", "underline", "list-check", "indent-increase", "subscript", "h-3", "strikethrough", "link-unlink", "italic", "hashtag", "align-center", "format-clear", "code-view", "fr--quote-fill", "h-6", "align-right", "h-4", "space", "align-justify", "code-block", "sort-asc", "superscript", "text-direction-r", "separator", "question-mark", "link", "font-color", "fr--bold", "h-5", "h-2", "list-ordered", "align-left", "list-unordered", "table-2", "sort-desc", "fr--quote-line", "font-size", "translate-2", "h-1", "indent-decrease"
+    ],
+    "finance": [
+        "money-euro-circle-fill", "bank-card-fill", "secure-payment-line", "bank-card-line", "secure-payment-fill", "gift-line", "shopping-bag-line", "trophy-fill", "gift-fill", "money-euro-circle-line", "shopping-bag-fill", "trophy-line", "money-euro-box-fill", "shopping-cart-2-fill", "shopping-cart-2-line", "money-euro-box-line", "coin-fill"
+    ],
+    "health": [
+        "heart-line", "virus-line", "syringe-line", "surgical-mask-line", "dislike-fill", "dossier-fill", "mental-health-fill", "syringe-fill", "test-tube-line", "psychotherapy-fill", "microscope-fill", "medicine-bottle-line", "capsule-line", "medicine-bottle-fill", "surgical-mask-fill", "stethoscope-fill", "first-aid-kit-fill", "dislike-line", "heart-fill", "health-book-fill", "virus-fill", "dossier-line", "heart-pulse-line", "microscope-line", "pulse-line", "health-book-line", "heart-pulse-fill", "test-tube-fill", "capsule-fill", "hand-sanitizer-fill", "mental-health-line", "lungs-fill", "first-aid-kit-line", "lungs-line", "psychotherapy-line", "thermometer-fill", "thermometer-line", "stethoscope-line", "hand-sanitizer-line"
+    ],
+    "logo": [
+        "google-line", "firefox-fill", "snapchat-line", "youtube-fill", "bluesky-fill", "twitter-x-fill", "telegram-line", "instagram-line", "firefox-line", "threads-fill", "vuejs-fill", "facebook-circle-fill", "twitter-line", "github-line", "npmjs-line", "twitter-x-line", "npmjs-fill", "mastodon-fill", "chrome-fill", "google-fill", "threads-line", "twitch-fill", "instagram-fill", "youtube-line", "telegram-fill", "safari-fill", "linkedin-box-line", "remixicon-fill", "slack-line", "twitch-line", "whatsapp-line", "vimeo-line", "fr--tiktok-fill", "fr--dailymotion-line", "slack-fill", "facebook-circle-line", "vimeo-fill", "safari-line", "fr--dailymotion-fill", "chrome-line", "twitter-fill", "edge-fill", "fr--tiktok-line", "bluesky-line", "ie-fill", "vuejs-line", "linkedin-box-fill", "edge-line", "mastodon-line", "ie-line", "github-fill", "whatsapp-fill", "snapchat-fill", "remixicon-line"
+    ],
+    "map": [
+        "gas-station-line", "bike-fill", "motorbike-fill", "earth-fill", "ship-2-fill", "anchor-fill", "passport-line", "cup-line", "map-pin-2-fill", "compass-3-fill", "france-fill", "bus-line", "france-line", "motorbike-line", "signal-tower-fill", "caravan-fill", "road-map-fill", "earth-line", "map-pin-user-fill", "map-pin-2-line", "sailboat-line", "train-line", "bike-line", "gas-station-fill", "signal-tower-line", "bus-fill", "charging-pile-2-line", "anchor-line", "compass-3-line", "goblet-fill", "passport-fill", "charging-pile-2-fill", "train-fill", "suitcase-2-fill", "restaurant-line", "taxi-fill", "taxi-line", "suitcase-2-line", "car-line", "cup-fill", "ship-2-line", "sailboat-fill", "car-fill", "caravan-line", "map-pin-user-line", "restaurant-fill", "road-map-line", "goblet-line"
+    ],
+    "media": [
+        "clapperboard-fill", "play-circle-line", "live-line", "image-add-line", "fullscreen-line", "headphone-line", "pause-circle-line", "camera-line", "volume-down-fill", "film-fill", "image-add-fill", "image-line", "mic-line", "volume-down-line", "equalizer-fill", "volume-up-line", "volume-mute-line", "image-fill", "volume-mute-fill", "live-fill", "notification-3-fill", "image-edit-fill", "stop-circle-line", "clapperboard-line", "music-2-line", "image-edit-line", "film-line", "gallery-fill", "camera-fill", "notification-3-line", "pause-circle-fill", "music-2-fill", "equalizer-line", "mic-fill", "play-circle-fill", "stop-circle-fill", "volume-up-fill", "headphone-fill", "gallery-line"
+    ],
+    "others": [
+        "fr--ear-off-fill", "leaf-line", "fr--ear-off-line", "lightbulb-fill", "umbrella-line", "fr--accessibility-fill", "scales-3-fill", "seedling-line", "scales-3-line", "recycle-fill", "wheelchair-fill", "recycle-line", "fr--sign-language-fill", "fr--mental-disabilities-fill", "seedling-fill", "lightbulb-line", "plant-line", "plant-fill", "fr--accessibility-line", "fr--mental-disabilities-line", "leaf-fill", "wheelchair-line", "fr--sign-language-line", "umbrella-fill"
+    ],
+    "system": [
+        "zoom-in-line", "menu-fill", "zoom-in-fill", "close-circle-fill", "alert-line", "fr--capslock-line", "star-s-line", "filter-fill", "add-circle-line", "download-fill", "information-fill", "fr--error-line", "lock-unlock-line", "lock-fill", "shield-fill", "upload-2-fill", "add-line", "error-warning-fill", "checkbox-circle-line", "question-line", "fr--theme-fill", "checkbox-fill", "download-line", "share-line", "fr--success-line", "checkbox-line", "star-s-fill", "fr--warning-line", "eye-off-line", "subtract-line", "time-line", "thumb-down-fill", "share-fill", "refresh-fill", "delete-bin-fill", "fr--alert-warning-2-fill", "fr--error-fill", "settings-5-fill", "filter-line", "check-line", "lock-line", "star-line", "menu-2-fill", "search-line", "thumb-up-line", "close-circle-line", "checkbox-circle-fill", "fr--info-line", "thumb-down-line", "upload-2-line", "eye-line", "close-line", "fr--equal-circle-fill", "external-link-line", "fr--success-fill", "eye-fill", "delete-bin-line", "timer-line", "share-forward-line", "zoom-out-line", "upload-fill", "logout-box-r-fill", "time-fill", "information-line", "timer-fill", "star-fill", "external-link-fill", "error-warning-line", "search-fill", "notification-badge-fill", "alarm-warning-line", "logout-box-r-line", "fr--warning-fill", "share-forward-fill", "upload-line", "alert-fill", "settings-5-line", "fr--info-fill", "notification-badge-line", "fr--alert-warning-fill", "shield-line", "question-fill", "alarm-warning-fill", "eye-off-fill", "more-line", "refresh-line", "zoom-out-fill", "more-fill", "lock-unlock-fill", "add-circle-fill", "thumb-up-fill"
+    ],
+    "user": [
+        "account-pin-circle-line", "admin-line", "user-star-fill", "user-star-line", "account-circle-fill", "user-search-line", "user-add-fill", "user-add-line", "parent-fill", "team-fill", "admin-fill", "user-heart-fill", "user-line", "user-setting-fill", "account-pin-circle-fill", "team-line", "user-setting-line", "group-fill", "account-circle-line", "parent-line", "user-search-fill", "group-line", "user-fill", "user-heart-line"
+    ],
+    "weather": [
+        "fr--avalanches-line", "heavy-showers-line", "fire-fill", "snowy-line", "sun-line", "fr--submersion-fill", "windy-line", "moon-fill", "sun-fill", "flood-fill", "fr--submersion-line", "thunderstorms-fill", "fr--avalanches-fill", "windy-fill", "cloudy-2-fill", "tornado-line", "sparkling-2-line", "moon-line", "flood-line", "temp-cold-line", "tornado-fill", "flashlight-line", "sparkling-2-fill", "typhoon-line", "fire-line", "flashlight-fill", "typhoon-fill", "heavy-showers-fill", "thunderstorms-line", "cloudy-2-line", "temp-cold-fill", "snowy-fill"
+    ],
 
+    // ------------------------------------
+    // 2. PICTOGRAMMES (10 catégories)
+    // ------------------------------------
+    "picto-accessibility": [
+        "eye-off", "ear-off", "accessibility", "wheelchair", "mental-disabilities"
+    ],
+    "picto-buildings": [
+        "school", "city-hall", "nuclear-plant", "factory", "house", "companie", "base"
+    ],
+    "picto-digital": [
+        "ecosystem", "smartphone", "data-visualization", "internet", "in-progress", "search", "mail-send", "application", "avatar", "innovation", "calendar", "coding", "self-training"
+    ],
+    "picto-document": [
+        "national-identity-card-passport", "document", "contract", "presse-card", "document-signature", "conclusion", "document-search", "tax-stamp", "international-driving-license", "binders", "archive", "document-download", "sign-document", "document-add", "driving-licence", "international-driving-license-new", "vehicle-registration", "national-identity-card", "passport", "driving-license-new"
+    ],
+    "picto-environment": [
+        "sun", "moon", "mountain", "grocery", "leaf", "environment", "human-cooperation", "tree", "food"
+    ],
+    "picto-health": [
+        "medical-research", "health", "hospital", "doctor", "virus", "vaccine"
+    ],
+    "picto-institutions": [
+        "firefighter", "astronaut", "justice", "navy-bachi", "police", "navy-anchor", "gendarmerie", "money", "army-tank"
+    ],
+    "picto-leisure": [
+        "community", "art", "catalog", "book", "pictures", "video-games", "audio", "paint", "podcast", "video", "culture", "digital-art"
+    ],
+    "picto-map": [
+        "map", "travel-back", "compass", "location-france", "backpack", "location-overseas-france", "map-pin", "airport", "luggage"
+    ],
+    "picto-system": [
+        "success", "technical-error", "notification", "flow-settings", "warning", "padlock", "error", "language", "information", "connection-lost", "flow-list", "system"
+    ]
+};
         let historyPast = []; let historyFuture = []; const MAX_HISTORY = 30;
+        const customImageRegistry = {}; // NOUVEAU : Dictionnaire stockant les images lourdes hors de l'historique
         function saveState() { historyPast.push(JSON.stringify(diagramData)); if(historyPast.length>MAX_HISTORY)historyPast.shift(); historyFuture=[]; updateHistoryUI(); }
         function undo() { if(historyPast.length===0)return; historyFuture.push(JSON.stringify(diagramData)); diagramData=JSON.parse(historyPast.pop()); updateHistoryUI(); updateSelectMenu(); loadNodeData(); renderSVG(); }
         function redo() { if(historyFuture.length===0)return; historyPast.push(JSON.stringify(diagramData)); diagramData=JSON.parse(historyFuture.pop()); updateHistoryUI(); updateSelectMenu(); loadNodeData(); renderSVG(); }
         function updateHistoryUI() { document.getElementById('btn-undo').disabled = historyPast.length===0; document.getElementById('btn-redo').disabled = historyFuture.length===0; }
         
-        function exportProject() { const d="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(diagramData)); const a=document.createElement('a'); a.href=d; a.download="projet_valor.valor"; a.click(); }
-        function importProject(e) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=async(ev)=>{try{saveState(); diagramData=JSON.parse(ev.target.result); await initDefaultIcons(); updateSelectMenu(); loadNodeData(); renderSVG(); resetZoom();}catch(err){alert("Fichier invalide.");}}; r.readAsText(f); }
+        function exportProject() { 
+    // On exporte le schéma ET le registre des images
+    const exportData = { version: 2, diagramData: diagramData, customImageRegistry: customImageRegistry };
+    const d="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(exportData)); 
+    const a=document.createElement('a'); a.href=d; a.download="projet_valor.valor"; a.click(); 
+}
+
+function importProject(e) { 
+    const f=e.target.files[0]; if(!f)return; 
+    const r=new FileReader(); 
+    r.onload=async(ev)=>{
+        try {
+            saveState(); 
+            const parsed = JSON.parse(ev.target.result); 
+            if (parsed.version === 2) {
+                diagramData = parsed.diagramData; // Nouveau format
+                Object.assign(customImageRegistry, parsed.customImageRegistry || {});
+            } else {
+                diagramData = parsed; // Rétrocompatibilité ancien format
+            }
+            await initDefaultIcons(); updateSelectMenu(); loadNodeData(); renderSVG(); resetZoom();
+        } catch(err) { alert("Fichier invalide."); }
+    }; 
+    r.readAsText(f); 
+}
         document.addEventListener('keydown', e => { if(e.ctrlKey && e.key==='z'){e.preventDefault();undo();} if(e.ctrlKey && e.key==='y'){e.preventDefault();redo();} });
 
         let vbX=0, vbY=0, vbWidth=1600, vbHeight=1200, isPanningView=false, startPanClientX=0, startPanClientY=0, startVbX=0, startVbY=0;
@@ -498,7 +653,23 @@
         
         function initIconMenu() { const t=document.getElementById('icon-theme-select'); t.innerHTML='<option value="">-- Thème --</option>'; for(const k in dsfrIconsByCategory){ const o=document.createElement('option'); o.value=k; o.textContent=k.charAt(0).toUpperCase()+k.slice(1); t.appendChild(o); } }
         function populateIconSelect() { const t=document.getElementById('icon-theme-select').value, s=document.getElementById('icon-select'); s.innerHTML='<option value="">-- Icône --</option>'; document.getElementById('icon-preview').style.display='none'; if(t&&dsfrIconsByCategory[t]){ dsfrIconsByCategory[t].forEach(i=>{ const o=document.createElement('option'); o.value=i; o.textContent=i; s.appendChild(o); }); } }
-        function getSelectedIconPath() { const t=document.getElementById('icon-theme-select').value, i=document.getElementById('icon-select').value; return (t&&i)?`${LIB_PREFIX}${t}/${i}.svg`:null; }
+        function getSelectedIconPath() {
+    const theme = document.getElementById('icon-theme-select').value;
+    const icon = document.getElementById('icon-select').value;
+    
+    // Aiguillage pour les pictogrammes
+    if (theme.startsWith('picto-')) {
+        const subTheme = theme.replace('picto-', ''); // on retire le préfixe
+        return `../libs/dsfr-v1.14.3/dist/artwork/pictograms/${subTheme}/${icon}.svg`;
+    } 
+    // Aiguillage pour les artworks isolés à la racine
+    else if (theme === 'artwork-divers') {
+        return `../libs/dsfr-v1.14.3/dist/artwork/${icon}.svg`;
+    }
+    
+    // Comportement par défaut (les icônes classiques)
+    return `../libs/dsfr-v1.14.3/dist/icons/${theme}/${icon}.svg`;
+}
         function updateIconPreview() { const p=document.getElementById('icon-preview'), path=getSelectedIconPath(); if(path){p.src=path;p.style.display='block';}else{p.style.display='none';} }
         
         async function applyIcon() { 
@@ -508,16 +679,27 @@
         function removeIcon() { const n=getSelectedNode(); n.icon=null; n.iconBase64=null; n.isCustomImage=false; renderSVG(); }
 
         function uploadCustomImage(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                saveState(); const node = getSelectedNode(); node.icon = "custom"; node.iconBase64 = e.target.result; node.isCustomImage = true;
-                node.iconSizeScale = node.iconSizeScale || 0.35;
-                loadNodeData(); renderSVG();
-            };
-            reader.readAsDataURL(file); event.target.value = "";
-        }
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        saveState(); 
+        const node = getSelectedNode(); 
+        
+        // On crée un ID unique pour l'image
+        const imageId = 'img_' + Date.now();
+        customImageRegistry[imageId] = e.target.result; // Stockage dans le registre global
+        
+        node.icon = "custom"; 
+        node.customImageId = imageId; // La bulle ne stocke plus que l'ID (très léger)
+        node.iconBase64 = null; // On vide l'ancienne méthode pour soulager la RAM
+        node.isCustomImage = true;
+        node.iconSizeScale = node.iconSizeScale || 0.35;
+        
+        loadNodeData(); renderSVG();
+    };
+    reader.readAsDataURL(file); event.target.value = "";
+}
 
         // CORRECTION: Fonction utilitaire pour récupérer un noeud directement par son ID (utile pour le redimensionnement fluide)
         function getNodeById(id) {
@@ -601,11 +783,11 @@
             previewImg.style.display = 'none'; 
             
             // 7.2 Remplissage selon le contenu du nœud
-            if (n.icon === "custom" && n.iconBase64) { 
-                // Cas d'une image importée depuis l'ordinateur
-                previewImg.src = n.iconBase64; 
+            if (n.icon === "custom" && n.customImageId && customImageRegistry[n.customImageId]) { 
+                // Cas d'une image importée depuis l'ordinateur (via le registre)
+                previewImg.src = customImageRegistry[n.customImageId]; 
                 previewImg.style.display = 'block'; 
-            } else if (n.icon) { 
+            } else if (n.icon && n.icon !== "custom") {
                 // Cas d'une icône DSFR de la bibliothèque
                 const parts = n.icon.split('/'); 
                 if (parts.length >= 2) { 
@@ -668,6 +850,7 @@
         // --- MOTEUR DE RENDU ET GESTION DES EVENEMENTS ---
         let isDraggingNode=false, dragItemId=null, dragGhost=null, hoverItemId=null, dragOriginX=0, dragOriginY=0;
         let isResizingIcon=false, resizeNodeId=null, initialIconScale=0, initialResizeY=0;
+        let activeResizeImage=null, activeResizeHandle=null;
 
         window.addEventListener('pointermove', e => {
             const s=document.getElementById('canvas'), pt=s.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
@@ -676,51 +859,90 @@
             if (isDraggingNode && dragGhost) {
                 dragGhost.setAttribute('transform',`translate(${svgP.x-dragOriginX}, ${svgP.y-dragOriginY})`);
             } else if (isResizingIcon && resizeNodeId) {
-                // CORRECTION: On récupère la vraie bulle en cours de redimensionnement, pas celle du menu.
                 const node = getNodeById(resizeNodeId); 
                 const dy = svgP.y - initialResizeY;
                 const newScale = Math.max(0.05, Math.min(0.9, initialIconScale + (dy / node.size)));
                 node.iconSizeScale = newScale;
-                renderSVG();
+                
+                // NOUVEAU : Mise à jour DOM directe (sans appeler renderSVG)
+                if (activeResizeImage && activeResizeHandle) {
+                    const bSize = Number(node.size) || 200;
+                    const newIconSize = bSize * newScale;
+                    
+                    const currentX = Number(activeResizeImage.getAttribute('x'));
+                    const currentW = Number(activeResizeImage.getAttribute('width'));
+                    const cx = currentX + (currentW / 2);
+                    const currentY = Number(activeResizeImage.getAttribute('y'));
+
+                    // On applique les nouvelles dimensions visuelles instantanément
+                    activeResizeImage.setAttribute('x', cx - newIconSize / 2);
+                    activeResizeImage.setAttribute('width', newIconSize);
+                    activeResizeImage.setAttribute('height', newIconSize);
+                    
+                    activeResizeHandle.setAttribute('x', cx + newIconSize / 2 - 6);
+                    activeResizeHandle.setAttribute('y', currentY + newIconSize - 6);
+                }
             }
         });
 
         window.addEventListener('pointerup', () => {
-            if (isDraggingNode) {
-                isDraggingNode = false; 
-                if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+    if (isDraggingNode) {
+        isDraggingNode = false; 
+        
+        if (dragGhost) { 
+            // Correction Bug 4 : Ajout du tiret pour éviter le faux positif sur les dizaines ("10" vs "1-")
+            if (hoverItemId !== null && dragItemId !== null && hoverItemId !== dragItemId && !hoverItemId.startsWith(dragItemId + '-')) { 
+                saveState();
                 
-                // Nouvelle logique de Drop : On déplace la bulle DANS la cible survolée (création de branches)
-                // Condition : on ne peut pas dropper une bulle dans elle-même ou dans l'un de ses propres enfants (!hoverItemId.startsWith)
-                if (hoverItemId !== null && dragItemId !== null && hoverItemId !== dragItemId && !hoverItemId.startsWith(dragItemId)) { 
-                    saveState();
-                    
-                    let draggedNode;
-                    const dragPath = dragItemId.split('-');
-                    
-                    // 1. On extrait la bulle de son ancien parent
-                    if (dragPath.length === 1) {
-                        draggedNode = diagramData.bubbles.splice(parseInt(dragPath[0]), 1)[0];
-                    } else {
-                        const dragIdx = dragPath.pop();
-                        const dragParent = getNodeById(dragPath.join('-'));
-                        draggedNode = dragParent.children.splice(parseInt(dragIdx), 1)[0];
-                    }
-                    
-                    // 2. On l'injecte dans son nouveau parent
+                let draggedNode;
+                const dragPath = dragItemId.split('-');
+                
+                // 1. DÉFINITION DE LA CIBLE (Correction Bug 5 & Bug 6)
+                // On prépare le tableau de destination AVANT de modifier quoi que ce soit
+                let targetArray;
+                if (hoverItemId === 'center') {
+                    // Si on lâche sur le centre, la bulle est promue au rang principal
+                    targetArray = diagramData.bubbles;
+                } else {
                     const hoverNode = getNodeById(hoverItemId);
                     if (!hoverNode.children) hoverNode.children = [];
-                    hoverNode.children.push(draggedNode);
-                    
-                    updateSelectMenu(); 
-                } 
-                dragItemId = null; hoverItemId = null;
-                renderSVG();
-            } else if (isResizingIcon) {
-                saveState(); isResizingIcon = false; resizeNodeId = null;
+                    targetArray = hoverNode.children;
+                }
+                
+                // 2. EXTRACTION DE LA SOURCE
+                if (dragPath.length === 1) {
+                    draggedNode = diagramData.bubbles.splice(parseInt(dragPath[0]), 1)[0];
+                } else {
+                    const dragIdx = dragPath.pop();
+                    const dragParent = getNodeById(dragPath.join('-'));
+                    draggedNode = dragParent.children.splice(parseInt(dragIdx), 1)[0];
+                }
+                
+                // 3. INJECTION
+                // L'index d'origine n'a plus d'importance, la destination est déjà verrouillée
+                targetArray.push(draggedNode);
+                
+                updateSelectMenu(); 
             }
-        });
+            
+            dragGhost.remove(); 
+            dragGhost = null; 
+        }
         
+        dragItemId = null; 
+        hoverItemId = null;
+        renderSVG();
+        
+    } else if (isResizingIcon) {
+            saveState(); 
+            isResizingIcon = false; 
+            resizeNodeId = null;
+            activeResizeImage = null;
+            activeResizeHandle = null;
+            renderSVG(); // RE-RENDU FINAL : Recentre parfaitement le texte et la nouvelle icône
+        }
+});
+
         // --- INTERACTIONS DIRECTES SUR LE CANEVAS ---
         let contextMenuNodeId = null;
 
@@ -825,67 +1047,57 @@
             parent.appendChild(p);
         }
 
-        function renderSVG() {
+function renderSVG() {
             const cG = document.getElementById('connectors'), nG = document.getElementById('nodes');
             cG.innerHTML = ''; nG.innerHTML = '';
             
-            drawNode(nG, diagramData.center, 0, 0, 'center');
             const dir = diagramData.direction === 'clockwise' ? 1 : -1;
+            
+            // --- 1. PHASE DE COLLECTE (Calcul des positions théoriques) ---
+            let layoutNodes = [];
+            let connections = []; // On stocke les liens pour les tracer après la relaxation
 
-            // Fonction de dessin récursive (L'usine à fractales)
-            function drawBranch(node, idPath, cx, cy, startAngle, angleSpread, level) {
-                const isSelected = (idPath === document.getElementById('node-select').value);
-                const g = drawNode(nG, node, cx, cy, idPath);
-                g.setAttribute('class', 'node-group draggable');
+            // Point d'ancrage central
+            layoutNodes.push({
+                id: 'center', data: diagramData.center,
+                x: 0, y: 0, 
+                r: (Number(diagramData.center.size) || 300) / 2, 
+                level: 0
+            });
+
+            function computeBranch(node, idPath, cx, cy, startAngle, angleSpread, level, parentId) {
+                const bSize = Number(node.size) || 250;
                 
-                // Événements Drag & Drop adaptés aux ID complexes
-                g.onpointerdown = e => { 
-                    if(e.target.classList.contains('resize-handle')) return; 
-                    e.stopPropagation(); if(e.button!==0)return; 
-                    isDraggingNode=true; dragItemId=idPath; dragOriginX=cx; dragOriginY=cy; hoverItemId=null; 
-                    g.style.opacity='0.4'; dragGhost=g.cloneNode(true); dragGhost.style.opacity='0.7'; dragGhost.style.pointerEvents='none'; 
-                    document.getElementById('canvas').appendChild(dragGhost); selectNodeFromCanvas(idPath); 
-                };
-                g.onpointerenter = () => { 
-                    // Sécurité : Impossible de dropper sur soi-même ou sur ses enfants
-                    if(isDraggingNode && dragItemId && dragItemId !== idPath && !idPath.startsWith(dragItemId)){ 
-                        hoverItemId = idPath; 
-                        const s = g.querySelector('.node-shape'); 
-                        if(s) { s.setAttribute('stroke', '#00A95F'); s.setAttribute('stroke-width', '6'); g.style.transform = 'scale(1.05)'; } 
-                    } 
-                };
-                g.onpointerleave = () => { 
-                    if(isDraggingNode && dragItemId && dragItemId !== idPath){ 
-                        if(hoverItemId === idPath) hoverItemId = null; 
-                        const s = g.querySelector('.node-shape'); 
-                        if(s) { s.setAttribute('stroke', isSelected ? '#000091' : 'rgba(0,0,0,0.1)'); s.setAttribute('stroke-width', isSelected ? '4' : '1'); g.style.transform = ''; } 
-                    } 
-                };
+                // On enregistre le noeud
+                layoutNodes.push({
+                    id: idPath, data: node,
+                    x: cx, y: cy, 
+                    r: (bSize / 2),
+                    level: level, parentId: parentId
+                });
 
-                // Descente dans les sous-niveaux
+                // On enregistre la connexion
+                connections.push({ source: parentId, target: idPath, color: node.color });
+
                 if (node.children && node.children.length > 0) {
                     const count = node.children.length;
-                    
-                    // Calcul mathématique : plus on va profond, plus on s'éloigne, et plus l'angle de propagation se resserre
-                    const nextRadius = (Number(node.size)||250)/2 + 150 + (level * 30); 
-                    const nextSpread = angleSpread * 0.7; // On réduit l'éventail de 30% à chaque niveau
+                    const nextRadius = (bSize / 2) + 150 + (level * 30); 
+                    const nextSpread = angleSpread * 0.7; 
                     
                     let sAngle = startAngle - (dir * nextSpread / 2);
                     let step = count > 1 ? (dir * nextSpread) / (count - 1) : 0;
-                    if (count === 1) sAngle = startAngle; // Si enfant unique, on tire tout droit
+                    if (count === 1) sAngle = startAngle;
 
                     node.children.forEach((sub, j) => {
                         let a = sAngle + (j * step);
                         let subX = cx + nextRadius * Math.cos(a);
                         let subY = cy + nextRadius * Math.sin(a);
-                        
-                        drawCurve(cG, cx, cy, subX, subY, sub.color); // Ligne
-                        drawBranch(sub, `${idPath}-${j}`, subX, subY, a, nextSpread, level + 1); // Rendu du noeud (Récursion)
+                        computeBranch(sub, `${idPath}-${j}`, subX, subY, a, nextSpread, level + 1, idPath);
                     });
                 }
             }
 
-            // Amorçage du niveau 1 (Les bulles principales attachées au centre)
+            // Amorçage depuis les bulles principales
             if (diagramData.bubbles.length > 0) {
                 const count = diagramData.bubbles.length;
                 const { orbitRadius } = calculateMaxExtent();
@@ -896,13 +1108,90 @@
                     const a = start + i * mStep;
                     const bx = orbitRadius * Math.cos(a);
                     const by = orbitRadius * Math.sin(a);
-                    drawCurve(cG, 0, 0, bx, by, b.color);
-                    // On lance la récursion avec un angle d'ouverture de 90° (Math.PI * 0.5)
-                    drawBranch(b, i.toString(), bx, by, a, Math.PI * 0.5, 1); 
+                    computeBranch(b, i.toString(), bx, by, a, Math.PI * 0.5, 1, 'center'); 
                 });
             }
+
+            // --- 2. PHASE D'ANTICOLLISION (Moteur de relaxation) ---
+            const ITERATIONS = 50;  // Nombre de passages de l'algorithme
+            const PADDING = 40;     // Marge de respiration en pixels entre chaque bulle
+
+            for (let iter = 0; iter < ITERATIONS; iter++) {
+                for (let i = 0; i < layoutNodes.length; i++) {
+                    for (let j = i + 1; j < layoutNodes.length; j++) {
+                        let n1 = layoutNodes[i];
+                        let n2 = layoutNodes[j];
+                        
+                        let dx = n2.x - n1.x;
+                        let dy = n2.y - n1.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // La distance minimale autorisée est la somme des rayons + le padding
+                        let minDist = n1.r + n2.r + PADDING;
+
+                        if (dist < minDist) {
+                            // Sécurité anti-superposition stricte (division par zéro)
+                            if (dist === 0) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; dist = Math.sqrt(dx*dx + dy*dy); }
+                            
+                            // Calcul de la force de répulsion
+                            let overlap = minDist - dist;
+                            let pushX = (dx / dist) * overlap * 0.5;
+                            let pushY = (dy / dist) * overlap * 0.5;
+
+                            // Application de la force (Le centre est inamovible)
+                            if (n1.id === 'center') {
+                                n2.x += pushX * 2; n2.y += pushY * 2;
+                            } else if (n2.id === 'center') {
+                                n1.x -= pushX * 2; n1.y -= pushY * 2;
+                            } else {
+                                n1.x -= pushX; n1.y -= pushY;
+                                n2.x += pushX; n2.y += pushY;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- 3. PHASE DE DESSIN ---
+            // On trace d'abord les lignes avec les coordonnées stabilisées
+            connections.forEach(conn => {
+                const sourceNode = layoutNodes.find(n => n.id === conn.source);
+                const targetNode = layoutNodes.find(n => n.id === conn.target);
+                if (sourceNode && targetNode) {
+                    drawCurve(cG, sourceNode.x, sourceNode.y, targetNode.x, targetNode.y, conn.color);
+                }
+            });
+
+            // On dessine ensuite les noeuds
+            layoutNodes.forEach(n => {
+                const isSelected = (n.id === document.getElementById('node-select').value);
+                const g = drawNode(nG, n.data, n.x, n.y, n.id);
+                g.setAttribute('class', 'node-group draggable');
+                
+                // Maintien du Drag & Drop et des effets de survol
+                g.onpointerdown = e => { 
+                    if(e.target.classList.contains('resize-handle')) return; 
+                    e.stopPropagation(); if(e.button!==0)return; 
+                    isDraggingNode=true; dragItemId=n.id; dragOriginX=n.x; dragOriginY=n.y; hoverItemId=null; 
+                    g.style.opacity='0.4'; dragGhost=g.cloneNode(true); dragGhost.style.opacity='0.7'; dragGhost.style.pointerEvents='none'; 
+                    document.getElementById('canvas').appendChild(dragGhost); selectNodeFromCanvas(n.id); 
+                };
+                g.onpointerenter = () => { 
+                    if(isDraggingNode && dragItemId && dragItemId !== n.id && !n.id.startsWith(dragItemId)){ 
+                        hoverItemId = n.id; 
+                        const s = g.querySelector('.node-shape'); 
+                        if(s) { s.setAttribute('stroke', '#00A95F'); s.setAttribute('stroke-width', '6'); g.style.transform = 'scale(1.05)'; } 
+                    } 
+                };
+                g.onpointerleave = () => { 
+                    if(isDraggingNode && dragItemId && dragItemId !== n.id){ 
+                        if(hoverItemId === n.id) hoverItemId = null; 
+                        const s = g.querySelector('.node-shape'); 
+                        if(s) { s.setAttribute('stroke', isSelected ? '#000091' : 'rgba(0,0,0,0.1)'); s.setAttribute('stroke-width', isSelected ? '4' : '1'); g.style.transform = ''; } 
+                    } 
+                };
+            });
         }
-        
         // CORRECTION MAJEURE DE L'AFFICHAGE DU CONTENU
         function drawNode(parent, nodeData, x, y, nodeId) {
             const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -916,7 +1205,7 @@
             const isSelected = (nodeId === document.getElementById('node-select').value);
             
             const lines = (nodeData.text || "").split('\n');
-            const hasIcon = nodeData.iconBase64 && nodeData.iconBase64 !== "";
+            const hasIcon = (nodeData.iconBase64 && nodeData.iconBase64 !== "") || (nodeData.isCustomImage && nodeData.customImageId && customImageRegistry[nodeData.customImageId]);
             const scale = nodeData.iconSizeScale || 0.35;
             const iconSize = hasIcon ? bSize * scale : 0;
             const padding = 15;
@@ -964,7 +1253,10 @@
                 img.setAttribute('x', cx - iconSize / 2); img.setAttribute('y', currentDrawY); 
                 img.setAttribute('width', iconSize); img.setAttribute('height', iconSize);
                 img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-                img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', nodeData.iconBase64);
+                
+                // Récupération intelligente de la source (Registre ou Base64 classique)
+                const imgSrc = nodeData.isCustomImage ? customImageRegistry[nodeData.customImageId] : nodeData.iconBase64;
+                img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', imgSrc);
                 if (!nodeData.isCustomImage) img.setAttribute('style', nodeData.textColor === '#FFFFFF' ? 'filter: invert(1) brightness(2);' : '');
                 group.appendChild(img);
 
@@ -976,6 +1268,11 @@
                     handle.onpointerdown = (e) => {
                         e.stopPropagation(); isResizingIcon = true; resizeNodeId = nodeId;
                         initialIconScale = scale;
+                        
+                        // NOUVEAU : Capture des éléments DOM pour la mise à jour ultra-rapide
+                        activeResizeImage = img;
+                        activeResizeHandle = handle;
+
                         const s=document.getElementById('canvas'), pt=s.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
                         const ctm=s.getScreenCTM(); if(ctm) initialResizeY = pt.matrixTransform(ctm.inverse()).y;
                     };
