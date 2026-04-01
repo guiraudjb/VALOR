@@ -26,9 +26,9 @@ export const REG_NAMES = {
   "06": "MAYOTTE",
   "07": "SAINT-BARTHELEMY",
   "08": "SAINT-MARTIN",
-  "09": "WALLIS-ET-FUTUNA",
-  "10": "POLYNESIE FRANCAISE",
-  "12": "NOUVELLE-CALEDONIE" // (Le 11 est déjà pris par l'Île-de-France)
+  //"09": "WALLIS-ET-FUTUNA",
+  //"10": "POLYNESIE FRANCAISE",
+  //"12": "NOUVELLE-CALEDONIE" // (Le 11 est déjà pris par l'Île-de-France)
 };
 
 export const DEP_NAMES = {
@@ -136,11 +136,11 @@ export const DEP_NAMES = {
   976: "MAYOTTE",
   977: "SAINT-BARTHELEMY",
   978: "SAINT-MARTIN",
-  984: "TERRES AUSTRALES ET ANTARCTIQUES FRANCAISES",
-  986: "WALLIS-ET-FUTUNA",
-  987: "POLYNESIE FRANCAISE",
-  988: "NOUVELLE-CALEDONIE",
-  989: "ILE DE CLIPPERTON"
+  //984: "TERRES AUSTRALES ET ANTARCTIQUES FRANCAISES",
+  //986: "WALLIS-ET-FUTUNA",
+  //987: "POLYNESIE FRANCAISE",
+  //988: "NOUVELLE-CALEDONIE",
+  //989: "ILE DE CLIPPERTON"
 };
 
 export const REGIONS_LIST = [
@@ -165,9 +165,9 @@ export const REGIONS_LIST = [
   { code: "06", label: "Mayotte" },
   { code: "07", label: "Saint-Barthélemy" },
   { code: "08", label: "Saint-Martin" },
-  { code: "09", label: "Wallis-et-Futuna" },
-  { code: "10", label: "Polynésie Française" },
-  { code: "12", label: "Nouvelle-Calédonie" }
+  //{ code: "09", label: "Wallis-et-Futuna" },
+  //{ code: "10", label: "Polynésie Française" },
+  //{ code: "12", label: "Nouvelle-Calédonie" }
 ];
 
 export const DEFAULT_DELEGATIONS = [
@@ -202,10 +202,10 @@ export const DEFAULT_DELEGATIONS = [
       "975", 
       "977",
       "978",
-      "984",
-      "986",
-      "987",
-      "988" // Ajout des COM manquantes
+      //"984",
+      //"986",
+      //"987",
+      //"988" // Ajout des COM manquantes
     ],
   },
   {
